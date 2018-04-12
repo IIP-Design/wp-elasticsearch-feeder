@@ -38,6 +38,10 @@ class Language_Helper {
   }
 
   public function load_languages() {
+    if (defined('DOING_AJAX') && DOING_AJAX) {
+      $this->languages = get_option('cdp_languages');
+      if ($this->languages) return;
+    }
     global $feeder;
     if ( !$feeder ) return;
     $args = [
@@ -53,6 +57,7 @@ class Language_Helper {
         $this->languages[$lang->locale] = $lang;
       }
     }
+    update_option('cdp_languages', $this->languages);
   }
 
   public function get_languages() {
