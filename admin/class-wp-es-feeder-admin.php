@@ -96,14 +96,15 @@ class wp_es_feeder_Admin {
   }
 
   function add_admin_cdp_taxonomy() {
-
     $options = get_option($this->plugin_name);
     $es_post_types = $options['es_post_types']?$options['es_post_types']:null;
     $screens = array();
     if ( $es_post_types ) {
       foreach($es_post_types as $key=>$value){
         if ($value) {
-          array_push($screens, $key);
+          $taxes = get_object_taxonomies($key) ?: [];
+          if (!in_array('category', $taxes))
+            array_push($screens, $key);
         }
       }
     }
