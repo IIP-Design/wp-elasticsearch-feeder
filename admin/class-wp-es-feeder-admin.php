@@ -14,7 +14,7 @@ class wp_es_feeder_Admin {
     global $post, $feeder;
     wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/wp-es-feeder-admin.css',
       array(), $this->version, 'all' );
-    if ( $hook == 'post.php' && in_array($post->post_type, $feeder->get_allowed_post_types()) ) {
+    if ( ( $hook == 'post.php' || $hook == 'post-new.php' ) && in_array($post->post_type, $feeder->get_allowed_post_types()) ) {
       wp_enqueue_style('chosen', plugin_dir_url(__FILE__) . 'css/chosen.css');
     }
 
@@ -42,12 +42,12 @@ class wp_es_feeder_Admin {
     wp_enqueue_script($this->plugin_name);
 
 
-    if ( $hook == 'post.php' && in_array($post->post_type, $feeder->get_allowed_post_types()) ) {
+    if ( ($hook == 'post.php' || $hook == 'post-new.php') && in_array($post->post_type, $feeder->get_allowed_post_types()) ) {
       wp_enqueue_script('chosen', plugin_dir_url(__FILE__) . 'js/chosen.jquery.min.js', array('jquery'), null);
       $handle = $this->plugin_name . '-sync-status';
       wp_register_script( $handle, plugin_dir_url( __FILE__ ) . 'js/wp-es-feeder-admin-post.js',
         array( 'jquery' ), false, false );
-      wp_localize_script($handle, 'es_feeder_sync_status_post_id', $post->ID);
+      wp_localize_script($handle, 'es_feeder_sync_status', array('post_id' => $post ? $post->ID : null));
       wp_enqueue_script($handle);
     }
   }
