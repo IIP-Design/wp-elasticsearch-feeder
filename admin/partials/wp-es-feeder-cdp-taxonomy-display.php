@@ -1,5 +1,5 @@
 <?php
-$index_to_cdp = get_post_meta($post->ID, '_iip_index_post_to_cdp_option', true);
+$index_to_cdp = get_post_meta($post->ID, '_iip_index_post_to_cdp_option', true) ?: true;
 $selected = get_post_meta($post->ID, '_iip_taxonomy_terms', true) ?: array();
 function displayLevel($terms, $selected, $parent = null) {
   foreach ($terms as $term): $id = $term->_id . ($parent ? "<$parent->_id" : ''); ?>

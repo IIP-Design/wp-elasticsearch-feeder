@@ -553,7 +553,16 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
         'method' => 'GET',
         'url' => 'taxonomy?tree'
       ];
-      return $this->es_request($args);
+      $data = $this->es_request($args);
+      if ($data) {
+          if (is_object($data) && $data->error)
+              return [];
+          if (is_array($data) && array_key_exists('error', $data) && $data['error'])
+              return [];
+          else if (is_array($data))
+              return $data;
+      }
+      return [];
     }
 
     public function get_allowed_post_types() {
