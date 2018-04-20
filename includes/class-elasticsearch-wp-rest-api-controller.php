@@ -246,11 +246,7 @@ if ( !class_exists( 'WP_ES_FEEDER_REST_Controller' ) ) {
         $post_data[ 'taxonomies' ] = $custom_taxonomies;
       }
 
-      $feature_image_exists = has_post_thumbnail( $post->ID );
-      if ( $feature_image_exists ) {
-//        $post_data[ 'featured_image' ] = ES_API_HELPER::get_featured_image( get_post_thumbnail_id( $post->ID ) );
-        $post_data[ 'thumbnail' ] = ES_API_HELPER::get_image_size_array( get_post_thumbnail_id( $post->ID ) ) ?: [];
-      } else $post_data[ 'thumbnail' ] = [];
+      $post_data[ 'thumbnail' ] = ES_API_HELPER::get_image_size_array( get_post_thumbnail_id( $post->ID ) );
 
       if ( isset( $post->comment_count ) ) {
         $post_data[ 'comment_count' ] = (int)$post->comment_count;
