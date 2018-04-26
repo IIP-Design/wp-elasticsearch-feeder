@@ -68,7 +68,7 @@
 							<span>* If using domain mapping, mapped URLs will appear in dropdown.</span>
 						</div>
 
-						<h2><span><?php esc_attr_e( 'Elasticsearch Server URL', 'wp_admin_style' ); ?></span></h2>
+						<h2><span><?php esc_attr_e( 'API Server URL', 'wp_admin_style' ); ?></span></h2>
 						<div class="inside">
 							<input type="text" placeholder="http://localhost:9200/" class="regular-text" id="es_url" name="<?php echo $this->plugin_name; ?>[es_url]" value="<?php if(!empty($es_url)) echo $es_url; ?>"/>
 							<!--<span class="description"><?php esc_attr_e( 'It must include the trailing slash "/"', 'wp_admin_style' ); ?></span><br>-->
