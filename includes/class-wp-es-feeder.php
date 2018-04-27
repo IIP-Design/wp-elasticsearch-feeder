@@ -285,6 +285,7 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
       update_post_meta($post_id, '_cdp_last_sync', date('Y-m-d H:i:s'));
       $post = get_post($post_id);
       $resp = $this->addOrUpdate($post, false);
+      if (!$resp) $resp = 'ERROR: Connection failed.';
       $query = "SELECT COUNT(*) as total, SUM(meta_value) as incomplete FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_queue'";
       $row = $wpdb->get_row($query);
       echo json_encode(array('done' => 0, 'response' => $resp, 'total' => $row->total, 'complete' => $row->total - $row->incomplete));
