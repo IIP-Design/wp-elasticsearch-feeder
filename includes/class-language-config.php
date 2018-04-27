@@ -13,7 +13,7 @@ class Language_Helper {
     $this->backup_lang = (object) array(
       'language_code' => 'en',
       'locale' => 'en-us',
-      'text_direction' => false,
+      'text_direction' => 'ltr',
       'display_name' => 'English',
       'native_name' => 'English'
     );
@@ -28,6 +28,27 @@ class Language_Helper {
       return null;
     }
     return $this->languages[strtolower($locale)];
+  }
+
+  public function get_language_by_code( $code ) {
+    $code = strtolower($code);
+    if ($code === 'en') $code = 'en-us';
+    if ( !$this->languages ) $this->load_languages();
+    if ( !$this->languages || !count($this->languages)) {
+      if ( $code == 'en-us' ) return $this->backup_lang;
+      return null;
+    }
+    $code_match = null;
+    $locale_match = null;
+    foreach ($this->languages as $lang) {
+      if (strtolower($lang->locale) === $code)
+        $locale_match = $lang;
+      if (strtolower($lang->language_code) === $code)
+        $code_match = $lang;
+    }
+    if ($locale_match)
+      return $locale_match;
+    return $code_match;
   }
 
   public function get_language_by_meta_field( $id, $meta_field ) {
@@ -62,7 +83,28 @@ class Language_Helper {
 
   public function get_languages() {
     if ( !$this->languages ) $this->load_languages();
-    if ( !$this->languages || !count($this->languages)) return ['en' => $this->backup_lang];
+    if ( !$this->languages || !count($this->languages)) return ['en' => $this->backup_lang, 'en-us' => $this->backup_lang];
     return $this->languages;
   }
+
+  public function get_translations($post_id) {
+    global $wpdb;
+    if ( !function_exists( 'icl_object_id' ) ) return [];
+    $query = "SELECT trid, element_type FROM {$wpdb->prefix}icl_translations WHERE element_id = $post_id";
+    $vars = $wpdb->get_row($query);
+    if (!$vars || !$vars->trid || !$vars->element_type) return [];
+    $query = "SELECT element_id, language_code FROM {$wpdb->prefix}icl_translations WHERE trid = $vars->trid AND element_type = '$vars->element_type' AND element_id != $post_id";
+    $results = $wpdb->get_results($query);
+    $translations = [];
+    foreach ($results as $result) {
+      $lang = $this->get_language_by_code($result->language_code);
+      if (!$lang) continue;
+      $translations[] = [
+        'post_id' => $result->element_id,
+        'language' => $lang
+      ];
+    }
+    return $translations;
+  }
+
 }
