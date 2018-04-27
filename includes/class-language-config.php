@@ -102,7 +102,7 @@ class Language_Helper {
       $status = get_post_status($result->element_id);
       if ($status !== 'publish') continue;
       $sync = get_post_meta($result->element_id, '_iip_index_post_to_cdp_option', true);
-      if ($sync !== 'yes') continue;
+      if ($sync === 'no') continue;
       $translations[] = [
         'post_id' => $result->element_id,
         'language' => $lang
