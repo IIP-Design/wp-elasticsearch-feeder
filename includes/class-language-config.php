@@ -99,6 +99,10 @@ class Language_Helper {
     foreach ($results as $result) {
       $lang = $this->get_language_by_code($result->language_code);
       if (!$lang) continue;
+      $status = get_post_status($result->element_id);
+      if ($status !== 'publish') continue;
+      $sync = get_post_meta($result->element_id, '_iip_index_post_to_cdp_option', true);
+      if ($sync !== 'yes') continue;
       $translations[] = [
         'post_id' => $result->element_id,
         'language' => $lang
