@@ -82,23 +82,8 @@ if ( !class_exists( 'ES_API_HELPER' ) ) {
     }
 
     public static function get_related_translated_posts( $id, $post_type ) {
-      global $sitepress;
-      if ( $sitepress ) {
-        // @todo Move all language related info to Language helper
-        $languages = array('en', 'es', 'fr', 'pt-br', 'ru', 'ar', 'zh-hans', 'fa', 'id', 'pt-pt');
-        $translations = array();
-
-        foreach ($languages as $language) {
-          $tmp = icl_object_id($id, $post_type, false, $language);
-          if ($tmp !== null) {
-            $translations[] = array(
-              'language' => $language,
-              'id' => icl_object_id($id, $post_type, false, $language)
-            );
-          }
-        }
-        return $translations;
-      }
+      global $cdp_language_helper;
+      return $cdp_language_helper->get_translations( $id );
     }
 
     public static function get_categories( $id ) {
