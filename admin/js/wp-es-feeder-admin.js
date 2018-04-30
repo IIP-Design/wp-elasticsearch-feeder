@@ -5,7 +5,8 @@
     total: 0,
     complete: 0,
     post: null,
-    paused: false
+    paused: false,
+    results: null
   };
 
   var last_heartbeat = null;
@@ -207,16 +208,29 @@
    * @param result
    */
   function handleQueueResult(result) {
+    console.log( result );
     if (result.error || result.done) {
       clearProgress();
     } else {
       sync.complete = result.complete;
       sync.total = result.total;
-      sync.post = result.response.req;
+      if (result.response) {
+        sync.post = result.response.req;
+        sync.results = null;
+      } else if (result.results) {
+        sync.results = result.results;
+        sync.post = null;
+      } else {
+        sync.results = null;
+        sync.post = null;
+      }
       updateProgress();
       processQueue();
     }
-    $('#es_output').prepend(JSON.stringify(result, null, 2) + "\r\n\r\n");
+    if (result.results)
+      $( '#es_output' ).html( (result.results.length > 0 ? JSON.stringify( result.results, null, 2 ) : 'No errors.') );
+    else if (result.response)
+      $('#es_output').prepend(JSON.stringify(result, null, 2) + "\r\n\r\n");
   }
 
   /**
@@ -245,6 +259,8 @@
    * Remove progress bar and state UI.
    */
   function clearProgress() {
+    sync.results = null;
+    sync.post = null;
     $('.index-spinner').empty();
     $('.progress-wrapper').empty();
     $('#es_resync_control').hide();
