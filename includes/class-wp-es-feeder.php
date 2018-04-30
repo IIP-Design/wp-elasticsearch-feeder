@@ -242,6 +242,7 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
     public function es_initiate_sync() {
       global $wpdb;
       $wpdb->delete($wpdb->postmeta, array('meta_value' => '_cdp_sync_queue'));
+      $query = '';
       if (isset($_POST['sync_errors']) && $_POST['sync_errors']) {
         $errors = $this->check_sync_errors();
         $post_ids = $errors['ids'];
@@ -263,8 +264,7 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
         exit;
       }
       foreach ($post_ids as $post_id)
-        update_post_meta($post_id, '_cdp_sync_queue', 1);
-
+        $wpdb->insert($wpdb->postmeta, array('post_id' => $post_id, 'meta_key' => '_cdy_sync_queue', 'meta_value' => 1));
       echo json_encode(array('done' => 0, 'response' => null, 'results' => null, 'total' => count($post_ids), 'complete' => 0));
       exit;
       //$this->es_process_next();
