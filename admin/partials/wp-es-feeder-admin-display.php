@@ -130,6 +130,7 @@
                             <button class="button-secondary" type="button" id="es_query_index" name="es_query_index"><?php esc_attr_e( 'Query Index' ); ?></button>
                             <button class="button-secondary" type="button" id="es_resync" name="es_reindex"><?php esc_attr_e( 'Re-sync Data' ); ?></button>
                             <button class="button-secondary" type="button" id="es_resync_errors" name="es_resync_errors"><?php esc_attr_e( 'Fix Errors' ); ?></button>
+                            <button class="button-secondary" type="button" id="es_validate_sync" name="es_validate_sync"><?php esc_attr_e( 'Validate' ); ?></button>
                             <button class="button-primary" type="button" id="es_resync_control" name="es_resync_control" style="display: none;">Pause</button>
 <!--							<input class="button-secondary" type="button" id="es_delete_index" name="es_delete_index" value="--><?php //esc_attr_e( 'Delete Index' ); ?><!--" />-->
 						</div>

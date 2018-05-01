@@ -23,6 +23,7 @@
     $('#es_resync').on('click', resyncStart(0));
     $('#es_resync_errors').on('click', resyncStart(1));
     $('#es_resync_control').on('click', resyncControl);
+    $('#es_validate_sync').on('click', validateSync);
 
     console.log(es_feeder_sync);
     sync.total = parseInt(es_feeder_sync.total);
@@ -84,6 +85,46 @@
     })
   }
 
+  function validateSync() {
+    var unpause = false;
+    if (!sync.paused) {
+      unpause = true;
+      resyncControl();
+    }
+    clearProgress();
+    $('#es_output').text('');
+    var html = '<div class="spinner is-active spinner-animation">';
+    html += '<span class="spinner-text">Validating...</span>';
+    html += '</div>';
+    $('.index-spinner').html(html);
+    disableManage();
+    $.ajax( {
+      timeout: 120000,
+      url: ajaxurl,
+      type: 'POST',
+      dataType: 'JSON',
+      data: {
+        _wpnonce: $( '#_wpnonce' ).val(),
+        action: 'es_validate_sync'
+      },
+      success: function ( result ) {
+        clearProgress();
+        createProgress();
+        $('#es_output').text(JSON.stringify(result, null, 2));
+        if (unpause) resyncControl();
+        else updateProgress();
+      },
+      error: function ( result ) {
+        console.error( result );
+        clearProgress();
+        createProgress();
+        $('#es_output').text(JSON.stringify(result, null, 2));
+        if (unpause) resyncControl();
+        else updateProgress();
+      }
+    } ).always(enableManage);
+  }
+
   /**
    * Send a basic request to the provided URL and print the response in the output container.
    */
@@ -142,7 +183,7 @@
       updateProgress();
       disableManage();
       $.ajax( {
-        timeout: 5*60*1000,
+        timeout: 120000,
         url: ajaxurl,
         type: 'POST',
         dataType: 'JSON',
