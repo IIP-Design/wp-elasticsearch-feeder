@@ -158,7 +158,15 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
       } while ($result && $result->hits && count($result->hits->hits));
 
       if (count($modifieds)) {
-        $query = "SELECT ID, post_modified FROM $wpdb->posts WHERE ID IN (" . implode( ',', array_keys( $modifieds ) ) . ")";
+        $opts = get_option( $this->plugin_name );
+        $post_types = $opts[ 'es_post_types' ];
+        $formats = implode(',', array_fill(0, count($post_types), '%s'));
+        $query = "SELECT p.ID, p.post_modified 
+                  FROM $wpdb->posts p 
+                      LEFT JOIN (SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_status') ms ON p.ID = ms.post_id
+                      LEFT JOIN (SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '_iip_index_post_to_cdp_option') m ON p.ID = m.post_id
+                  WHERE p.post_type IN ($formats) AND p.post_status = 'publish' AND (m.meta_value IS NULL OR m.meta_value != 'no')";
+        $query = $wpdb->prepare($query, array_keys($post_types));
         $rows = $wpdb->get_results($query);
         foreach ($rows as $row) {
           if (array_key_exists($row->ID, $modifieds)) {
