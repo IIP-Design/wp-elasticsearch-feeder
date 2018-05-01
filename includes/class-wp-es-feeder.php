@@ -70,6 +70,7 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
       add_action( 'wp_ajax_es_initiate_sync', array($this, 'es_initiate_sync') );
       add_action( 'wp_ajax_es_process_next', array($this, 'es_process_next') );
       add_action( 'wp_ajax_es_truncate_logs', array($this, 'truncate_logs') );
+      add_action( 'wp_ajax_es_validate_sync', array($this, 'validate_sync') );
 
       add_filter( 'heartbeat_received', array($this, 'heartbeat'), 10, 2 );
     }
@@ -125,6 +126,71 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
         file_put_contents($log, '');
       echo 1;
       exit;
+    }
+
+    public function validate_sync() {
+      set_time_limit(600);
+      global $wpdb;
+      $from = 0;
+      $size = 5;
+      $result = null;
+      $modifieds = [];
+      $stats = ['updated' => 0, 'es_missing' => 0, 'wp_missing' => 0, 'mismatched' => 0];
+      do {
+        $request = [
+          'url' => 'search',
+          'method' => 'POST',
+          'body' => [
+            'query' => 'site:' . $this->get_site(),
+            'include' => ['post_id', 'modified'],
+            'size' => $size,
+            'from' => $from
+          ],
+          'print' => false
+        ];
+        $result = $this->es_request($request);
+        if ($result && $result->hits && count($result->hits->hits)) {
+          foreach ($result->hits->hits as $hit) {
+            $modifieds[$hit->_source->post_id] = $hit->_source->modified;
+          }
+        }
+        $from += $size;
+      } while ($result && $result->hits && count($result->hits->hits));
+
+      if (count($modifieds)) {
+        $opts = get_option( $this->plugin_name );
+        $post_types = $opts[ 'es_post_types' ];
+        $formats = implode(',', array_fill(0, count($post_types), '%s'));
+        $query = "SELECT p.ID, p.post_modified 
+                  FROM $wpdb->posts p 
+                      LEFT JOIN (SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_status') ms ON p.ID = ms.post_id
+                      LEFT JOIN (SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '_iip_index_post_to_cdp_option') m ON p.ID = m.post_id
+                  WHERE p.post_type IN ($formats) AND p.post_status = 'publish' AND (m.meta_value IS NULL OR m.meta_value != 'no')";
+        $query = $wpdb->prepare($query, array_keys($post_types));
+        $rows = $wpdb->get_results($query);
+        foreach ($rows as $row) {
+          if (array_key_exists($row->ID, $modifieds)) {
+            if ($modifieds[$row->ID] == mysql2date('c', $row->post_modified))
+              update_post_meta($row->ID, '_cdp_sync_status', ES_FEEDER_SYNC::SYNCED);
+            else {
+              update_post_meta( $row->ID, '_cdp_sync_status', ES_FEEDER_SYNC::ERROR );
+              $stats['mismatched']++;
+            }
+            unset($modifieds[$row->ID]);
+          } else {
+            update_post_meta($row->ID, '_cdp_sync_status', ES_FEEDER_SYNC::ERROR);
+            $stats['es_missing']++;
+          }
+          $stats['updated']++;
+        }
+        $stats['wp_missing'] = count($modifieds);
+      }
+
+      if (defined('DOING_AJAX') && DOING_AJAX) {
+        wp_send_json($stats);
+        exit;
+      }
+      return $stats;
     }
 
     /**
