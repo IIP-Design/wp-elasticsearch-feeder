@@ -131,7 +131,7 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
     public function validate_sync() {
       set_time_limit(600);
       global $wpdb;
-      $size = 5;
+      $size = 500;
       $result = null;
       $modifieds = [];
       $stats = ['updated' => 0, 'es_missing' => 0, 'wp_missing' => 0, 'mismatched' => 0];
