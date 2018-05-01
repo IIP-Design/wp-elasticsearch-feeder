@@ -80,6 +80,10 @@
      animation: move 2s linear infinite;
  }
 
+ #progress-bar.paused > span:after {
+     animation: none;
+ }
+
  @keyframes expandWidth {
      0% { width: 0; }
      /*100% { width: auto; }*/

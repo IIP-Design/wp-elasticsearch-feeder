@@ -264,7 +264,7 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
         exit;
       }
       foreach ($post_ids as $post_id)
-        $wpdb->insert($wpdb->postmeta, array('post_id' => $post_id, 'meta_key' => '_cdy_sync_queue', 'meta_value' => 1));
+        $wpdb->insert($wpdb->postmeta, array('post_id' => $post_id, 'meta_key' => '_cdp_sync_queue', 'meta_value' => 1));
       echo json_encode(array('done' => 0, 'response' => null, 'results' => null, 'total' => count($post_ids), 'complete' => 0));
       exit;
       //$this->es_process_next();
@@ -277,8 +277,10 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
      * as well as stats on the sync queue.
      */
     public function es_process_next() {
+      set_time_limit(120);
       global $wpdb;
-      $query = "SELECT post_id FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_queue' AND meta_value = 1 ORDER BY post_id DESC LIMIT " . self::SYNC_LIMIT;
+      $query = "SELECT pm.post_id FROM $wpdb->postmeta pm LEFT JOIN $wpdb->posts p ON pm.post_id = p.ID 
+                  WHERE pm.meta_key = '_cdp_sync_queue' AND pm.meta_value = '1' ORDER BY p.post_date DESC LIMIT " . self::SYNC_LIMIT;
       $post_ids = $wpdb->get_col($query);
       if (!count($post_ids)) {
         $query = "SELECT COUNT(*) as total, SUM(meta_value) as incomplete FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_queue'";
@@ -292,7 +294,7 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
           update_post_meta($post_id, '_cdp_sync_queue', "0");
           update_post_meta($post_id, '_cdp_last_sync', date('Y-m-d H:i:s'));
           $post = get_post($post_id);
-          $resp = $this->addOrUpdate($post, false);
+          $resp = $this->addOrUpdate($post, false, true);
           if (!$resp) {
             $results[] = [
               'title' => $post->post_title,
@@ -402,10 +404,10 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
       return true;
     }
 
-    public function addOrUpdate( $post, $print = true ) {
+    public function addOrUpdate( $post, $print = true, $callback_errors_only = false ) {
       if ( !$this->is_syncable( $post ) ) {
-        $response = ['error' => 1, 'message' => 'Could not sync while sync in progress.'];
-        if (!$print)
+        $response = ['error' => 1, 'message' => 'Could not publish while publish in progress.'];
+        if ($print)
           wp_send_json($response);
         return $response;
       }
@@ -451,7 +453,7 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
         'print' => $print
       );
 
-      $response = $this->es_request( $options, $callback );
+      $response = $this->es_request( $options, $callback, $callback_errors_only );
       if (self::LOG_ALL)
         $this->log("IMMEDIATE RESPONSE:\r\n" . print_r($response, 1), 'callback.log');
       if ( !$response ) {
@@ -494,13 +496,14 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
       delete_post_meta( $post->ID, '_cdp_sync_uid' );
     }
 
-    public function es_request($request, $callback = null) {
+    public function es_request($request, $callback = null, $callback_errors_only = false) {
       $is_internal = false;
       $error = false;
       $results = null;
 
       $headers = [];
       if ($callback) $headers['callback'] = $callback;
+      $headers['callback_errors'] = $callback_errors_only ? 1 : 0;
 
       $opts = ['timeout' => 30, 'http_errors' => false];
 

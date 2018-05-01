@@ -140,7 +140,9 @@
       };
       createProgress();
       updateProgress();
+      disableManage();
       $.ajax( {
+        timeout: 5*60*1000,
         url: ajaxurl,
         type: 'POST',
         dataType: 'JSON',
@@ -156,7 +158,7 @@
           console.error( result );
           clearProgress();
         }
-      } );
+      } ).always(enableManage);
     }
   }
 
@@ -211,6 +213,8 @@
     console.log( result );
     if (result.error || result.done) {
       clearProgress();
+      if ( result.error && result.message )
+        $('#es_output').html(result.message);
     } else {
       sync.complete = result.complete;
       sync.total = result.total;
