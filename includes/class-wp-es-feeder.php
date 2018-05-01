@@ -241,7 +241,7 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
      */
     public function es_initiate_sync() {
       global $wpdb;
-      $wpdb->delete($wpdb->postmeta, array('meta_value' => '_cdp_sync_queue'));
+      $wpdb->delete($wpdb->postmeta, array('meta_key' => '_cdp_sync_queue'));
       $query = '';
       if (isset($_POST['sync_errors']) && $_POST['sync_errors']) {
         $errors = $this->check_sync_errors();
