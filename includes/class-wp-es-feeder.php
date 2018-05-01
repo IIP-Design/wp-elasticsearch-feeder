@@ -131,34 +131,39 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
     public function validate_sync() {
       set_time_limit(600);
       global $wpdb;
-      $from = 0;
-      $size = 500;
+      $size = 5;
       $result = null;
       $modifieds = [];
       $stats = ['updated' => 0, 'es_missing' => 0, 'wp_missing' => 0, 'mismatched' => 0];
+      $request = [
+        'url' => 'search',
+        'method' => 'POST',
+        'body' => [
+          'query' => 'site:' . $this->get_site(),
+          'include' => ['post_id', 'modified'],
+          'size' => $size,
+          'from' => 0,
+          'scroll' => '60s'
+        ],
+        'print' => false
+      ];
       do {
-        $request = [
-          'url' => 'search',
-          'method' => 'POST',
-          'body' => [
-            'query' => 'site:' . $this->get_site(),
-            'include' => ['post_id', 'modified'],
-            'size' => $size,
-            'from' => $from
-          ],
-          'print' => false
-        ];
         $result = $this->es_request($request);
         if ($result && $result->hits && count($result->hits->hits)) {
           foreach ($result->hits->hits as $hit) {
             $modifieds[$hit->_source->post_id] = $hit->_source->modified;
           }
         }
-        $from += $size;
+        $request = [
+          'url' => 'search/scroll',
+          'method' => 'POST',
+          'body' => [
+            'scrollId' => $result->_scroll_id,
+            'scroll' => '60s'
+          ],
+          'print' => false
+        ];
       } while ($result && $result->hits && count($result->hits->hits));
-      $this->log("Validation ended at from: $from size: $size\r\n", 'validation.log');
-      $this->log($request, 'validation.log');
-      $this->log($result, 'validation.log');
 
       if (count($modifieds)) {
         $opts = get_option( $this->plugin_name );
