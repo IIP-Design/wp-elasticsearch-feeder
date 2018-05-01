@@ -132,7 +132,7 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
       set_time_limit(600);
       global $wpdb;
       $from = 0;
-      $size = 5;
+      $size = 500;
       $result = null;
       $modifieds = [];
       $stats = ['updated' => 0, 'es_missing' => 0, 'wp_missing' => 0, 'mismatched' => 0];
@@ -156,6 +156,9 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
         }
         $from += $size;
       } while ($result && $result->hits && count($result->hits->hits));
+      $this->log("Validation ended at from: $from size: $size\r\n", 'validation.log');
+      $this->log($request, 'validation.log');
+      $this->log($result, 'validation.log');
 
       if (count($modifieds)) {
         $opts = get_option( $this->plugin_name );
