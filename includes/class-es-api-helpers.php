@@ -72,14 +72,6 @@ if ( !class_exists( 'ES_API_HELPER' ) ) {
     }
 
     public static function get_language_by_locale( $locale ) {
-      global $cdp_language_helper, $feeder;
-      $feeder->log('Getting language for: ' . $locale, 'feeder.log');
-      $lang = $cdp_language_helper->get_language_by_code( $locale );
-      $feeder->log($lang, 'feeder.log');
-      return $lang;
-    }
-
-    public static function get_language_by_code( $locale ) {
       global $cdp_language_helper;
       return $cdp_language_helper->get_language_by_code( $locale );
     }
