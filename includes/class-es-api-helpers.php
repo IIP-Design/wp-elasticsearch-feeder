@@ -59,10 +59,10 @@ if ( !class_exists( 'ES_API_HELPER' ) ) {
       if ( $sitepress ) {
         $output = apply_filters( 'wpml_post_language_details', null, $id );
         $output['locale'] = str_replace('_', '-', $output['locale']);
-        return self::get_language_by_locale($output['locale']);
-      } else {
-        return self::get_language_by_locale( strtolower( str_replace( '_', '-', get_locale() ) ) );
+        if ($output['locale'])
+          return self::get_language_by_locale($output['locale']);
       }
+      return self::get_language_by_locale( strtolower( str_replace( '_', '-', get_locale() ) ) );
     }
 
     public static function get_index_to_cdp( $id ) {
