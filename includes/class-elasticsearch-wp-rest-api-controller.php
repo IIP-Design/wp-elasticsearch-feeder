@@ -328,22 +328,33 @@ class WP_ES_FEEDER_Callback_Controller {
 
     $uid = $request->get_param('uid');
     $post_id = null;
-    if (!$data['error'])
+    if (!$data['error'] || array_key_exists('doc', $data))
       $post_id = $data['doc']['post_id'];
     else
       $post_id = $data['request']['post_id'];
 
-    $feeder->log("INCOMING CALLBACK FOR UID: $uid\r\n" . print_r( $data, 1 ) . "\r\n", 'callback.log');
+    $feeder->log("INCOMING CALLBACK FOR UID: $uid, post_id: $post_id\r\n" . print_r( $data, 1 ) . "\r\n", 'callback.log');
 
     if ($post_id == $wpdb->get_var("SELECT post_id FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_uid' AND meta_value = '" . $wpdb->_real_escape($uid) . "'")) {
       $sync_status = get_post_meta($post_id, '_cdp_sync_status', true);
       if (!$data['error']) {
-        if ($sync_status == ES_FEEDER_SYNC::SYNC_WHILE_SYNCING)
-          update_post_meta($post_id,'_cdp_sync_status', ES_FEEDER_SYNC::RESYNC);
-        else
-          update_post_meta($post_id,'_cdp_sync_status', ES_FEEDER_SYNC::SYNCED);
+        if ($sync_status == ES_FEEDER_SYNC::SYNC_WHILE_SYNCING) {
+          $resyncs = get_post_meta($post_id, '_cdp_resync_count', true) ?: 0;
+          update_post_meta( $post_id, '_cdp_sync_status', ES_FEEDER_SYNC::RESYNC );
+          if ( $resyncs < 3 ) {
+            $resyncs++;
+            $feeder->log("Resyncing post, resync #$resyncs", 'callback.log');
+            update_post_meta($post_id, '_cdp_resync_count', $resyncs);
+            $post = get_post($post_id);
+            $feeder->post_sync_send($post, false);
+          }
+        } else {
+          update_post_meta( $post_id, '_cdp_sync_status', ES_FEEDER_SYNC::SYNCED );
+          delete_post_meta( $post_id, '_cdp_resync_count');
+        }
       } else {
         update_post_meta($post_id,'_cdp_sync_status', ES_FEEDER_SYNC::ERROR);
+        delete_post_meta( $post_id, '_cdp_resync_count');
       }
       $wpdb->delete($wpdb->postmeta, array('meta_key' => '_cdp_sync_uid', 'meta_value' => $uid));
     }

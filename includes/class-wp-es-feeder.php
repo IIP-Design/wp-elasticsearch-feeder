@@ -2,7 +2,7 @@
 if ( !class_exists( 'wp_es_feeder' ) ) {
   class wp_es_feeder {
     const LOG_ALL = false;
-    const SYNC_LIMIT = 10;
+    const SYNC_LIMIT = 25;
 
     protected $loader;
     protected $plugin_name;
@@ -66,6 +66,7 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
       // elasticsearch indexing hook actions
       add_action( 'save_post', array( $this, 'save_post' ), 99, 2 );
       add_action( 'transition_post_status', array($this, 'delete_post'), 10, 3 );
+      add_action( 'transition_post_status', array($this, 'translate_post'), 99, 3 );
       add_action( 'wp_ajax_es_request', array( $this, 'es_request') );
       add_action( 'wp_ajax_es_initiate_sync', array($this, 'es_initiate_sync') );
       add_action( 'wp_ajax_es_process_next', array($this, 'es_process_next') );
@@ -415,21 +416,95 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
         return;
       }
 
+      $this->post_sync_send($post, false);
+    }
+
+    public function post_sync_send($post, $print = true) {
       // we only care about modifying published posts
       if ( $post->post_status === 'publish' ) {
         if (array_key_exists('index_post_to_cdp_option', $_POST)) {
           // check to see if post should be indexed or removed from index
           $shouldIndex = $_POST[ 'index_post_to_cdp_option' ];
         } else
-          $shouldIndex = get_post_meta($id, '_iip_index_post_to_cdp_option', true);
+          $shouldIndex = get_post_meta($post->ID, '_iip_index_post_to_cdp_option', true);
 
         if (isset($shouldIndex) && $shouldIndex) {
           // default to indexing - post has to be specifically set to 'no'
           if( $shouldIndex === 'no' ) {
             $this->delete( $post );
           } else {
-            $this->addOrUpdate( $post );
+            $this->addOrUpdate( $post, $print );
           }
+        }
+      }
+    }
+
+    /**
+     * Fire PUT requests containing associated translations when a post is moved to publish
+     *
+     * @param $new_status
+     * @param $old_status
+     * @param $id
+     */
+    public function translate_post( $new_status, $old_status, $id ) {
+      global $cdp_language_helper, $wpdb;
+      if ( !function_exists( 'icl_object_id' ) ) return;
+      if ( $old_status === $new_status || $new_status !== 'publish') return;
+      if ( is_object( $id ) ) {
+        $post = $id;
+      } else {
+        $post = get_post( $id );
+      }
+
+      $settings  = get_option( $this->plugin_name );
+      $post_type = $post->post_type;
+
+      if ( $post == null || !$settings[ 'es_post_types' ][ $post_type ] ) {
+        return;
+      }
+
+      $sync_to_cdp = get_post_meta($post->ID, '_iip_index_post_to_cdp_option', true);
+      if ( $sync_to_cdp && $sync_to_cdp === 'no' ) return;
+
+      // get associated post IDs
+      $query = "SELECT trid, element_type FROM {$wpdb->prefix}icl_translations WHERE element_id = $post->ID";
+      $vars = $wpdb->get_row($query);
+      if (!$vars || !$vars->trid || !$vars->element_type) return;
+      $query = "SELECT element_id FROM {$wpdb->prefix}icl_translations WHERE trid = $vars->trid AND element_type = '$vars->element_type' AND element_id != $post->ID";
+      $post_ids = $wpdb->get_col($query);
+      if (self::LOG_ALL) {
+        $this->log("Found " . count($post_ids) . " translations for: $post->ID", 'feeder.log');
+      }
+
+      foreach ($post_ids as $post_id) {
+        if (!$this->is_syncable($post_id)) continue;
+
+        $translations = $cdp_language_helper->get_translations($post_id);
+        $options = [
+          'url' => $this->get_post_type_label($post->post_type) . "/" . $this->get_uuid($post_id),
+          'method' => 'PUT',
+          'body' => [
+            'languages' => $translations
+          ],
+          'print' => false
+        ];
+        $callback = $this->create_callback($post_id);
+
+        if (self::LOG_ALL)
+            $this->log("Sending off translations for: $post_id", 'feeder.log');
+
+        $response = $this->es_request( $options, $callback, true );
+        if (self::LOG_ALL && $response)
+          $this->log("IMMEDIATE RESPONSE (PUT):\r\n" . print_r($response, 1), 'callback.log');
+        if ( !$response ) {
+          error_log( print_r( $this->error . 'translate_post() request failed', true ) );
+          update_post_meta( $post->ID, '_cdp_sync_status', ES_FEEDER_SYNC::ERROR );
+          delete_post_meta( $post->ID, '_cdp_sync_uid' );
+        } else if (isset($response->error) && $response->error) {
+          update_post_meta( $post->ID, '_cdp_sync_status', ES_FEEDER_SYNC::ERROR );
+          delete_post_meta( $post->ID, '_cdp_sync_uid' );
+          if (!self::LOG_ALL && $response)
+            $this->log("IMMEDIATE RESPONSE (PUT):\r\n" . print_r($response, 1), 'callback.log');
         }
       }
     }
@@ -460,26 +535,8 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
       $this->delete( $post );
     }
 
-    /**
-     * Determines if a post can be synced or not. Syncable means that it is not in the process
-     * of being synced. If it is not syncable, update the sync status to inform the user that
-     * they needs to wait until the sync is complete and then resync.
-     *
-     * @param $post
-     * @return bool
-     */
-    public function is_syncable( $post ) {
-      // check sync status
-      $sync_status = get_post_meta($post->ID, '_cdp_sync_status', true);
-      if (!ES_FEEDER_SYNC::sync_allowed($sync_status)) {
-        update_post_meta($post->ID, '_cdp_sync_status', ES_FEEDER_SYNC::SYNC_WHILE_SYNCING);
-        return false;
-      }
-      return true;
-    }
-
     public function addOrUpdate( $post, $print = true, $callback_errors_only = false ) {
-      if ( !$this->is_syncable( $post ) ) {
+      if ( !$this->is_syncable( $post->ID ) ) {
         $response = ['error' => 1, 'message' => 'Could not publish while publish in progress.'];
         if ($print)
           wp_send_json($response);
@@ -506,19 +563,7 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
       }
 
       // create callback for this post
-      global $wpdb;
-      do {
-        $uid = uniqid();
-        $query = "SELECT post_id FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_uid' AND meta_value = '$uid'";
-      } while ($wpdb->get_var($query));
-      $options = get_option($this->plugin_name);
-      $es_wpdomain = $options[ 'es_wpdomain' ] ? $options[ 'es_wpdomain' ] : null;
-      if ( !$es_wpdomain ) $es_wpdomain = site_url();
-      $callback = $es_wpdomain . '/wp-json/' . ES_API_HELPER::NAME_SPACE . '/callback/' . $uid;
-
-      update_post_meta($post->ID, '_cdp_sync_uid', $uid);
-      update_post_meta($post->ID, '_cdp_sync_status', ES_FEEDER_SYNC::SYNCING);
-      update_post_meta($post->ID, '_cdp_last_sync', date('Y-m-d H:i:s'));
+      $callback = $this->create_callback($post->ID);
 
       $options = array(
         'url' => $this->get_post_type_label($post->post_type),
@@ -534,12 +579,10 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
         error_log( print_r( $this->error . 'addOrUpdate()[add] request failed', true ) );
         update_post_meta( $post->ID, '_cdp_sync_status', ES_FEEDER_SYNC::ERROR );
         delete_post_meta( $post->ID, '_cdp_sync_uid' );
-        if (!self::LOG_ALL)
-          $this->log("IMMEDIATE RESPONSE:\r\n" . print_r($response, 1), 'callback.log');
       } else if (isset($response->error) && $response->error) {
         update_post_meta( $post->ID, '_cdp_sync_status', ES_FEEDER_SYNC::ERROR );
         delete_post_meta( $post->ID, '_cdp_sync_uid' );
-        if (!self::LOG_ALL)
+        if (!self::LOG_ALL && $response)
           $this->log("IMMEDIATE RESPONSE:\r\n" . print_r($response, 1), 'callback.log');
       }
 
@@ -547,7 +590,7 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
     }
 
     public function delete( $post ) {
-      if ( !$this->is_syncable( $post ) ) return;
+      if ( !$this->is_syncable( $post->ID ) ) return;
 
       $uuid = $this->get_uuid($post);
       $delete_url = $this->get_post_type_label($post->post_type) . '/' . $uuid;
@@ -646,6 +689,24 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
       }
     }
 
+    /**
+     * Determines if a post can be synced or not. Syncable means that it is not in the process
+     * of being synced. If it is not syncable, update the sync status to inform the user that
+     * they needs to wait until the sync is complete and then resync.
+     *
+     * @param $post_id
+     * @return bool
+     */
+    public function is_syncable( $post_id ) {
+      // check sync status
+      $sync_status = get_post_meta($post_id, '_cdp_sync_status', true);
+      if (!ES_FEEDER_SYNC::sync_allowed($sync_status)) {
+        update_post_meta($post_id, '_cdp_sync_status', ES_FEEDER_SYNC::SYNC_WHILE_SYNCING);
+        return false;
+      }
+      return true;
+    }
+
     private function is_domain_mapped( $body ) {
       // check if domain is mapped
       $opt = get_option( $this->plugin_name );
@@ -688,6 +749,29 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
       return $types;
     }
 
+    private function create_callback($post_id = null) {
+      $options = get_option($this->plugin_name);
+      $es_wpdomain = $options[ 'es_wpdomain' ] ? $options[ 'es_wpdomain' ] : null;
+      if ( !$es_wpdomain ) $es_wpdomain = site_url();
+      if (!$post_id) return $es_wpdomain . '/wp-json/' . ES_API_HELPER::NAME_SPACE . '/callback/noop';
+
+      // create callback for this post
+      global $wpdb;
+      do {
+        $uid = uniqid();
+        $query = "SELECT post_id FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_uid' AND meta_value = '$uid'";
+      } while ($wpdb->get_var($query));
+      $options = get_option($this->plugin_name);
+      $es_wpdomain = $options[ 'es_wpdomain' ] ? $options[ 'es_wpdomain' ] : null;
+      if ( !$es_wpdomain ) $es_wpdomain = site_url();
+      $callback = $es_wpdomain . '/wp-json/' . ES_API_HELPER::NAME_SPACE . '/callback/' . $uid;
+
+      update_post_meta($post_id, '_cdp_sync_uid', $uid);
+      update_post_meta($post_id, '_cdp_sync_status', ES_FEEDER_SYNC::SYNCING);
+      update_post_meta($post_id, '_cdp_last_sync', date('Y-m-d H:i:s'));
+      return $callback;
+    }
+
     /**
      * Construct UUID which is site domain delimited by dashes and not periods, underscore, and post ID.
      *
@@ -695,6 +779,9 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
      * @return string
      */
     public function get_uuid($post) {
+      $post_id = $post;
+      if (!is_numeric($post_id))
+        $post_id = $post->ID;
       $opt = get_option( $this->plugin_name );
       $url = $opt['es_wpdomain'];
       $args = parse_url($url);
@@ -704,7 +791,7 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
       else
         $host = str_ireplace('https://', '', str_ireplace('http://', '', $host));
       
-      return "{$host}_{$post->ID}";
+      return "{$host}_{$post_id}";
     }
 
     public function get_site() {
