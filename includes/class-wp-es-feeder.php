@@ -64,9 +64,8 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
       }
 
       // elasticsearch indexing hook actions
-      add_action( 'save_post', array( $this, 'save_post' ), 99, 2 );
+      add_action( 'save_post', array( $this, 'save_post' ), 101, 2 );
       add_action( 'transition_post_status', array($this, 'delete_post'), 10, 3 );
-      add_action( 'transition_post_status', array($this, 'translate_post'), 99, 3 );
       add_action( 'wp_ajax_es_request', array( $this, 'es_request') );
       add_action( 'wp_ajax_es_initiate_sync', array($this, 'es_initiate_sync') );
       add_action( 'wp_ajax_es_process_next', array($this, 'es_process_next') );
@@ -412,11 +411,12 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
         update_post_meta($id, '_iip_taxonomy_terms', array());
 
       // return early if missing parameters
-      if ( $post == null || !$settings[ 'es_post_types' ][ $post_type ] ) {
+      if ( $post == null || !array_key_exists('es_post_types', $settings) || !array_key_exists($post_type, $settings['es_post_types']) || !$settings['es_post_types'][$post_type] ) {
         return;
       }
 
       $this->post_sync_send($post, false);
+      $this->translate_post($post);
     }
 
     public function post_sync_send($post, $print = true) {
@@ -430,7 +430,7 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
 
         if (isset($shouldIndex) && $shouldIndex) {
           // default to indexing - post has to be specifically set to 'no'
-          if( $shouldIndex === 'no' ) {
+          if ( $shouldIndex === 'no' ) {
             $this->delete( $post );
           } else {
             $this->addOrUpdate( $post, $print );
@@ -440,16 +440,13 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
     }
 
     /**
-     * Fire PUT requests containing associated translations when a post is moved to publish
+     * Fire PUT requests containing associated translations after save_post.
      *
-     * @param $new_status
-     * @param $old_status
      * @param $id
      */
-    public function translate_post( $new_status, $old_status, $id ) {
+    public function translate_post( $id ) {
       global $cdp_language_helper, $wpdb;
       if ( !function_exists( 'icl_object_id' ) ) return;
-      if ( $old_status === $new_status || $new_status !== 'publish') return;
       if ( is_object( $id ) ) {
         $post = $id;
       } else {
@@ -459,12 +456,9 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
       $settings  = get_option( $this->plugin_name );
       $post_type = $post->post_type;
 
-      if ( $post == null || !$settings[ 'es_post_types' ][ $post_type ] ) {
+      if ( $post == null || !array_key_exists('es_post_types', $settings) || !array_key_exists($post_type, $settings['es_post_types']) || !$settings['es_post_types'][$post_type] ) {
         return;
       }
-
-      $sync_to_cdp = get_post_meta($post->ID, '_iip_index_post_to_cdp_option', true);
-      if ( $sync_to_cdp && $sync_to_cdp === 'no' ) return;
 
       // get associated post IDs
       $query = "SELECT trid, element_type FROM {$wpdb->prefix}icl_translations WHERE element_id = $post->ID";
@@ -477,6 +471,10 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
       }
 
       foreach ($post_ids as $post_id) {
+        $post = get_post($post_id);
+        if ($post->post_status !== 'publish') continue;
+        $sync = get_post_meta($post_id, '_iip_index_post_to_cdp_option', true);
+        if ($sync === 'no') continue;
         if (!$this->is_syncable($post_id)) continue;
 
         $translations = $cdp_language_helper->get_translations($post_id);
@@ -493,16 +491,16 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
         if (self::LOG_ALL)
             $this->log("Sending off translations for: $post_id", 'feeder.log');
 
-        $response = $this->es_request( $options, $callback, true );
+        $response = $this->es_request( $options, $callback, false );
         if (self::LOG_ALL && $response)
           $this->log("IMMEDIATE RESPONSE (PUT):\r\n" . print_r($response, 1), 'callback.log');
         if ( !$response ) {
           error_log( print_r( $this->error . 'translate_post() request failed', true ) );
-          update_post_meta( $post->ID, '_cdp_sync_status', ES_FEEDER_SYNC::ERROR );
-          delete_post_meta( $post->ID, '_cdp_sync_uid' );
+          update_post_meta( $post_id, '_cdp_sync_status', ES_FEEDER_SYNC::ERROR );
+          delete_post_meta( $post_id, '_cdp_sync_uid' );
         } else if (isset($response->error) && $response->error) {
-          update_post_meta( $post->ID, '_cdp_sync_status', ES_FEEDER_SYNC::ERROR );
-          delete_post_meta( $post->ID, '_cdp_sync_uid' );
+          update_post_meta( $post_id, '_cdp_sync_status', ES_FEEDER_SYNC::ERROR );
+          delete_post_meta( $post_id, '_cdp_sync_uid' );
           if (!self::LOG_ALL && $response)
             $this->log("IMMEDIATE RESPONSE (PUT):\r\n" . print_r($response, 1), 'callback.log');
         }
@@ -528,11 +526,12 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
       $settings  = get_option( $this->plugin_name );
       $post_type = $post->post_type;
 
-      if ( $post == null || !$settings[ 'es_post_types' ][ $post_type ] ) {
+      if ( $post == null || !array_key_exists('es_post_types', $settings) || !array_key_exists($post_type, $settings['es_post_types']) || !$settings['es_post_types'][$post_type] ) {
         return;
       }
 
       $this->delete( $post );
+      $this->translate_post( $post );
     }
 
     public function addOrUpdate( $post, $print = true, $callback_errors_only = false ) {
@@ -662,8 +661,8 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
         $error = $e->getMessage();
       }
 
-      if (self::LOG_ALL) {
-        $this->log( "REQUEST: " . print_r( $request, 1 ), 'es_request.log' );
+      if (self::LOG_ALL && !in_array($request['url'], ['owner','language','taxonomy'])) {
+        $this->log( "\n\nREQUEST: " . print_r( $request, 1 ), 'es_request.log' );
         $this->log( "RESULTS: " . print_r( $results, 1 ), 'es_request.log' );
         $this->log( "ERROR: " . print_r( $error, 1 ), 'es_request.log' );
       }
