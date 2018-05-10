@@ -337,7 +337,8 @@ class WP_ES_FEEDER_Callback_Controller {
 
     $feeder->log("INCOMING CALLBACK FOR UID: $uid, post_id: $post_id\r\n" . print_r( $data, 1 ) . "\r\n", 'callback.log');
 
-    if ($post_id == $wpdb->get_var("SELECT post_id FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_uid' AND meta_value = '" . $wpdb->_real_escape($uid) . "'")) {
+//    if ($post_id == $wpdb->get_var("SELECT post_id FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_uid' AND meta_value = '" . $wpdb->_real_escape($uid) . "'")) {
+    if ($post_id) {
       $sync_status = get_post_meta($post_id, '_cdp_sync_status', true);
       if (!$data['error']) {
         if ($sync_status == ES_FEEDER_SYNC::SYNC_WHILE_SYNCING) {
@@ -363,6 +364,8 @@ class WP_ES_FEEDER_Callback_Controller {
       }
       $wpdb->delete($wpdb->postmeta, array('meta_key' => '_cdp_sync_uid', 'meta_value' => $uid));
     }
+
+//    }
 
     return ['status' => 'ok'];
 
