@@ -27,6 +27,7 @@
 			$es_wpdomain = $options['es_wpdomain']?$options['es_wpdomain']:null;
 			$es_url = $options['es_url']?$options['es_url']:null;
 			$es_post_types = $options['es_post_types']?$options['es_post_types']:null;
+			$es_api_data = array_key_exists('es_api_data', $options) && $options['es_api_data'] ? 1 : 0;
 
 			// Get domain(s) - support for Domain Mapping
 			$site = site_url();
@@ -79,6 +80,13 @@
 <!--							<input type="text" placeholder="sitename.com" class="regular-text" id="es_index" name="--><?php //echo $this->plugin_name; ?><!--[es_index]" value="--><?php //if(!empty($es_index)) echo $es_index; ?><!--"/><br/>-->
 <!--						</div>-->
 
+                        <h2><span><?php esc_attr_e( 'API Data Display', 'wp_admin_style' ); ?></span></h2>
+                        <div class="inside">
+                            <label>
+                                <input type="checkbox" id="es_api_data" name="<?php echo $this->plugin_name; ?>[es_api_data]" value="1" <?=$es_api_data ? 'checked' : ''?>/>
+                                Show current API data when editing a post of a supported type
+                            </label>
+                        </div>
 
 						<h2><span><?php esc_attr_e( 'Post Types', 'wp_admin_style' ); ?></span></h2>
 						<div class="inside">

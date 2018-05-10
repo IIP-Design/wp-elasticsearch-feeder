@@ -346,7 +346,10 @@ class WP_ES_FEEDER_Callback_Controller {
             $feeder->log("Resyncing post, resync #$resyncs", 'callback.log');
             update_post_meta($post_id, '_cdp_resync_count', $resyncs);
             $post = get_post($post_id);
-            $feeder->post_sync_send($post, false);
+            if ($post->post_status === 'publish')
+              $feeder->post_sync_send($post, false);
+            else
+              $feeder->delete($post);
           }
         } else {
           update_post_meta( $post_id, '_cdp_sync_status', ES_FEEDER_SYNC::SYNCED );

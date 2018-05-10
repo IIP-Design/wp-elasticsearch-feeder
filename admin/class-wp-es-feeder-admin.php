@@ -66,10 +66,11 @@ class wp_es_feeder_Admin {
     return array_merge( $links, $mylinks );
   }
 
-  function add_admin_index_to_cdp() {
+  function add_admin_meta_boxes() {
 
     $options = get_option($this->plugin_name);
     $es_post_types = $options['es_post_types']?$options['es_post_types']:null;
+    $es_api_data = (array_key_exists('es_api_data', $options) && $options['es_api_data']);
     $screens = array();
     if ( $es_post_types ) {
       foreach($es_post_types as $key=>$value){
@@ -87,12 +88,24 @@ class wp_es_feeder_Admin {
           'side',
           'high'
       );
+      if ($es_api_data) {
+        add_meta_box(
+          'es-feeder-response',           // Unique ID
+          'API Data',  // Box title
+          array( $this, 'api_response_data' ),  // Content callback, must be of type callable
+          $screen
+        );
+      }
     }
   }
 
   function index_to_cdp_display($post) {
     global $feeder;
     include_once( 'partials/wp-es-feeder-index-to-cdp-display.php' );
+  }
+
+  function api_response_data($post) {
+    include_once( 'partials/wp-es-feeder-api-view-display.php' );
   }
 
   function add_admin_cdp_taxonomy() {
@@ -135,7 +148,8 @@ class wp_es_feeder_Admin {
 
     $valid = array(
       'es_wpdomain' => sanitize_text_field( $input[ 'es_wpdomain' ] ),
-      'es_url' => sanitize_text_field( $input[ 'es_url' ] )
+      'es_url' => sanitize_text_field( $input[ 'es_url' ] ),
+      'es_api_data' => array_key_exists('es_api_data', $input)
     );
 
     $types = array();

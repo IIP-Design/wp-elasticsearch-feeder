@@ -1,7 +1,7 @@
 <?php
 if ( !class_exists( 'wp_es_feeder' ) ) {
   class wp_es_feeder {
-    const LOG_ALL = false;
+    const LOG_ALL = true;
     const SYNC_LIMIT = 25;
 
     protected $loader;
@@ -43,7 +43,7 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
       $this->loader->add_action( 'admin_menu', $plugin_admin, 'add_plugin_admin_menu' );
 
       // add "Do not index" box to posts and pages
-      $this->loader->add_action( 'add_meta_boxes', $plugin_admin, 'add_admin_index_to_cdp' );
+      $this->loader->add_action( 'add_meta_boxes', $plugin_admin, 'add_admin_meta_boxes' );
       $this->loader->add_action( 'add_meta_boxes', $plugin_admin, 'add_admin_cdp_taxonomy' );
 
       // add settings link to plugin
