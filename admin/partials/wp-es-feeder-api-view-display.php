@@ -22,6 +22,7 @@ if ($post && $post->ID && $es_url):
           dataType: 'JSON',
           url: '<?=$endpoint?>',
           success: function (result) {
+            if (result && result.content) result.content = "OMITTED";
             $('#es_response').html(JSON.stringify(result, null, 2));
           },
           error: function (result) {

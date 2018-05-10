@@ -328,10 +328,12 @@ class WP_ES_FEEDER_Callback_Controller {
 
     $uid = $request->get_param('uid');
     $post_id = null;
-    if (!$data['error'] || array_key_exists('doc', $data))
+    if (array_key_exists('doc', $data))
       $post_id = $data['doc']['post_id'];
-    else
+    else if (array_key_exists('request', $data) && array_key_exists('post_id', $data['request']))
       $post_id = $data['request']['post_id'];
+    else if (array_key_exists('params', $data) && array_key_exists('post_id', $data['params']))
+      $post_id = $data['params']['post_id'];
 
     $feeder->log("INCOMING CALLBACK FOR UID: $uid, post_id: $post_id\r\n" . print_r( $data, 1 ) . "\r\n", 'callback.log');
 

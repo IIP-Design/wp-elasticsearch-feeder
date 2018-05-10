@@ -70,7 +70,7 @@ class wp_es_feeder_Admin {
 
     $options = get_option($this->plugin_name);
     $es_post_types = $options['es_post_types']?$options['es_post_types']:null;
-    $es_api_data = (array_key_exists('es_api_data', $options) && $options['es_api_data']);
+    $es_api_data = (current_user_can('manage_options') && array_key_exists('es_api_data', $options) && $options['es_api_data']);
     $screens = array();
     if ( $es_post_types ) {
       foreach($es_post_types as $key=>$value){
