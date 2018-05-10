@@ -755,19 +755,29 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
       if (!$post_id) return $es_wpdomain . '/wp-json/' . ES_API_HELPER::NAME_SPACE . '/callback/noop';
 
       // create callback for this post
+      $callback = null;
       global $wpdb;
-      do {
-        $uid = uniqid();
-        $query = "SELECT post_id FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_uid' AND meta_value = '$uid'";
-      } while ($wpdb->get_var($query));
-      $options = get_option($this->plugin_name);
-      $es_wpdomain = $options[ 'es_wpdomain' ] ? $options[ 'es_wpdomain' ] : null;
-      if ( !$es_wpdomain ) $es_wpdomain = site_url();
-      $callback = $es_wpdomain . '/wp-json/' . ES_API_HELPER::NAME_SPACE . '/callback/' . $uid;
+      $query = "SELECT meta_value as uuid FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_uid' AND post_id = '$post_id'";
+      $uid = $wpdb->get_var($query);
+      if (!$uid) {
+        do {
+          $uid = uniqid();
+          $query = "SELECT post_id FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_uid' AND meta_value = '$uid'";
+        } while ($wpdb->get_var($query));
+        $options = get_option($this->plugin_name);
+        $es_wpdomain = $options[ 'es_wpdomain' ] ? $options[ 'es_wpdomain' ] : null;
+        if ( !$es_wpdomain ) $es_wpdomain = site_url();
+        $callback = $es_wpdomain . '/wp-json/' . ES_API_HELPER::NAME_SPACE . '/callback/' . $uid;
 
-      update_post_meta($post_id, '_cdp_sync_uid', $uid);
-      update_post_meta($post_id, '_cdp_sync_status', ES_FEEDER_SYNC::SYNCING);
-      update_post_meta($post_id, '_cdp_last_sync', date('Y-m-d H:i:s'));
+        update_post_meta($post_id, '_cdp_sync_uid', $uid);
+        update_post_meta($post_id, '_cdp_sync_status', ES_FEEDER_SYNC::SYNCING);
+        update_post_meta($post_id, '_cdp_last_sync', date('Y-m-d H:i:s'));
+      } else {
+        $options = get_option($this->plugin_name);
+        $es_wpdomain = $options[ 'es_wpdomain' ] ? $options[ 'es_wpdomain' ] : null;
+        if ( !$es_wpdomain ) $es_wpdomain = site_url();
+        $callback = $es_wpdomain . '/wp-json/' . ES_API_HELPER::NAME_SPACE . '/callback/' . $uid;
+      }
       return $callback;
     }
 
