@@ -26,6 +26,7 @@
 
 			$es_wpdomain = $options['es_wpdomain']?$options['es_wpdomain']:null;
 			$es_url = $options['es_url']?$options['es_url']:null;
+      $es_token = $options['es_token']?$options['es_token']:null;
 			$es_post_types = $options['es_post_types']?$options['es_post_types']:null;
 
 			// Get domain(s) - support for Domain Mapping
@@ -73,6 +74,11 @@
 							<input type="text" placeholder="http://localhost:9200/" class="regular-text" id="es_url" name="<?php echo $this->plugin_name; ?>[es_url]" value="<?php if(!empty($es_url)) echo $es_url; ?>"/>
 							<!--<span class="description"><?php esc_attr_e( 'It must include the trailing slash "/"', 'wp_admin_style' ); ?></span><br>-->
 		    				</div>
+
+           <h2><span><?php esc_attr_e( 'API Token', 'wp_admin_style' ); ?></span></h2>
+           <div class="inside">
+              <input type="text" placeholder="api token" class="regular-text" id="es_token" name="<?php echo $this->plugin_name; ?>[es_token]" value="<?php if(!empty($es_token)) echo $es_token; ?>"/>
+            </div>
 
 <!--						<h2><span>--><?php //esc_attr_e( 'Index Name', 'wp_admin_style' ); ?><!--</span></h2>-->
 <!--						<div class="inside">-->
