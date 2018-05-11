@@ -594,6 +594,8 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
     public function delete( $post ) {
       if ( !$this->is_syncable( $post->ID ) ) return;
 
+      update_post_meta( $post->ID, '_cdp_sync_status', ES_FEEDER_SYNC::SYNCING );
+
       $uuid = $this->get_uuid($post);
       $delete_url = $this->get_post_type_label($post->post_type) . '/' . $uuid;
 
