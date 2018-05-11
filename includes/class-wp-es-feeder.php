@@ -603,6 +603,8 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
             $headers['Content-Type'] = 'application/json';
           }
 
+          $headers['authorization'] = $token;
+
           $body = $this->is_domain_mapped($body);
 
           $response = $client->request($request['method'], $request['url'], ['body' => $body, 'headers' => $headers]);
