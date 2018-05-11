@@ -357,6 +357,14 @@ class WP_ES_FEEDER_Callback_Controller {
           update_post_meta( $post_id, '_cdp_sync_status', ES_FEEDER_SYNC::SYNCED );
           delete_post_meta( $post_id, '_cdp_resync_count');
         }
+      } else if (stripos($data['message'], 'Document not found') === 0) {
+        $post_status = $wpdb->get_var("SELECT post_status FROM $wpdb->posts WHERE ID = $post_id");
+        $index_cdp = get_post_meta($post_id, '_iip_index_post_to_cdp_option', true) ?: 1;
+        if ($post_status !== 'publish' || $index_cdp === 'no')
+          update_post_meta($post_id,'_cdp_sync_status', ES_FEEDER_SYNC::NOT_SYNCED);
+        else
+          update_post_meta($post_id,'_cdp_sync_status', ES_FEEDER_SYNC::ERROR);
+        delete_post_meta( $post_id, '_cdp_resync_count');
       } else {
         update_post_meta($post_id,'_cdp_sync_status', ES_FEEDER_SYNC::ERROR);
         delete_post_meta( $post_id, '_cdp_resync_count');
