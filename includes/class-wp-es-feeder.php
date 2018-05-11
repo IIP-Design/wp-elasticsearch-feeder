@@ -705,13 +705,12 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
       // check sync status
       $sync_status = get_post_meta($post_id, '_cdp_sync_status', true);
       if (!ES_FEEDER_SYNC::sync_allowed($sync_status)) {
-        $sync_uid = get_post_meta($post_id, '_cdp_sync_uid', true) ?: 'none';
         if ($sync_status !== ES_FEEDER_SYNC::SYNC_WHILE_SYNCING) {
           update_post_meta( $post_id, '_cdp_sync_status', ES_FEEDER_SYNC::SYNC_WHILE_SYNCING );
           if (self::LOG_ALL)
-            $this->log("Post not syncable so status updated to SYNC_WHILE_SYNCING: $post_id, sync_uid: $sync_uid", 'feeder.log');
+            $this->log("Post not syncable so status updated to SYNC_WHILE_SYNCING: $post_id, sync_uid:" . get_post_meta($post_id, '_cdp_sync_uid', true) ?: 'none', 'feeder.log');
         } else if (self::LOG_ALL)
-            $this->log("Post not syncable but status not updated: $post_id, sync_uid: $sync_uid", 'feeder.log');
+            $this->log("Post not syncable but status not updated: $post_id, sync_uid: ". get_post_meta($post_id, '_cdp_sync_uid', true) ?: 'none', 'feeder.log');
         return false;
       }
       return true;
