@@ -592,7 +592,7 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
     }
 
     public function delete( $post ) {
-      if ( !$this->is_syncable( $post->ID ) ) return;
+//      if ( !$this->is_syncable( $post->ID ) ) return;
 
       $uuid = $this->get_uuid($post);
       $delete_url = $this->get_post_type_label($post->post_type) . '/' . $uuid;
@@ -665,6 +665,7 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
       }
 
       if (self::LOG_ALL && !in_array($request['url'], ['owner','language','taxonomy'])) {
+        $this->log("Sending " . $request['method'] . " request to: " . $request['url'], 'feeder.log');
         $this->log( "\n\nREQUEST: " . print_r( $request, 1 ), 'es_request.log' );
         $this->log( "RESULTS: " . print_r( $results, 1 ), 'es_request.log' );
         $this->log( "ERROR: " . print_r( $error, 1 ), 'es_request.log' );
