@@ -343,6 +343,7 @@ class WP_ES_FEEDER_Callback_Controller {
 
     if ($post_id == $wpdb->get_var("SELECT post_id FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_uid' AND meta_value = '" . $wpdb->_real_escape($uid) . "'")) {
       if (!$data['error']) {
+        $feeder->log("No error found for $post_id, sync_uid: $uid", 'feeder.log');
         if ($sync_status == ES_FEEDER_SYNC::SYNC_WHILE_SYNCING) {
           $resyncs = get_post_meta($post_id, '_cdp_resync_count', true) ?: 0;
           update_post_meta( $post_id, '_cdp_sync_status', ES_FEEDER_SYNC::RESYNC );
@@ -389,9 +390,9 @@ class WP_ES_FEEDER_Callback_Controller {
         delete_post_meta( $post_id, '_cdp_resync_count');
       }
       $wpdb->delete($wpdb->postmeta, array('meta_key' => '_cdp_sync_uid', 'meta_value' => $uid));
-      $this->log("Sync UID ($uid) deleted for: $post_id", 'feeder.log');
+      $feeder->log("Sync UID ($uid) deleted for: $post_id", 'feeder.log');
     } else
-      $this->log("UID ($uid) did not match post_id: $post_id\r\n\r\n", 'callback.log');
+      $feeder->log("UID ($uid) did not match post_id: $post_id\r\n\r\n", 'callback.log');
 
     return ['status' => 'ok'];
 
