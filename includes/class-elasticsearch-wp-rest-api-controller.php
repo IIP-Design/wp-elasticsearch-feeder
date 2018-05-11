@@ -359,12 +359,28 @@ class WP_ES_FEEDER_Callback_Controller {
         }
       } else if (stripos($data['message'], 'Document not found') === 0) {
         $post_status = $wpdb->get_var("SELECT post_status FROM $wpdb->posts WHERE ID = $post_id");
-        $index_cdp = get_post_meta($post_id, '_iip_index_post_to_cdp_option', true) ?: 1;
-        if ($post_status !== 'publish' || $index_cdp === 'no')
+        $index_cdp = get_post_meta($post_id, '_iip_index_post_to_cdp_option', true) ?: 'yes';
+        if ($post_status === 'publish' && $index_cdp !== 'no') {
+          $resyncs = get_post_meta($post_id, '_cdp_resync_count', true) ?: 0;
+          update_post_meta( $post_id, '_cdp_sync_status', ES_FEEDER_SYNC::RESYNC );
+          if ( $resyncs < 3 ) {
+            $resyncs++;
+            $feeder->log("Resyncing post, resync #$resyncs", 'callback.log');
+            update_post_meta($post_id, '_cdp_resync_count', $resyncs);
+            $post = get_post($post_id);
+            $feeder->post_sync_send($post, false);
+          } else {
+            update_post_meta($post_id,'_cdp_sync_status', ES_FEEDER_SYNC::ERROR);
+            delete_post_meta( $post_id, '_cdp_resync_count');
+          }
+        } else if ($post_status !== 'publish' || $index_cdp === 'no') {
           update_post_meta($post_id,'_cdp_sync_status', ES_FEEDER_SYNC::NOT_SYNCED);
-        else
+          delete_post_meta( $post_id, '_cdp_resync_count');
+        } else {
           update_post_meta($post_id,'_cdp_sync_status', ES_FEEDER_SYNC::ERROR);
-        delete_post_meta( $post_id, '_cdp_resync_count');
+          delete_post_meta( $post_id, '_cdp_resync_count');
+        }
+
       } else {
         update_post_meta($post_id,'_cdp_sync_status', ES_FEEDER_SYNC::ERROR);
         delete_post_meta( $post_id, '_cdp_resync_count');
