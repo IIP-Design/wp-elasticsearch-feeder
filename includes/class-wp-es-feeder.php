@@ -477,6 +477,7 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
         if ($post->post_status !== 'publish') continue;
         $sync = get_post_meta($post_id, '_iip_index_post_to_cdp_option', true);
         if ($sync === 'no') continue;
+        if (!$this->is_syncable($post_id)) continue;
 
         $translations = $cdp_language_helper->get_translations($post_id);
         $options = [
@@ -487,8 +488,6 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
           ],
           'print' => false
         ];
-        
-        if (!$this->is_syncable($post_id)) continue;
         $callback = $this->create_callback($post_id);
 
         if (self::LOG_ALL)
