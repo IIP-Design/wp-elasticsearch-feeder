@@ -592,7 +592,7 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
     }
 
     public function delete( $post ) {
-//      if ( !$this->is_syncable( $post->ID ) ) return;
+      if ( !$this->is_syncable( $post->ID ) ) return;
 
       $uuid = $this->get_uuid($post);
       $delete_url = $this->get_post_type_label($post->post_type) . '/' . $uuid;
