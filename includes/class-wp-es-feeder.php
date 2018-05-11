@@ -665,7 +665,7 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
       }
 
       if (self::LOG_ALL && !in_array($request['url'], ['owner','language','taxonomy'])) {
-        $this->log("Sending " . $request['method'] . " request to: " . $request['url'], 'feeder.log');
+        $this->log("Sending " . $request['method'] . " request to: " . $request['url'] . (array_key_exists('body', $request) && array_key_exists('post_id', $request['body']) ? ', post_id : ' . $request['body']['post_id'] : ''), 'feeder.log');
         $this->log( "\n\nREQUEST: " . print_r( $request, 1 ), 'es_request.log' );
         $this->log( "RESULTS: " . print_r( $results, 1 ), 'es_request.log' );
         $this->log( "ERROR: " . print_r( $error, 1 ), 'es_request.log' );
@@ -704,12 +704,13 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
       // check sync status
       $sync_status = get_post_meta($post_id, '_cdp_sync_status', true);
       if (!ES_FEEDER_SYNC::sync_allowed($sync_status)) {
+        $sync_uid = get_post_meta($post_id, '_cdp_sync_uid', true) ?: 'none';
         if ($sync_status !== ES_FEEDER_SYNC::SYNC_WHILE_SYNCING) {
           update_post_meta( $post_id, '_cdp_sync_status', ES_FEEDER_SYNC::SYNC_WHILE_SYNCING );
           if (self::LOG_ALL)
-            $this->log("Post not syncable so status updated to SYNC_WHILE_SYNCING: $post_id", 'feeder.log');
+            $this->log("Post not syncable so status updated to SYNC_WHILE_SYNCING: $post_id, sync_uid: $sync_uid", 'feeder.log');
         } else if (self::LOG_ALL)
-            $this->log("Post not syncable but status not updated: $post_id", 'feeder.log');
+            $this->log("Post not syncable but status not updated: $post_id, sync_uid: $sync_uid", 'feeder.log');
         return false;
       }
       return true;
