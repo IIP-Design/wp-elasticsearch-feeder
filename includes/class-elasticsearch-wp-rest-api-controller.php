@@ -335,10 +335,11 @@ class WP_ES_FEEDER_Callback_Controller {
     else if (array_key_exists('params', $data) && array_key_exists('post_id', $data['params']))
       $post_id = $data['params']['post_id'];
 
-    $feeder->log("INCOMING CALLBACK FOR UID: $uid, post_id: $post_id\r\n" . print_r( $data, 1 ) . "\r\n", 'callback.log');
+    $sync_status = get_post_meta($post_id, '_cdp_sync_status', true);
+
+    $feeder->log("INCOMING CALLBACK FOR UID: $uid, post_id: $post_id, sync_status: $sync_status\r\n" . print_r( $data, 1 ) . "\r\n", 'callback.log');
 
     if ($post_id == $wpdb->get_var("SELECT post_id FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_uid' AND meta_value = '" . $wpdb->_real_escape($uid) . "'")) {
-      $sync_status = get_post_meta($post_id, '_cdp_sync_status', true);
       if (!$data['error']) {
         if ($sync_status == ES_FEEDER_SYNC::SYNC_WHILE_SYNCING) {
           $resyncs = get_post_meta($post_id, '_cdp_resync_count', true) ?: 0;
@@ -386,7 +387,8 @@ class WP_ES_FEEDER_Callback_Controller {
         delete_post_meta( $post_id, '_cdp_resync_count');
       }
       $wpdb->delete($wpdb->postmeta, array('meta_key' => '_cdp_sync_uid', 'meta_value' => $uid));
-    }
+    } else
+      $this->log("UID ($uid) did not match post_id: $post_id\r\n\r\n", 'callback.log');
 
     return ['status' => 'ok'];
 
