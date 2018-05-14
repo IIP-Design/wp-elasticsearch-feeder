@@ -149,7 +149,8 @@ class wp_es_feeder_Admin {
     $valid = array(
       'es_wpdomain' => sanitize_text_field( $input[ 'es_wpdomain' ] ),
       'es_url' => sanitize_text_field( $input[ 'es_url' ] ),
-      'es_api_data' => array_key_exists('es_api_data', $input)
+      'es_api_data' => array_key_exists('es_api_data', $input),
+      'es_token' => sanitize_text_field( $input[ 'es_token' ] )
     );
 
     $types = array();

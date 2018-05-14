@@ -627,15 +627,18 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
 
       $opts = ['timeout' => 30, 'http_errors' => false];
 
+      $config = get_option( $this->plugin_name );
+
+      $token = $config['es_token'];
+      if ( !empty( $token ) ) $headers['Authorization'] = 'Bearer ' . $token;
+
       if (!$request) {
         $request = $_POST['data'];
       } else {
         $is_internal = true;
-        $config = get_option( $this->plugin_name );
         $opts['base_uri'] = trim($config['es_url'], '/') . '/';
       }
-
-
+      
       $client = new GuzzleHttp\Client($opts);
       try {
         // if a body is provided
