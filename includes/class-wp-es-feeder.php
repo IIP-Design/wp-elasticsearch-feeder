@@ -584,7 +584,7 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
       $config = get_option( $this->plugin_name );
 
       $token = $config['es_token'];
-      if ( !empty( $token ) ) $headers['authorization'] = $token;
+      if ( !empty( $token ) ) $headers['Authorization'] = 'Bearer ' . $token;
 
       if (!$request) {
         $request = $_POST['data'];
