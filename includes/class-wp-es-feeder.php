@@ -710,7 +710,8 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
                     AND meta_value IN (" . ES_FEEDER_SYNC::SYNCING . "," . ES_FEEDER_SYNC::SYNC_WHILE_SYNCING . ")";
       $rows = $wpdb->query($query);
       if ($rows) {
-        $this->log("Post not syncable so status updated to SYNC_WHILE_SYNCING: $post_id, sync_uid:" . get_post_meta($post_id, '_cdp_sync_uid', true) ?: 'none', 'feeder.log');
+        if (self::LOG_ALL)
+            $this->log("Post not syncable so status updated to SYNC_WHILE_SYNCING: $post_id, sync_uid:" . get_post_meta($post_id, '_cdp_sync_uid', true) ?: 'none', 'feeder.log');
         return false;
       }
       return true;
@@ -774,7 +775,8 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
       $es_wpdomain = $options[ 'es_wpdomain' ] ? $options[ 'es_wpdomain' ] : null;
       if ( !$es_wpdomain ) $es_wpdomain = site_url();
       $callback = $es_wpdomain . '/wp-json/' . ES_API_HELPER::NAME_SPACE . '/callback/' . $uid;
-      $this->log("Created callback for: $post_id with UID: $uid", 'feeder.log');
+      if (self::LOG_ALL)
+        $this->log("Created callback for: $post_id with UID: $uid", 'feeder.log');
       update_post_meta($post_id, '_cdp_sync_uid', $uid);
       update_post_meta($post_id, '_cdp_sync_status', ES_FEEDER_SYNC::SYNCING);
       update_post_meta($post_id, '_cdp_last_sync', date('Y-m-d H:i:s'));
