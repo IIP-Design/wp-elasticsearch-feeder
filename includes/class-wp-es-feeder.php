@@ -428,7 +428,7 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
           // check to see if post should be indexed or removed from index
           $shouldIndex = $_POST[ 'index_post_to_cdp_option' ];
         } else
-          $shouldIndex = get_post_meta($post->ID, '_iip_index_post_to_cdp_option', true);
+          $shouldIndex = get_post_meta($post->ID, '_iip_index_post_to_cdp_option', true) ?: 'yes';
 
         if (isset($shouldIndex) && $shouldIndex) {
           // default to indexing - post has to be specifically set to 'no'
