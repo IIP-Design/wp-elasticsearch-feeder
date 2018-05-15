@@ -70,7 +70,7 @@ class Language_Helper {
       'url' => 'language'
     ];
     $data = $feeder->es_request($args);
-    if ( $data && count( $data )
+    if ( $data && count( $data ) && !is_string( $data )
         && (!is_array( $data ) || (is_array($data) && (!array_key_exists( 'error', $data ) || !$data[ 'error' ]))
         && (!is_object( $data ) || (is_object($data) && !$data->error)))) {
       $this->languages = [];
