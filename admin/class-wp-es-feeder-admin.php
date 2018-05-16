@@ -21,21 +21,21 @@ class wp_es_feeder_Admin {
   }
 
   public function enqueue_scripts($hook) {
-    global $wpdb, $post, $feeder;
+    global $post, $feeder;
 
     wp_register_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/wp-es-feeder-admin.js',
       array( 'jquery' ), false, false );
 
-    $query = "SELECT COUNT(*) as total, SUM(meta_value) as incomplete FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_queue'";
-    $row = $wpdb->get_row($query);
+    $totals = $feeder->get_resync_totals();
     $sync = array(
       'complete' => 0,
-      'total' => $row->total,
+      'total' => 0,
       'paused' => false,
       'post' => null
     );
-    if ($row->total) {
-      $sync['complete'] = $row->total - $row->incomplete;
+    if (!$totals['done']) {
+      $sync['complete'] = $totals['complete'];
+      $sync['total'] = $totals['total'];
       $sync['paused'] = true;
     }
     wp_localize_script($this->plugin_name, 'es_feeder_sync', $sync);
