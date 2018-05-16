@@ -26,15 +26,14 @@ class wp_es_feeder_Admin {
     wp_register_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/wp-es-feeder-admin.js',
       array( 'jquery' ), false, false );
 
-    $resyncing = get_option($feeder->get_plugin_name() . '_resyncing', 0);
+    $totals = $feeder->get_resync_totals();
     $sync = array(
       'complete' => 0,
       'total' => 0,
       'paused' => false,
       'post' => null
     );
-    if ($resyncing) {
-      $totals = $feeder->get_resync_totals();
+    if (!$totals['done']) {
       $sync['complete'] = $totals['complete'];
       $sync['total'] = $totals['total'];
       $sync['paused'] = true;

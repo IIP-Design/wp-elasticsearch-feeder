@@ -2,7 +2,7 @@
 if ( !class_exists( 'wp_es_feeder' ) ) {
   class wp_es_feeder {
     const LOG_ALL = false;
-    const SYNC_LIMIT = 25;
+    const SYNC_LIMIT = 5;
 
     protected $loader;
     protected $plugin_name;
@@ -129,15 +129,6 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
     }
 
     public function validate_sync() {
-      $resyncing = get_option($this->plugin_name . '_resyncing', 0);
-      if ($resyncing) {
-        $stats = ['error' => true, 'message' => 'Could not validate while resync in progress.'];
-        if (defined('DOING_AJAX') && DOING_AJAX) {
-          wp_send_json($stats);
-          exit;
-        }
-        return $stats;
-      }
       set_time_limit(600);
       global $wpdb;
       $size = 500;
@@ -324,9 +315,7 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
      */
     public function es_initiate_sync() {
       global $wpdb;
-      $wpdb->delete($wpdb->postmeta, array('meta_key' => '_cdp_sync_queue'));
-      update_option($this->plugin_name . '_resyncing', 1);
-      $query = '';
+      $wpdb->delete($wpdb->postmeta, array('meta_key' => '_cdp_sync_status'));
       if (isset($_POST['sync_errors']) && $_POST['sync_errors']) {
         $errors = $this->check_sync_errors();
         $post_ids = $errors['ids'];
@@ -334,8 +323,7 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
         $post_ids = $this->get_syncable_posts();
       }
       if (!count($post_ids)) {
-        echo json_encode(array('error' => true, 'message' => 'No posts found.', 'query' => $query));
-        delete_option($this->plugin_name . '_resyncing');
+        echo json_encode(array('error' => true, 'message' => 'No posts found.'));
         exit;
       }
       wp_send_json(array('done' => 0, 'response' => null, 'results' => null, 'total' => count($post_ids), 'complete' => 0));
@@ -353,13 +341,11 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
       $post_ids = $this->get_syncable_posts(self::SYNC_LIMIT);
       if (!count($post_ids)) {
         $results = $this->get_resync_totals();
-        delete_option($this->plugin_name . '_resyncing');
         wp_send_json(array('done' => 1, 'total' => $results['total'], 'complete' => $results['complete']));
         exit;
       } else {
         $results = [];
         foreach ($post_ids as $post_id) {
-          update_post_meta($post_id, '_cdp_sync_queue', '1');
           update_post_meta($post_id, '_cdp_last_sync', date('Y-m-d H:i:s'));
           $post = get_post($post_id);
           $resp = $this->addOrUpdate($post, false, true);
@@ -394,14 +380,11 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
       $opts = get_option( $this->plugin_name );
       $post_types = $opts[ 'es_post_types' ];
       $formats = implode(',', array_fill(0, count($post_types), '%s'));
-      $statuses = implode(',', array(ES_FEEDER_SYNC::SYNCING, ES_FEEDER_SYNC::SYNC_WHILE_SYNCING));
       $query = "SELECT p.ID FROM $wpdb->posts p 
-                  LEFT JOIN (SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_queue') mq ON p.ID = mq.post_id
                   LEFT JOIN (SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_status') ms ON p.ID = ms.post_id
                   LEFT JOIN (SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '_iip_index_post_to_cdp_option') m ON p.ID = m.post_id
                   WHERE p.post_type IN ($formats) AND p.post_status = 'publish' AND (m.meta_value IS NULL OR m.meta_value != 'no')
-                    AND mq.meta_value IS NULL  
-                    AND (ms.meta_value IS NULL OR ms.meta_value NOT IN ($statuses)) ORDER BY p.post_date DESC";
+                    AND ms.meta_value IS NULL ORDER BY p.post_date DESC";
       if ($limit) $query .= " LIMIT $limit";
       $query = $wpdb->prepare($query, array_keys($post_types));
       $post_ids = $wpdb->get_col($query);
@@ -413,13 +396,10 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
       $opts = get_option( $this->plugin_name );
       $post_types = $opts[ 'es_post_types' ];
       $formats = implode(',', array_fill(0, count($post_types), '%s'));
-      $statuses = implode(',', array(ES_FEEDER_SYNC::SYNCING, ES_FEEDER_SYNC::SYNC_WHILE_SYNCING));
-      $query = "SELECT COUNT(*) as total, SUM(IF(mq.meta_value = '1', 1, 0)) as complete FROM $wpdb->posts p 
-                  LEFT JOIN (SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_queue') mq ON p.ID = mq.post_id
+      $query = "SELECT COUNT(*) as total, SUM(IF(ms.meta_value IS NOT NULL, 1, 0)) as complete FROM $wpdb->posts p 
                   LEFT JOIN (SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_status') ms ON p.ID = ms.post_id
                   LEFT JOIN (SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '_iip_index_post_to_cdp_option') m ON p.ID = m.post_id
-                  WHERE p.post_type IN ($formats) AND p.post_status = 'publish' AND (m.meta_value IS NULL OR m.meta_value != 'no')
-                    AND (ms.meta_value IS NULL OR mq.meta_value IS NOT NULL OR (mq.meta_value IS NULL AND ms.meta_value NOT IN ($statuses)))";
+                  WHERE p.post_type IN ($formats) AND p.post_status = 'publish' AND (m.meta_value IS NULL OR m.meta_value != 'no')";
       $query = $wpdb->prepare($query, array_keys($post_types));
       $row = $wpdb->get_row($query);
       return array('done' => $row->total == $row->complete ? 1 : 0, 'response' => null, 'results' => null, 'total' => $row->total, 'complete' => $row->complete);
