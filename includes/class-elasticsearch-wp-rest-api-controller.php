@@ -387,6 +387,7 @@ class WP_ES_FEEDER_Callback_Controller {
           delete_post_meta( $post_id, '_cdp_resync_count');
         }
       } else {
+        $feeder->log( "INCOMING CALLBACK FOR UID: $uid, post_id: $post_id, sync_status: $sync_status\r\n" . print_r( $data, 1 ) . "\r\n", 'callback.log' );
         update_post_meta($post_id,'_cdp_sync_status', ES_FEEDER_SYNC::ERROR);
         delete_post_meta( $post_id, '_cdp_resync_count');
       }
