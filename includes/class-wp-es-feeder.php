@@ -370,9 +370,10 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
             update_post_meta($post_id, '_cdp_sync_status', ES_FEEDER_SYNC::ERROR);
           }
         }
-        $results = $this->get_resync_totals();
-        $results['done'] = 0;
-        wp_send_json($results);
+        $totals = $this->get_resync_totals();
+        $totals['done'] = 0;
+        $totals['results'] = $results;
+        wp_send_json($totals);
       }
       exit;
     }
