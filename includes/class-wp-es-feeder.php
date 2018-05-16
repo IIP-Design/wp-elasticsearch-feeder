@@ -2,7 +2,7 @@
 if ( !class_exists( 'wp_es_feeder' ) ) {
   class wp_es_feeder {
     const LOG_ALL = false;
-    const SYNC_LIMIT = 5;
+    const SYNC_LIMIT = 25;
 
     protected $loader;
     protected $plugin_name;
@@ -315,11 +315,13 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
      */
     public function es_initiate_sync() {
       global $wpdb;
-      $wpdb->delete($wpdb->postmeta, array('meta_key' => '_cdp_sync_status'));
       if (isset($_POST['sync_errors']) && $_POST['sync_errors']) {
         $errors = $this->check_sync_errors();
         $post_ids = $errors['ids'];
+        if (count($post_ids))
+          $wpdb->delete($wpdb->postmeta, array('post_id' => $post_ids));
       } else {
+        $wpdb->delete($wpdb->postmeta, array('meta_key' => '_cdp_sync_status'));
         $post_ids = $this->get_syncable_posts();
       }
       if (!count($post_ids)) {
