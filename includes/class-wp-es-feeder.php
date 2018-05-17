@@ -350,10 +350,10 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
         $results = [];
         $wpdb->update($wpdb->posts, ['post_status' => 'resync'], ['ID' => $post_ids]);
         foreach ($post_ids as $post_id) {
-          $wpdb->update($wpdb->posts, ['post_status' => 'publish'], ['ID' => $post_id]);
           update_post_meta($post_id, '_cdp_last_sync', date('Y-m-d H:i:s'));
           $post = get_post($post_id);
           $resp = $this->addOrUpdate($post, false, true);
+          $wpdb->update($wpdb->posts, ['post_status' => 'publish'], ['ID' => $post_id]);
           if (!$resp) {
             $results[] = [
               'title' => $post->post_title,
