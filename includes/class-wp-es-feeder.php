@@ -339,18 +339,27 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
      * as well as stats on the sync queue.
      */
     public function es_process_next() {
+      global $wpdb;
+      while(get_option($this->plugin_name . '_syncable_posts', 0)) {
+        sleep(1);
+      }
+      update_option($this->plugin_name . '_syncable_posts', 1);
       set_time_limit(120);
       $post_ids = $this->get_syncable_posts(self::SYNC_LIMIT);
       if (!count($post_ids)) {
+        delete_option($this->plugin_name . '_syncable_posts');
         $results = $this->get_resync_totals();
         wp_send_json(array('done' => 1, 'total' => $results['total'], 'complete' => $results['complete']));
         exit;
       } else {
         $results = [];
+        $wpdb->update($wpdb->posts, ['post_status' => 'resync'], ['ID' => $post_ids]);
+        delete_option($this->plugin_name . '_syncable_posts');
         foreach ($post_ids as $post_id) {
           update_post_meta($post_id, '_cdp_last_sync', date('Y-m-d H:i:s'));
           $post = get_post($post_id);
           $resp = $this->addOrUpdate($post, false, true);
+          $wpdb->update($wpdb->posts, ['post_status' => 'publish'], ['ID' => $post_id]);
           if (!$resp) {
             $results[] = [
               'title' => $post->post_title,
