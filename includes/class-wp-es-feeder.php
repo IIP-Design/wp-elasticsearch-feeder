@@ -339,6 +339,7 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
      * as well as stats on the sync queue.
      */
     public function es_process_next() {
+      global $wpdb;
       set_time_limit(120);
       $post_ids = $this->get_syncable_posts(self::SYNC_LIMIT);
       if (!count($post_ids)) {
@@ -347,13 +348,12 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
         exit;
       } else {
         $results = [];
+        $wpdb->update($wpdb->posts, ['post_status' => 'resync'], ['ID' => $post_ids]);
         foreach ($post_ids as $post_id) {
-          update_post_meta( $post_id, '_cdp_sync_status', ES_FEEDER_SYNC::SYNCING );
-        }
-        foreach ($post_ids as $post_id) {
+          $wpdb->update($wpdb->posts, ['post_status' => 'publish'], ['ID' => $post_id]);
           update_post_meta($post_id, '_cdp_last_sync', date('Y-m-d H:i:s'));
           $post = get_post($post_id);
-          $resp = $this->addOrUpdate($post, false, true, false);
+          $resp = $this->addOrUpdate($post, false, true);
           if (!$resp) {
             $results[] = [
               'title' => $post->post_title,
@@ -554,8 +554,8 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
       $this->translate_post( $post );
     }
 
-    public function addOrUpdate( $post, $print = true, $callback_errors_only = false, $check_syncable = true ) {
-      if ( $check_syncable && !$this->is_syncable( $post->ID ) ) {
+    public function addOrUpdate( $post, $print = true, $callback_errors_only = false ) {
+      if ( !$this->is_syncable( $post->ID ) ) {
         $response = ['error' => 1, 'message' => 'Could not publish while publish in progress.'];
         if ($print)
           wp_send_json($response);
