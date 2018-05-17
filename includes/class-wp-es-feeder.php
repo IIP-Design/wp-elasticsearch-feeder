@@ -340,10 +340,8 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
      */
     public function es_process_next() {
       global $wpdb;
-      while(get_option($this->plugin_name . '_syncable_posts', 0)) {
-        sleep(1);
-      }
-      update_option($this->plugin_name . '_syncable_posts', 1);
+      while( get_option($this->plugin_name . '_syncable_posts') !== false );
+      update_option($this->plugin_name . '_syncable_posts', 1, false);
       set_time_limit(120);
       $post_ids = $this->get_syncable_posts(self::SYNC_LIMIT);
       if (!count($post_ids)) {
@@ -353,12 +351,16 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
         exit;
       } else {
         $results = [];
-        $wpdb->update($wpdb->posts, ['post_status' => 'resync'], ['ID' => $post_ids]);
+        $vals = [];
+        $query = "INSERT INTO $wpdb->postmeta (post_id, meta_key, meta_value) VALUES";
+        foreach ($post_ids as $post_id) $vals[] = "($post_id, '_cdp_sync_status', '1')";
+        $query .= implode(',', $vals);
+        $wpdb->query($query);
         delete_option($this->plugin_name . '_syncable_posts');
         foreach ($post_ids as $post_id) {
           update_post_meta($post_id, '_cdp_last_sync', date('Y-m-d H:i:s'));
           $post = get_post($post_id);
-          $resp = $this->addOrUpdate($post, false, true);
+          $resp = $this->addOrUpdate($post, false, true, false);
           $wpdb->update($wpdb->posts, ['post_status' => 'publish'], ['ID' => $post_id]);
           if (!$resp) {
             $results[] = [
@@ -560,8 +562,8 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
       $this->translate_post( $post );
     }
 
-    public function addOrUpdate( $post, $print = true, $callback_errors_only = false ) {
-      if ( !$this->is_syncable( $post->ID ) ) {
+    public function addOrUpdate( $post, $print = true, $callback_errors_only = false, $check_syncable = true ) {
+      if ( $check_syncable && !$this->is_syncable( $post->ID ) ) {
         $response = ['error' => 1, 'message' => 'Could not publish while publish in progress.'];
         if ($print)
           wp_send_json($response);
