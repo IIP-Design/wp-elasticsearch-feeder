@@ -348,9 +348,12 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
       } else {
         $results = [];
         foreach ($post_ids as $post_id) {
+          update_post_meta( $post_id, '_cdp_sync_status', ES_FEEDER_SYNC::SYNCING );
+        }
+        foreach ($post_ids as $post_id) {
           update_post_meta($post_id, '_cdp_last_sync', date('Y-m-d H:i:s'));
           $post = get_post($post_id);
-          $resp = $this->addOrUpdate($post, false, true);
+          $resp = $this->addOrUpdate($post, false, true, false);
           if (!$resp) {
             $results[] = [
               'title' => $post->post_title,
@@ -551,8 +554,8 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
       $this->translate_post( $post );
     }
 
-    public function addOrUpdate( $post, $print = true, $callback_errors_only = false ) {
-      if ( !$this->is_syncable( $post->ID ) ) {
+    public function addOrUpdate( $post, $print = true, $callback_errors_only = false, $check_syncable = true ) {
+      if ( $check_syncable && !$this->is_syncable( $post->ID ) ) {
         $response = ['error' => 1, 'message' => 'Could not publish while publish in progress.'];
         if ($print)
           wp_send_json($response);
