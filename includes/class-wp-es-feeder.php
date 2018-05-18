@@ -343,8 +343,8 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
           echo json_encode(array('error' => true, 'message' => 'No posts found.'));
           exit;
         }
-        $post_ids = $this->get_syncable_posts();
-        wp_send_json(array('done' => 0, 'response' => null, 'results' => null, 'total' => count($post_ids), 'complete' => count($post_ids) - count($errors['ids'])));
+        $results = $this->get_resync_totals();
+        wp_send_json($results);
       } else {
         $wpdb->delete($wpdb->postmeta, array('meta_key' => '_cdp_sync_status'));
         $post_ids = $this->get_syncable_posts();
