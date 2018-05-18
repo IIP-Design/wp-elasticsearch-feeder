@@ -5,7 +5,7 @@ if ( !class_exists( 'ES_API_HELPER' ) ) {
 
     const PLUGIN_NAME = 'wp-es-feeder';
     const NAME_SPACE = 'elasticsearch/v1';
-    const SYNC_TIMEOUT = 10; // minutes
+    const SYNC_TIMEOUT = 1; // minutes
 
     public static function get_post_type_label($post_type = 'post', $display = 'name') {
       $obj = get_post_type_object($post_type);
@@ -231,15 +231,16 @@ if ( !class_exists( 'ES_FEEDER_SYNC' ) ) {
      * Returns English string version of status.
      *
      * @param $status
+     * @param $merge_publishes
      * @return string
      */
-    public static function display($status) {
+    public static function display($status, $merge_publishes = false) {
       switch ($status) {
         case ES_FEEDER_SYNC::NOT_SYNCED: return 'Not Published';
         case ES_FEEDER_SYNC::SYNCING: return 'Publishing';
         case ES_FEEDER_SYNC::SYNCED: return 'Published';
-        case ES_FEEDER_SYNC::SYNC_WHILE_SYNCING: return 'Could not publish while publish in progress';
-        case ES_FEEDER_SYNC::RESYNC: return 'Publish Required';
+        case ES_FEEDER_SYNC::SYNC_WHILE_SYNCING: return ($merge_publishes ? 'Publishing' : 'Republish Attempted');
+        case ES_FEEDER_SYNC::RESYNC: return 'Validation Required';
         case ES_FEEDER_SYNC::ERROR: return 'Error';
         default: return 'Never Published';
       }

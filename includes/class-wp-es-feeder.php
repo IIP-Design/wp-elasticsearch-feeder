@@ -229,8 +229,9 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
      *
      * @param $status
      * @param $text boolean
+     * @param $merge_publishes
      */
-    public function sync_status_indicator($status, $text = true) {
+    public function sync_status_indicator($status, $text = true, $merge_publishes = true) {
       $color = 'black';
       switch ( $status ) {
         case ES_FEEDER_SYNC::SYNCING:
@@ -248,8 +249,8 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
           break;
       }
       ?>
-      <div class="sync-status sync-status-<?=$color?>" title="<?=ES_FEEDER_SYNC::display($status)?>"></div>
-      <div class="sync-status-label"><?=$text ? ES_FEEDER_SYNC::display($status) : ''?></div>
+      <div class="sync-status sync-status-<?=$color?>" title="<?=ES_FEEDER_SYNC::display($status, $merge_publishes)?>"></div>
+      <div class="sync-status-label"><?=$text ? ES_FEEDER_SYNC::display($status, $merge_publishes) : ''?></div>
       <?php
     }
 
@@ -266,7 +267,7 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
     public function get_sync_status($post_id, $status = null) {
       if (!$status)
         $status = get_post_meta($post_id, '_cdp_sync_status', true);
-      if ($status != ES_FEEDER_SYNC::ERROR && !ES_FEEDER_SYNC::sync_allowed($status)) {
+      if (!in_array($status, [ES_FEEDER_SYNC::ERROR, ES_FEEDER_SYNC::RESYNC]) && !ES_FEEDER_SYNC::sync_allowed($status)) {
         // check to see if we should resolve to error based on time since last sync
         $last_sync = get_post_meta($post_id, '_cdp_last_sync', true);
         if ($last_sync)
@@ -276,7 +277,7 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
         $interval = date_diff($last_sync, new DateTime('now'));
         $diff = $interval->format('%i');
         if ($diff >= ES_API_HELPER::SYNC_TIMEOUT) {
-          $status = ES_FEEDER_SYNC::ERROR;
+          $status = ES_FEEDER_SYNC::RESYNC;
           update_post_meta($post_id, '_cdp_sync_status', $status);
         }
       }

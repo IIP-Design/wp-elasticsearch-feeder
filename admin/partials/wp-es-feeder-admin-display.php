@@ -127,7 +127,7 @@
                             <table>
                                 <?php for ($i = 1; $i <= 5; $i++): ?>
                                 <tr>
-                                    <td><?php $feeder->sync_status_indicator($i, true)?></td>
+                                    <td><?php $feeder->sync_status_indicator($i, true, false)?></td>
                                     <td class="status-count status-<?=$i?>" data-status-id="<?=$i?>"><?=(array_key_exists($i, $status_counts) ? $status_counts[$i] : 0)?></td>
                                 </tr>
                                 <?php endfor; ?>
@@ -142,11 +142,11 @@
                             <button class="button-secondary" type="button" id="es_test_connection" name="es_test_connection"><?php esc_attr_e( 'Test Connection' ); ?></button>
 <!--							<input class="button-secondary" type="button" id="es_create_index" name="es_create_index" value="--><?php //esc_attr_e( 'Create Index' ); ?><!--" />-->
                             <button class="button-secondary" type="button" id="es_query_index" name="es_query_index"><?php esc_attr_e( 'Query Index' ); ?></button>
-                            <button class="button-secondary" type="button" id="es_resync" name="es_reindex"><?php esc_attr_e( 'Re-sync Data' ); ?></button>
                             <button class="button-secondary" type="button" id="es_resync_errors" name="es_resync_errors"><?php esc_attr_e( 'Fix Errors' ); ?></button>
-                            <button class="button-secondary" type="button" id="es_validate_sync" name="es_validate_sync"><?php esc_attr_e( 'Validate' ); ?></button>
+                            <button class="button-secondary" type="button" id="es_validate_sync" name="es_validate_sync"><?php esc_attr_e( 'Validate Statuses' ); ?></button>
                             <button class="button-primary" type="button" id="es_resync_control" name="es_resync_control" style="display: none;">Pause</button>
 <!--							<input class="button-secondary" type="button" id="es_delete_index" name="es_delete_index" value="--><?php //esc_attr_e( 'Delete Index' ); ?><!--" />-->
+                            <button class="button-secondary button-danger" type="button" id="es_resync" name="es_reindex" style="float: right;"><?php esc_attr_e( 'Resync All Data' ); ?></button>
 						</div>
 
 						<div class="inside index-spinner"></div>

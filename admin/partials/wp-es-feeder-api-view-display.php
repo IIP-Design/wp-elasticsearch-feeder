@@ -6,7 +6,7 @@ $token = $options['es_token'];
 
 if ($post && $post->ID && $es_url && $token):
   $uuid = $feeder->get_uuid($post);
-  $endpoint = $es_url . '/' . $feeder->get_post_type_label($post->post_type) . '/' . $uuid;
+  $endpoint = $es_url . $feeder->get_post_type_label($post->post_type) . '/' . $uuid;
   ?>
   <div style="text-align: right;">
     <a class="button-secondary" href="javascript:void(0);" id="populate_data" style="">Retrieve Data</a>
