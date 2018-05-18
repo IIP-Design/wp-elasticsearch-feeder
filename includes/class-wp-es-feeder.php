@@ -338,7 +338,7 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
         $errors = $this->check_sync_errors();
         $post_ids = $errors['ids'];
         if (count($post_ids))
-          $wpdb->query("DELETE FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_status' AND post_id IN (" . impldoe(',', $post_ids) . ")");
+          $wpdb->query("DELETE FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_status' AND post_id IN (" . implode(',', $post_ids) . ")");
       } else {
         $wpdb->delete($wpdb->postmeta, array('meta_key' => '_cdp_sync_status'));
         $post_ids = $this->get_syncable_posts();
