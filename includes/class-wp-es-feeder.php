@@ -2,7 +2,7 @@
 if ( !class_exists( 'wp_es_feeder' ) ) {
   class wp_es_feeder {
     const LOG_ALL = false;
-    const SYNC_LIMIT = 25;
+    const SYNC_LIMIT = 5;
 
     protected $loader;
     protected $plugin_name;
