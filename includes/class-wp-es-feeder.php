@@ -180,21 +180,26 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
         $update_synced = [];
         foreach ($rows as $row) {
           if (array_key_exists($row->ID, $modifieds)) {
-            if ($modifieds[$row->ID] == mysql2date('c', $row->post_modified))
-              //update_post_meta($row->ID, '_cdp_sync_status', ES_FEEDER_SYNC::SYNCED);
-              $update_synced[] = $row->ID;
-            else {
-//              update_post_meta( $row->ID, '_cdp_sync_status', ES_FEEDER_SYNC::ERROR );
+            if ($modifieds[$row->ID] == mysql2date('c', $row->post_modified)) {
+              if ( $row->sync_status != ES_FEEDER_SYNC::SYNCED ) {
+                $update_synced[] = $row->ID;
+                $stats['updated']++;
+              }
+            } else {
               $stats['mismatched']++;
-              $update_errors[] = $row->ID;
+              if ( $row->sync_status != ES_FEEDER_SYNC::ERROR ) {
+                $update_errors[] = $row->ID;
+                $stats['updated']++;
+              }
             }
             unset($modifieds[$row->ID]);
           } else {
-//            update_post_meta($row->ID, '_cdp_sync_status', ES_FEEDER_SYNC::ERROR);
             $stats['es_missing']++;
-            $update_errors[] = $row->ID;
+            if ( $row->sync_status != ES_FEEDER_SYNC::ERROR ) {
+              $update_errors[] = $row->ID;
+              $stats['updated']++;
+            }
           }
-          $stats['updated']++;
         }
         if (count($update_synced)) {
           $query = "UPDATE $wpdb->postmeta SET meta_value = '" . ES_FEEDER_SYNC::SYNCED . "' WHERE meta_key = '_cdp_sync_status' AND post_id IN (" . implode(',', $update_synced) . ")";
