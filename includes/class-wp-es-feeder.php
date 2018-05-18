@@ -339,15 +339,21 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
         $post_ids = $errors['ids'];
         if (count($post_ids))
           $wpdb->query("DELETE FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_status' AND post_id IN (" . implode(',', $post_ids) . ")");
+        else {
+          echo json_encode(array('error' => true, 'message' => 'No posts found.'));
+          exit;
+        }
+        $post_ids = $this->get_syncable_posts();
+        wp_send_json(array('done' => 0, 'response' => null, 'results' => null, 'total' => count($post_ids), 'complete' => count($post_ids) - count($errors['ids'])));
       } else {
         $wpdb->delete($wpdb->postmeta, array('meta_key' => '_cdp_sync_status'));
         $post_ids = $this->get_syncable_posts();
+        if (!count($post_ids)) {
+          echo json_encode(array('error' => true, 'message' => 'No posts found.'));
+          exit;
+        }
+        wp_send_json(array('done' => 0, 'response' => null, 'results' => null, 'total' => count($post_ids), 'complete' => 0));
       }
-      if (!count($post_ids)) {
-        echo json_encode(array('error' => true, 'message' => 'No posts found.'));
-        exit;
-      }
-      wp_send_json(array('done' => 0, 'response' => null, 'results' => null, 'total' => count($post_ids), 'complete' => 0));
       exit;
     }
 
