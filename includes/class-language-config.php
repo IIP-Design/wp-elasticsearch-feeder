@@ -54,8 +54,7 @@ class Language_Helper {
   public function get_language_by_meta_field( $id, $meta_field ) {
     $locale = get_post_meta( $id, $meta_field, true );   //'
     $locale = empty( $locale ) ? 'en' : $locale;
-    if ( !$this->languages ) $this->load_languages();
-    return $this->languages[strtolower($locale)];
+    return $this->get_language_by_code($locale);
   }
 
   public function load_languages() {
