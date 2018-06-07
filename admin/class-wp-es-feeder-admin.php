@@ -71,6 +71,7 @@ class wp_es_feeder_Admin {
     $options = get_option($this->plugin_name);
     $es_post_types = $options['es_post_types']?$options['es_post_types']:null;
     $es_api_data = (current_user_can('manage_options') && array_key_exists('es_api_data', $options) && $options['es_api_data']);
+    $es_post_language = array_key_exists('es_post_language', $options) && $options['es_post_language'] ? 1 : 0;
     $screens = array();
     if ( $es_post_types ) {
       foreach($es_post_types as $key=>$value){
@@ -96,6 +97,16 @@ class wp_es_feeder_Admin {
           $screen
         );
       }
+      if ($screen === 'post' && $es_post_language) {
+        add_meta_box(
+          'es-language',           // Unique ID
+          'Language',  // Box title
+          array( $this, 'language_dropdown' ),  // Content callback, must be of type callable
+          $screen,
+          'side',
+          'high'
+        );
+      }
     }
   }
 
@@ -106,6 +117,11 @@ class wp_es_feeder_Admin {
 
   function api_response_data($post) {
     include_once( 'partials/wp-es-feeder-api-view-display.php' );
+  }
+
+  function language_dropdown($post) {
+    global $cdp_language_helper;
+    include_once( 'partials/wp-es-feeder-language-display.php' );
   }
 
   function add_admin_cdp_taxonomy() {
@@ -150,6 +166,7 @@ class wp_es_feeder_Admin {
       'es_wpdomain' => sanitize_text_field( $input[ 'es_wpdomain' ] ),
       'es_url' => sanitize_text_field( $input[ 'es_url' ] ),
       'es_api_data' => array_key_exists('es_api_data', $input),
+      'es_post_language' => array_key_exists('es_post_language', $input),
       'es_token' => sanitize_text_field( $input[ 'es_token' ] )
     );
 
