@@ -55,12 +55,17 @@ if ( !class_exists( 'ES_API_HELPER' ) ) {
     }
 
     public static function get_language( $id ) {
-      global $sitepress;
+      global $feeder, $sitepress;
       if ( $sitepress ) {
         $output = apply_filters( 'wpml_post_language_details', null, $id );
         $output['locale'] = str_replace('_', '-', $output['locale']);
         if ($output['locale'])
           return self::get_language_by_locale($output['locale']);
+      } else if (get_post_type($id) === 'post') {
+        $options = get_option($feeder->get_plugin_name());
+        $use_post_lang = array_key_exists('es_post_language', $options) && $options['es_post_language'] ? 1 : 0;
+        $locale = get_post_meta($id, '_iip_language', true);
+        if ($use_post_lang && $locale) return self::get_language_by_locale($locale);
       }
       return self::get_language_by_locale( strtolower( str_replace( '_', '-', get_locale() ) ) );
     }
