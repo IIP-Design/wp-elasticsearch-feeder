@@ -110,6 +110,23 @@ class wp_es_feeder_Admin {
     }
   }
 
+  function vimeo_callback() {
+    $redirect = admin_url('options-general.php?page=wp-es-feeder');
+    if (isset($_GET['token'])) {
+      $options = get_option( $this->plugin_name );
+      $options['es_vimeo_token'] = $_GET['token'];
+      update_option( $this->plugin_name, $options );
+      $redirect .= '&vimeo-authorized';
+    } else if (isset($_GET['error'])) {
+      $redirect .= '&vimeo-error=' . urlencode($_GET['error']);
+    } else if (isset($_GET['delete-token'])) {
+      $options = get_option( $this->plugin_name );
+      $options['es_vimeo_token'] = '';
+      update_option( $this->plugin_name, $options );
+    }
+    wp_redirect( $redirect );
+  }
+
   function index_to_cdp_display($post) {
     global $feeder;
     include_once( 'partials/wp-es-feeder-index-to-cdp-display.php' );
@@ -167,7 +184,8 @@ class wp_es_feeder_Admin {
       'es_url' => sanitize_text_field( $input[ 'es_url' ] ),
       'es_api_data' => array_key_exists('es_api_data', $input),
       'es_post_language' => array_key_exists('es_post_language', $input),
-      'es_token' => sanitize_text_field( $input[ 'es_token' ] )
+      'es_token' => sanitize_text_field( $input[ 'es_token' ] ),
+      'es_vimeo_token' => sanitize_text_field( $input[ 'es_vimeo_token' ]   )
     );
 
     $types = array();

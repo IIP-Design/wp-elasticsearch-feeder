@@ -14,43 +14,52 @@
 
   global $wpdb, $feeder;
 ?>
-
+<?php if (isset($_GET['vimeo-authorized'])):?>
+    <div class="notice notice-success">
+        <p>Vimeo has been authorized.</p>
+    </div>
+<?php elseif (isset($_GET['vimeo-error'])): ?>
+    <div class="notice notice-error">
+        <p>Error authorizing Vimeo: <?=urldecode($_GET['vimeo-error'])?></p>
+    </div>
+<?php endif; ?>
 <!-- This file should primarily consist of HTML with a little bit of PHP. -->
 <div class="wrap wp_es_settings">
     <h2><?php echo esc_html( get_admin_page_title() ); ?></h2>
     <form method="post" name="elasticsearch_options" action="options.php">
     <?php
-            $status_counts = $feeder->get_sync_status_counts();
-			// Import all the options from the databse
-			$options = get_option($this->plugin_name);
+        $status_counts = $feeder->get_sync_status_counts();
+        // Import all the options from the databse
+        $options = get_option($this->plugin_name);
 
-			$es_wpdomain = $options['es_wpdomain']?$options['es_wpdomain']:null;
-			$es_url = $options['es_url']?$options['es_url']:null;
-            $es_token = $options['es_token']?$options['es_token']:null;
-			$es_post_types = $options['es_post_types']?$options['es_post_types']:null;
-			$es_api_data = array_key_exists('es_api_data', $options) && $options['es_api_data'] ? 1 : 0;
-			$es_post_language = array_key_exists('es_post_language', $options) && $options['es_post_language'] ? 1 : 0;
+        $es_wpdomain = $options['es_wpdomain']?$options['es_wpdomain']:null;
+        $es_url = $options['es_url']?$options['es_url']:null;
+        $es_token = $options['es_token']?$options['es_token']:null;
+        $es_post_types = $options['es_post_types']?$options['es_post_types']:null;
+        $es_api_data = array_key_exists('es_api_data', $options) && $options['es_api_data'] ? 1 : 0;
+        $es_post_language = array_key_exists('es_post_language', $options) && $options['es_post_language'] ? 1 : 0;
+        $es_vimeo_token = array_key_exists('es_vimeo_token', $options) && $options['es_vimeo_token'] ? $options['es_vimeo_token'] : false;
 
-			// Get domain(s) - support for Domain Mapping
-			$site = site_url();
-			$wpdb->dmtable = $wpdb->base_prefix . 'domain_mapping';
-			$domains = $wpdb->get_col( "SELECT domain FROM {$wpdb->dmtable}" );
-			$protocol = is_ssl() ? 'https://' : 'http://';
+        // Get domain(s) - support for Domain Mapping
+        $site = site_url();
+        $wpdb->dmtable = $wpdb->base_prefix . 'domain_mapping';
+        $domains = $wpdb->get_col( "SELECT domain FROM {$wpdb->dmtable}" );
+        $protocol = is_ssl() ? 'https://' : 'http://';
 
-			$selected = '';
-			if ( $site === $es_wpdomain || empty($es_wpdomain) )
-				$selected = 'selected';
+        $selected = '';
+        if ( $site === $es_wpdomain || empty($es_wpdomain) )
+            $selected = 'selected';
 
-			$domain_output = "<option value='$site' $selected>$site</option>";
+        $domain_output = "<option value='$site' $selected>$site</option>";
 
-			if ( !empty($domains) ) {
-				foreach($domains as $domain) {
-					$selected = '';
-					if ( $protocol.$domain === $es_wpdomain )
-						$selected = 'selected';
-					$domain_output .= "<option value='$protocol$domain' $selected>$protocol$domain</option>";
-				}
-			}
+        if ( !empty($domains) ) {
+            foreach($domains as $domain) {
+                $selected = '';
+                if ( $protocol.$domain === $es_wpdomain )
+                    $selected = 'selected';
+                $domain_output .= "<option value='$protocol$domain' $selected>$protocol$domain</option>";
+            }
+        }
     ?>
 
     <?php
@@ -63,10 +72,10 @@
 			<div id="post-body-content">
 				<div class="meta-box-sortables ui-sortable">
 					<div class="postbox">						
-						<h2><span><?php esc_attr_e( 'Indexed URL', 'wp_admin_style' ); ?></span></h2>
-						<div class="inside">
-							<select id="es_wpdomain" name="<?php echo $this->plugin_name; ?>[es_wpdomain]">
-								<?php echo $domain_output; ?>
+                        <h2><span><?php esc_attr_e( 'Indexed URL', 'wp_admin_style' ); ?></span></h2>
+					    <div class="inside">
+                            <select id="es_wpdomain" name="<?php echo $this->plugin_name; ?>[es_wpdomain]">
+                                <?php echo $domain_output; ?>
 							</select>
 							<span>* If using domain mapping, mapped URLs will appear in dropdown.</span>
 						</div>
@@ -77,10 +86,21 @@
                             <!--<span class="description"><?php esc_attr_e( 'It must include the trailing slash "/"', 'wp_admin_style' ); ?></span><br>-->
                         </div>
 
-                       <h2><span><?php esc_attr_e( 'API Token', 'wp_admin_style' ); ?></span></h2>
-                       <div class="inside">
-                          <input type="text" placeholder="api token" class="regular-text" id="es_token" name="<?php echo $this->plugin_name; ?>[es_token]" value="<?php if(!empty($es_token)) echo $es_token; ?>"/>
-                       </div>
+                        <h2><span><?php esc_attr_e( 'API Token', 'wp_admin_style' ); ?></span></h2>
+                        <div class="inside">
+                           <input type="text" placeholder="api token" class="regular-text" id="es_token" name="<?php echo $this->plugin_name; ?>[es_token]" value="<?php if(!empty($es_token)) echo $es_token; ?>"/>
+                        </div>
+
+                        <h2><span><?php esc_attr_e( 'Vimeo Token', 'wp_admin_style' ); ?></span></h2>
+                        <div class="inside">
+                            <?php if (!$es_vimeo_token): ?>
+                                <a class="button-primary" <?=$es_url ? '' : 'disabled'?> href="<?=($es_url ? trim($es_url, '/') . '/auth/vimeo?callback=' . urlencode(admin_url('admin-post.php?action=es_vimeo_callback')) : '#')?>">Authorize Vimeo</a>
+                            <?php endif; ?>
+                            <?php if ($es_vimeo_token): ?>
+                                <a class="button-secondary button-danger" href="<?=admin_url('admin-post.php?action=es_vimeo_callback&delete-token')?>">Delete Vimeo Token</a>
+                            <?php endif; ?>
+                            <span style="line-height: 26px">* Authorizing Vimeo will override the use of Cloudflare for streaming.</span>
+                        </div>
 
 <!--						<h2><span>--><?php //esc_attr_e( 'Index Name', 'wp_admin_style' ); ?><!--</span></h2>-->
 <!--						<div class="inside">-->
@@ -107,12 +127,12 @@
 
 								// html structure
 								echo '<fieldset>
-												<legend class="screen-reader-text"><span>es_post_type_'.$value.'</span></legend>
-												<label for="es_post_type_'.$value.'" class="post_type_label">
-													<input type="checkbox" id="es_post_type_'.$value.'" name="'.$this->plugin_name.'[es_post_type_'.$value.']" '.$checked.'/>
-													<span data-type="'.$value.'">'.ucfirst(ES_API_HELPER::get_post_type_label($value, 'name')).'</span>
-												</label>
-											</fieldset>';
+                                            <legend class="screen-reader-text"><span>es_post_type_'.$value.'</span></legend>
+                                            <label for="es_post_type_'.$value.'" class="post_type_label">
+                                                <input type="checkbox" id="es_post_type_'.$value.'" name="'.$this->plugin_name.'[es_post_type_'.$value.']" '.$checked.'/>
+                                                <span data-type="'.$value.'">'.ucfirst(ES_API_HELPER::get_post_type_label($value, 'name')).'</span>
+                                            </label>
+                                        </fieldset>';
 							}
 							?>
 						</div>
