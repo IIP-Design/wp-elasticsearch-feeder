@@ -45,6 +45,7 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
       // add "Do not index" box to posts and pages
       $this->loader->add_action( 'add_meta_boxes', $plugin_admin, 'add_admin_meta_boxes' );
       $this->loader->add_action( 'add_meta_boxes', $plugin_admin, 'add_admin_cdp_taxonomy' );
+      $this->loader->add_action( 'admin_post_es_vimeo_callback', $plugin_admin, 'vimeo_callback' );
 
       // add settings link to plugin
       $plugin_basename = plugin_basename( plugin_dir_path( __DIR__ ) . $this->plugin_name . '.php' );
@@ -685,6 +686,9 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
 
       $token = $config['es_token'];
       if ( !empty( $token ) ) $headers['Authorization'] = 'Bearer ' . $token;
+
+      if ( array_key_exists('es_vimeo_token', $config ) && $config['es_vimeo_token'] )
+          $headers['vimeo_token'] = $config['es_vimeo_token'];
 
       if (!$request) {
         $request = $_POST['data'];
