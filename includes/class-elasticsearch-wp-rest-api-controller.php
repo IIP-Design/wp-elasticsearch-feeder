@@ -243,7 +243,7 @@ if ( !class_exists( 'WP_ES_FEEDER_REST_Controller' ) ) {
 
       $custom_taxonomies = ES_API_HELPER::get_custom_taxonomies( $post->ID );
       if ( count( $custom_taxonomies ) ) {
-        $post_data[ 'taxonomies' ] = $custom_taxonomies;
+        $post_data[ 'custom_taxonomies' ] = $custom_taxonomies;
       }
 
       $post_data[ 'thumbnail' ] = ES_API_HELPER::get_image_size_array( get_post_thumbnail_id( $post->ID ) );
