@@ -115,7 +115,6 @@ if ( !class_exists( 'ES_API_HELPER' ) ) {
       $custom_taxonomies = get_taxonomies( array( 'public' => true, '_builtin' => false) ); 
       $taxonomies = get_post_taxonomies( $id );   
 
-      $results = array();
       $output = array();
 
       if ( !empty($taxonomies) ) {
@@ -123,12 +122,9 @@ if ( !class_exists( 'ES_API_HELPER' ) ) {
           if( in_array($taxonomomy, $custom_taxonomies ) ) {
             $terms = wp_get_post_terms( $id,  $taxonomomy, array('fields' => 'all') );
             if( count($terms) ) {
-              $results[$taxonomomy] = self::remap_terms( $terms );
+              $output[$taxonomomy] = self::remap_terms( $terms );
             }
           }
-        }
-        foreach ($results as $tax => $terms) {
-          $output[] = array( 'name' => $tax, 'terms' => $terms );
         }
       }
       return $output;
