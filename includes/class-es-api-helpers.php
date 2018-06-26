@@ -118,11 +118,11 @@ if ( !class_exists( 'ES_API_HELPER' ) ) {
       $output = array();
 
       if ( !empty($taxonomies) ) {
-        foreach ( $taxonomies as $taxonomomy ) {
-          if( in_array($taxonomomy, $custom_taxonomies ) ) {
-            $terms = wp_get_post_terms( $id,  $taxonomomy, array('fields' => 'all') );
+        foreach ( $taxonomies as $taxonomy ) {
+          if( in_array($taxonomy, $custom_taxonomies ) ) {
+            $terms = wp_get_post_terms( $id,  $taxonomy, array('fields' => 'all') );
             if( count($terms) ) {
-              $output[$taxonomomy] = self::remap_terms( $terms );
+              $output[$taxonomy] = self::remap_terms( $terms );
             }
           }
         }
