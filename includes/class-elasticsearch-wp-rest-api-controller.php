@@ -232,8 +232,8 @@ if ( !class_exists( 'WP_ES_FEEDER_REST_Controller' ) ) {
       $post_data[ 'language' ] = ES_API_HELPER::get_language( $post->ID );
       $post_data[ 'languages' ] = ES_API_HELPER::get_related_translated_posts( $post->ID, $post->post_type ) ?: [];
 
-      if ( array_key_exists( 'tags', $post_data ) ) $post_data[ 'tags' ] = [];
-      if ( array_key_exists( 'categories', $post_data ) ) $post_data[ 'categories' ] = [];
+      if ( !array_key_exists( 'tags', $post_data ) ) $post_data[ 'tags' ] = [];
+      if ( !array_key_exists( 'categories', $post_data ) ) $post_data[ 'categories' ] = [];
 
       $post_data[ 'thumbnail' ] = ES_API_HELPER::get_image_size_array( get_post_thumbnail_id( $post->ID ) );
 
