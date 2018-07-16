@@ -111,8 +111,8 @@ if ( !class_exists( 'ES_API_HELPER' ) ) {
     }
     
 
-    public static function get_custom_taxonomies( $id ) {
-      $custom_taxonomies = get_taxonomies( array( 'public' => true, '_builtin' => false) ); 
+    public static function get_site_taxonomies( $id ) {
+      $custom_taxonomies = get_taxonomies( array( 'public' => true) );
       $taxonomies = get_post_taxonomies( $id );   
 
       $output = array();
@@ -122,6 +122,9 @@ if ( !class_exists( 'ES_API_HELPER' ) ) {
           if( in_array($taxonomy, $custom_taxonomies ) ) {
             $terms = wp_get_post_terms( $id,  $taxonomy, array('fields' => 'all') );
             if( count($terms) ) {
+              // rename the key from WordPress defaults for categories and tags to align with what CDP expects
+              if ( $taxonomy === 'category' ) $taxonomy = 'categories';
+              else if ( $taxonomy === 'post_tag' ) $taxonomy = 'tags';
               $output[$taxonomy] = self::remap_terms( $terms );
             }
           }

@@ -128,17 +128,8 @@ if ( !class_exists( 'WP_ES_FEEDER_REST_Controller' ) ) {
         $response = $this->prepare_item_for_response( $post, $request );
         $data = $response->get_data();
 
-        $categories = array_map( function ($cat) { return $cat['name']; }, ES_API_HELPER::get_categories( $post->ID ) );
-        $tags = array_map( function ($tag) { return $tag['name']; }, ES_API_HELPER::get_tags( $post->ID ) );
-        foreach ( $categories as $cat ) {
-          $cat = strtolower( $cat );
-          if ( !in_array( $cat, $tags ) ) $tags[] = $cat;
-        }
-        foreach ( $tags as $tag ) {
-          $tag = strtolower( $tag );
-          if ( !in_array( $tag, $tags ) ) $tags[] = $tag;
-        }
-        $data[ 'tags' ] = $tags;
+        $data[ 'site_taxonomies' ] = ES_API_HELPER::get_site_taxonomies( $post->ID );
+
         $categories = get_post_meta($id, '_iip_taxonomy_terms', true) ?: array();
         $cat_ids = array();
         foreach ($categories as $cat) {
@@ -241,10 +232,8 @@ if ( !class_exists( 'WP_ES_FEEDER_REST_Controller' ) ) {
       $post_data[ 'language' ] = ES_API_HELPER::get_language( $post->ID );
       $post_data[ 'languages' ] = ES_API_HELPER::get_related_translated_posts( $post->ID, $post->post_type ) ?: [];
 
-      $custom_taxonomies = ES_API_HELPER::get_custom_taxonomies( $post->ID );
-      if ( count( $custom_taxonomies ) ) {
-        $post_data['custom_taxonomies'] = $custom_taxonomies;
-      }
+      if ( array_key_exists( 'tags', $post_data ) ) $post_data[ 'tags' ] = [];
+      if ( array_key_exists( 'categories', $post_data ) ) $post_data[ 'categories' ] = [];
 
       $post_data[ 'thumbnail' ] = ES_API_HELPER::get_image_size_array( get_post_thumbnail_id( $post->ID ) );
 
