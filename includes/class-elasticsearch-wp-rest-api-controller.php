@@ -128,7 +128,9 @@ if ( !class_exists( 'WP_ES_FEEDER_REST_Controller' ) ) {
         $response = $this->prepare_item_for_response( $post, $request );
         $data = $response->get_data();
 
-        $data[ 'site_taxonomies' ] = ES_API_HELPER::get_site_taxonomies( $post->ID );
+        $site_taxonomies = ES_API_HELPER::get_site_taxonomies( $post->ID );
+        if ( count( $site_taxonomies ) )
+          $data[ 'site_taxonomies' ] = $site_taxonomies;
 
         $categories = get_post_meta($id, '_iip_taxonomy_terms', true) ?: array();
         $cat_ids = array();
