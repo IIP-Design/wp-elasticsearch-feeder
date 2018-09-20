@@ -37,6 +37,8 @@ if ( !class_exists( 'ES_API_HELPER' ) ) {
         'full' => null
       ];
       if (!$image) return $sizes;
+      $sizes['title'] = $image['title'];
+
       foreach ($image['sizes'] as $size) {
         if ($size['width'] < 400) {
           if (!$sizes['small'] || $size['width'] > $sizes['small']['width'])
@@ -51,7 +53,16 @@ if ( !class_exists( 'ES_API_HELPER' ) ) {
       }
       if ($image['sizes']['full'])
         $sizes['full'] = $image['sizes']['full'];
-      return $sizes;
+
+      $meta = [
+        'name' => $image['title'],
+        'alt' => $image['alt'],
+        'caption' => $image['caption'],
+        'longdesc' => $image['description'],
+        'sizes' => $sizes
+      ];
+
+      return $meta;
     }
 
     public static function get_language( $id ) {
