@@ -1,9 +1,19 @@
 # Change Log
 ##### All notable changes to this project will be documented in this file.
 
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## 2.3.1
+
+**Features Added:**
+
+- Updates to pull in `name`, `alt`, `caption`, and `longdesc` properties for thumbnail object
+- Moves thumbnail size properties in to a `sizes` object
+
 ## [2.3.0](https://github.com/IIP-Design/wp-elasticsearch-feeder/tree/2.3.0) (2018-07-18)
 
-**Features:**
+**Features Added:**
 
 - Removed custom_taxonomies and replaced with site_taxonomies.
 - Removed the merging of categories and tags.
@@ -12,7 +22,7 @@
 
 ## [2.2.0](https://github.com/IIP-Design/wp-elasticsearch-feeder/tree/2.2.0) (2018-06-08)
 
-**Features:**
+**Features Added:**
 
 - Created new sidebar metabox for the language dropdown.
 - Added checkbox to settings page for enabling language dropdown on post post type (only).
@@ -20,14 +30,14 @@
 
 ## [2.1.0](https://github.com/IIP-Design/wp-elasticsearch-feeder/tree/2.1.0) (2018-05-29)
 
-**Features:**
+**Features Added:**
 
 - Speed up the re-sync initiation process
 - Fire PUT updates for each translation of a multi-lingual post
 
 ## [2.0.0](https://github.com/IIP-Design/wp-elasticsearch-feeder/tree/2.0.0) (2018-05-02)
 
-**Features:**
+**Features Added:**
 
 - Created sync validation button on settings page
 - Improved re-sync process by syncing multiple in one AJAX call
@@ -53,6 +63,6 @@
 - Page edit sync status updates during indexing.
 
 ## [1.0.0](https://github.com/IIP-Design/wp-elasticsearch-feeder/tree/1.0.0) (2017-12-20)
-**Features:**
+**Features Added:**
 
 - Added correct timestamps for ES.
