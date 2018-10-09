@@ -37,7 +37,6 @@ if ( !class_exists( 'ES_API_HELPER' ) ) {
         'full' => null
       ];
       if (!$image) return ['sizes' => $sizes];
-      $sizes['title'] = $image['title'];
 
       foreach ($image['sizes'] as $size) {
         if ($size['width'] < 400) {
