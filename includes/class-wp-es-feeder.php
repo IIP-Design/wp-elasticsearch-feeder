@@ -71,6 +71,7 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
       add_action( 'wp_ajax_es_process_next', array($this, 'es_process_next') );
       add_action( 'wp_ajax_es_truncate_logs', array($this, 'truncate_logs') );
       add_action( 'wp_ajax_es_validate_sync', array($this, 'validate_sync') );
+      add_action( 'wp_ajax_es_reload_log', array($this, 'reload_log') );
 
       add_filter( 'heartbeat_received', array($this, 'heartbeat'), 10, 2 );
     }
@@ -125,6 +126,13 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
       foreach (glob($path) as $log)
         file_put_contents($log, '');
       echo 1;
+      exit;
+    }
+
+    public function reload_log() {
+      $path = WP_CONTENT_DIR . '/plugins/wp-elasticsearch-feeder/callback.log';
+      $log = $this->tail($path, 100);
+      echo json_encode($log);
       exit;
     }
 
@@ -889,7 +897,59 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
 
     public function log($str, $file = 'feeder.log') {
       $path = WP_CONTENT_DIR . '/plugins/wp-elasticsearch-feeder/' . $file;
-      file_put_contents($path, date('[m/d/y H:i:s] ') . print_r($str,1) . "\r\n", FILE_APPEND);
+      file_put_contents($path, date('[m/d/y H:i:s] ') . trim(print_r($str,1)) . "\r\n\r\n", FILE_APPEND);
+    }
+
+    /**
+     * Slightly modified version of http://www.geekality.net/2011/05/28/php-tail-tackling-large-files/
+     * @author Torleif Berger, Lorenzo Stanco
+     * @link http://stackoverflow.com/a/15025877/995958
+     * @license http://creativecommons.org/licenses/by/3.0/
+     *
+     * @param $filepath
+     * @param $lines
+     * @param $adaptive
+     * @return string
+     */
+    public function tail($filepath, $lines = 1, $adaptive = true) {
+      // Open file
+      $f = @fopen($filepath, "rb");
+      if ($f === false) return 'no file';
+      // Sets buffer size, according to the number of lines to retrieve.
+      // This gives a performance boost when reading a few lines from the file.
+      if (!$adaptive) $buffer = 4096;
+      else $buffer = ($lines < 2 ? 64 : ($lines < 10 ? 512 : 4096));
+      // Jump to last character
+      fseek($f, -1, SEEK_END);
+      // Read it and adjust line number if necessary
+      // (Otherwise the result would be wrong if file doesn't end with a blank line)
+      if (fread($f, 1) != "\n") $lines -= 1;
+
+      // Start reading
+      $output = '';
+      $chunk = '';
+      // While we would like more
+      while (ftell($f) > 0 && $lines >= 0) {
+        // Figure out how far back we should jump
+        $seek = min(ftell($f), $buffer);
+        // Do the jump (backwards, relative to where we are)
+        fseek($f, -$seek, SEEK_CUR);
+        // Read a chunk and prepend it to our output
+        $output = ($chunk = fread($f, $seek)) . $output;
+        // Jump back to where we started reading
+        fseek($f, -mb_strlen($chunk, '8bit'), SEEK_CUR);
+        // Decrease our line counter
+        $lines -= substr_count($chunk, "\n");
+      }
+      // While we have too many lines
+      // (Because of buffer size we might have read too many)
+      while ($lines++ < 0) {
+        // Find first newline and remove all text before that
+        $output = substr($output, strpos($output, "\n") + 1);
+      }
+      // Close file and return
+      fclose($f);
+      return trim($output);
     }
   }
 }
