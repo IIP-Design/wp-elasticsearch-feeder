@@ -77,6 +77,7 @@
         action: 'es_truncate_logs'
       },
       success: function (result) {
+        $('#log_text').empty();
         alert('Logs truncated.');
       },
       error: function (result) {
@@ -280,6 +281,7 @@
       clearProgress();
       if ( result.error && result.message )
         $('#es_output').html(result.message);
+      reloadLog();
     } else {
       sync.complete = result.complete;
       sync.total = result.total;

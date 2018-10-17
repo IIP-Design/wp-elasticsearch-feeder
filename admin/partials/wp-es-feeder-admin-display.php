@@ -173,7 +173,7 @@
                     <div class="postbox">
                         <h2><span><?php esc_attr_e( 'Log', 'wp_admin_style' ); ?></span></h2>
                         <div class="inside manage-btns">
-                            <button class="button-secondary" type="button" id="truncate_logs"><?php esc_attr_e( 'Truncate Logs' ); ?></button>
+                            <button class="button-secondary" type="button" id="truncate_logs"><?php esc_attr_e( 'Clear Log' ); ?></button>
                             <a class="button-secondary" href="<?=plugin_dir_url('/wp-elasticsearch-feeder/callback.log')?>callback.log"><?php esc_attr_e( 'Download Log' ); ?></a>
                         </div>
                         <div class="inside log-wrapper">
