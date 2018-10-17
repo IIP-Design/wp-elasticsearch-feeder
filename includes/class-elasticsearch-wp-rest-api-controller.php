@@ -378,7 +378,24 @@ class WP_ES_FEEDER_Callback_Controller {
           delete_post_meta( $post_id, '_cdp_resync_count');
         }
       } else {
-        $feeder->log( "INCOMING CALLBACK FOR UID: $uid, post_id: $post_id, sync_status: $sync_status\r\n" . print_r( $data, 1 ) . "\r\n", 'callback.log' );
+//        $feeder->log( "INCOMING CALLBACK FOR UID: $uid, post_id: $post_id, sync_status: $sync_status\r\n" . print_r( $data, 1 ) . "\r\n", 'callback.log' );
+        $log = null;
+        if ($data['message']) {
+          $log = "Incoming Callback: $uid - ID: $post_id - ";
+          if ($data['error'])
+            $log .= 'Error: ' . $data['message'];
+          else
+            $log .= 'Message: ' . $data['message'];
+        } else if (!array_key_exists('request', $data)) {
+          $log = [
+            'type' => 'Incoming Callback',
+            'uid' => $uid,
+            'post_id' => $post_id,
+            'sync_status' => $sync_status
+          ];
+          $log = array_merge( $log, $data );
+        }
+        $feeder->log($log, 'callback.log');
         update_post_meta($post_id,'_cdp_sync_status', ES_FEEDER_SYNC::ERROR);
         delete_post_meta( $post_id, '_cdp_resync_count');
       }

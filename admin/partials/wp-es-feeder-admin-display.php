@@ -51,6 +51,9 @@
 					$domain_output .= "<option value='$protocol$domain' $selected>$protocol$domain</option>";
 				}
 			}
+
+            $path = $feeder->plugin_dir . 'callback.log';
+            $log = $feeder->tail($path, 100);
     ?>
 
     <?php
@@ -147,7 +150,6 @@
 
 						<h2><span><?php esc_attr_e( 'Manage', 'wp_admin_style' ); ?></span></h2>
 						<div class="inside manage-btns">
-                            <button class="button-secondary" type="button" id="truncate_logs"><?php esc_attr_e( 'Truncate Logs' ); ?></button>
                             <button class="button-secondary" type="button" id="es_test_connection" name="es_test_connection"><?php esc_attr_e( 'Test Connection' ); ?></button>
 <!--							<input class="button-secondary" type="button" id="es_create_index" name="es_create_index" value="--><?php //esc_attr_e( 'Create Index' ); ?><!--" />-->
                             <button class="button-secondary" type="button" id="es_query_index" name="es_query_index"><?php esc_attr_e( 'Query Index' ); ?></button>
@@ -168,6 +170,18 @@
 							<pre id="es_output" style="min-width: 100%; display: block;background-color:#eaeaea;padding:5px;overflow: scroll;"></pre>
 						</div>
 					</div>
+                    <div class="postbox">
+                        <h2><span><?php esc_attr_e( 'Log', 'wp_admin_style' ); ?></span></h2>
+                        <div class="inside manage-btns">
+                            <button class="button-secondary" type="button" id="truncate_logs"><?php esc_attr_e( 'Truncate Logs' ); ?></button>
+                            <a class="button-secondary" href="<?=plugin_dir_url('/wp-elasticsearch-feeder/callback.log')?>callback.log"><?php esc_attr_e( 'Download Log' ); ?></a>
+                        </div>
+                        <div class="inside log-wrapper">
+                            <p style="float: left;">Last 100 Lines</p>
+                            <button class="button-primary" type="button" id="reload_log" name="reload_log" style="float: right;"><?php esc_attr_e( 'Reload Log' ); ?></button>
+                            <textarea rows="20" id="log_text" readonly style="width: 100%; overflow-y: scroll;"><?=$log?></textarea>
+                        </div>
+                    </div>
 				</div>
 			</div>
 		</div>

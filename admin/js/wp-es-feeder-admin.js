@@ -24,8 +24,9 @@
     $('#es_resync_errors').on('click', resyncStart(1));
     $('#es_resync_control').on('click', resyncControl);
     $('#es_validate_sync').on('click', validateSync);
+    $('#reload_log').on('click', reloadLog);
 
-    console.log(es_feeder_sync);
+    // console.log(es_feeder_sync);
     sync.total = parseInt(es_feeder_sync.total);
     sync.complete = parseInt(es_feeder_sync.complete);
     sync.paused = es_feeder_sync.paused === "1";
@@ -81,6 +82,29 @@
       error: function (result) {
         console.error(result);
         alert('Communication error while truncating logs.');
+      }
+    })
+  }
+
+  /**
+   * Loads the last 100 lines of callback.log
+   */
+  function reloadLog() {
+    $('#log_text').empty();
+    $.ajax({
+      url: ajaxurl,
+      type: 'POST',
+      dataType: 'JSON',
+      data: {
+        _wpnonce: $('#_wpnonce').val(),
+        action: 'es_reload_log'
+      },
+      success: function (result) {
+        $('#log_text').text(result);
+      },
+      error: function (result) {
+        console.error(result);
+        alert('Communication error while reloading log.');
       }
     })
   }
