@@ -7,6 +7,7 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
     protected $loader;
     protected $plugin_name;
     protected $version;
+    public $plugin_dir;
     public $proxy;
     public $error;
 
@@ -15,6 +16,7 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
       $this->version = '2.3.2';
       $this->proxy = get_option($this->plugin_name)['es_url']; // proxy
       $this->error = '[WP_ES_FEEDER] [:LOG] ';
+      $this->plugin_dir = trailingslashit(dirname(plugin_dir_path(__FILE__)));
       $this->load_api();
       $this->load_dependencies();
       $this->define_admin_hooks();
@@ -122,7 +124,7 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
     }
 
     public function truncate_logs() {
-      $path = WP_CONTENT_DIR . '/plugins/wp-elasticsearch-feeder/*.log';
+      $path = $this->plugin_dir . '*.log';
       foreach (glob($path) as $log)
         file_put_contents($log, '');
       echo 1;
@@ -130,7 +132,7 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
     }
 
     public function reload_log() {
-      $path = WP_CONTENT_DIR . '/plugins/wp-elasticsearch-feeder/callback.log';
+      $path = $this->plugin_dir . 'callback.log';
       $log = $this->tail($path, 100);
       echo json_encode($log);
       exit;
@@ -896,7 +898,7 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
     }
 
     public function log($str, $file = 'feeder.log') {
-      $path = WP_CONTENT_DIR . '/plugins/wp-elasticsearch-feeder/' . $file;
+      $path = $this->plugin_dir . $file;
       file_put_contents($path, date('[m/d/y H:i:s] ') . trim(print_r($str,1)) . "\r\n\r\n", FILE_APPEND);
     }
 

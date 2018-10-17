@@ -52,7 +52,7 @@
 				}
 			}
 
-            $path = WP_CONTENT_DIR . '/plugins/wp-elasticsearch-feeder/callback.log';
+            $path = $feeder->plugin_dir . 'callback.log';
             $log = $feeder->tail($path, 100);
     ?>
 
