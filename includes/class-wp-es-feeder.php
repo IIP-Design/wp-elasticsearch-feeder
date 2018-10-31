@@ -13,7 +13,7 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
 
     public function __construct() {
       $this->plugin_name = 'wp-es-feeder';
-      $this->version = '2.3.2';
+      $this->version = '2.4.0';
       $this->proxy = get_option($this->plugin_name)['es_url']; // proxy
       $this->error = '[WP_ES_FEEDER] [:LOG] ';
       $this->plugin_dir = trailingslashit(dirname(plugin_dir_path(__FILE__)));
@@ -916,7 +916,7 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
     public function tail($filepath, $lines = 1, $adaptive = true) {
       // Open file
       $f = @fopen($filepath, "rb");
-      if ($f === false) return 'no file';
+      if ($f === false) return '';
       // Sets buffer size, according to the number of lines to retrieve.
       // This gives a performance boost when reading a few lines from the file.
       if (!$adaptive) $buffer = 4096;
