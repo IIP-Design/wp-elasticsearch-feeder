@@ -22,12 +22,12 @@
     <?php
             $status_counts = $feeder->get_sync_status_counts();
 			// Import all the options from the databse
-			$options = get_option($this->plugin_name);
+			$options = get_option($this->plugin_name) ?: [];
 
 			$es_wpdomain = $options['es_wpdomain']?$options['es_wpdomain']:null;
 			$es_url = $options['es_url']?$options['es_url']:null;
             $es_token = $options['es_token']?$options['es_token']:null;
-			$es_post_types = $options['es_post_types']?$options['es_post_types']:null;
+			$es_post_types = $options['es_post_types']?$options['es_post_types']:[];
 			$es_api_data = array_key_exists('es_api_data', $options) && $options['es_api_data'] ? 1 : 0;
 			$es_post_language = array_key_exists('es_post_language', $options) && $options['es_post_language'] ? 1 : 0;
 
