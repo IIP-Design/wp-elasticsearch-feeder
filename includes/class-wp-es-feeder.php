@@ -235,7 +235,7 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
     public function get_sync_status_counts() {
       global $wpdb;
       $opts = get_option( $this->plugin_name );
-      $post_types = $opts[ 'es_post_types' ];
+      $post_types = $opts[ 'es_post_types' ] ?: [];
       $formats = implode(',', array_fill(0, count($post_types), '%s'));
 
       $query = "SELECT IFNULL(ms.meta_value, 0) as status, COUNT(IFNULL(ms.meta_value, 0)) as total 
@@ -443,7 +443,7 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
     public function get_resync_totals() {
       global $wpdb;
       $opts = get_option( $this->plugin_name );
-      $post_types = $opts[ 'es_post_types' ];
+      $post_types = $opts[ 'es_post_types' ] ?: [];
       $formats = implode(',', array_fill(0, count($post_types), '%s'));
       $query = "SELECT COUNT(*) as total, SUM(IF(ms.meta_value IS NOT NULL, 1, 0)) as complete FROM $wpdb->posts p 
                   LEFT JOIN (SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_status') ms ON p.ID = ms.post_id
