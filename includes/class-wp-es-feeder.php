@@ -13,7 +13,7 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
 
     public function __construct() {
       $this->plugin_name = 'wp-es-feeder';
-      $this->version = '2.4.0';
+      $this->version = '2.4.1';
       $this->proxy = get_option($this->plugin_name)['es_url']; // proxy
       $this->error = '[WP_ES_FEEDER] [:LOG] ';
       $this->plugin_dir = trailingslashit(dirname(plugin_dir_path(__FILE__)));
