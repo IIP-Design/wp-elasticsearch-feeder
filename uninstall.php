@@ -30,13 +30,28 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 	exit;
 }
 
-$PLUGIN_NAME = 'wp-es-feeder';
-delete_option( $PLUGIN_NAME );
-delete_option( $PLUGIN_NAME . '_syncable_posts' );
-delete_option( 'cdp_languages' );
-delete_option( 'cdp_owners' );
+function wp_es_clear_data() {
+  $PLUGIN_NAME = 'wp-es-feeder';
+  delete_option( $PLUGIN_NAME );
+  delete_option( $PLUGIN_NAME . '_syncable_posts' );
+  delete_option( 'cdp_languages' );
+  delete_option( 'cdp_owners' );
 
-global $wpdb;
-$wpdb->delete($wpdb->postmeta, array('meta_key' => '_cdp_sync_status'));
-$wpdb->delete($wpdb->postmeta, array('meta_key' => '_cdp_sync_uid'));
-$wpdb->delete($wpdb->postmeta, array('meta_key' => '_cdp_sync_queue'));
+  global $wpdb;
+  $wpdb->delete( $wpdb->postmeta, array( 'meta_key' => '_cdp_sync_status' ) );
+  $wpdb->delete( $wpdb->postmeta, array( 'meta_key' => '_cdp_sync_uid' ) );
+  $wpdb->delete( $wpdb->postmeta, array( 'meta_key' => '_cdp_sync_queue' ) );
+}
+
+
+if ( is_multisite() ) {
+  $current = get_current_blog_id();
+  $site_ids = get_sites(['fields' => 'ids']);
+  foreach ($site_ids as $site_id) {
+    switch_to_blog($site_id);
+    wp_es_clear_data();
+  }
+  switch_to_blog($current);
+} else {
+  wp_es_clear_data();
+}
