@@ -30,6 +30,7 @@
 			$es_post_types = $options['es_post_types']?$options['es_post_types']:[];
 			$es_api_data = array_key_exists('es_api_data', $options) && $options['es_api_data'] ? 1 : 0;
 			$es_post_language = array_key_exists('es_post_language', $options) && $options['es_post_language'] ? 1 : 0;
+      $es_post_owner = array_key_exists('es_post_owner', $options) && $options['es_post_owner'] ? 1 : 0;
 
 			// Get domain(s) - support for Domain Mapping
 			$site = site_url();
@@ -125,6 +126,14 @@
                             <label>
                                 <input type="checkbox" id="es_post_language" name="<?php echo $this->plugin_name; ?>[es_post_language]" value="1" <?=$es_post_language ? 'checked' : ''?>/>
                                 Add language dropdown to the Post (default) content type.
+                            </label>
+                        </div>
+
+                        <h2><span><?php esc_attr_e( 'Post Owner', 'wp_admin_style' ); ?></span></h2>
+                        <div class="inside">
+                            <label>
+                                <input type="checkbox" id="es_post_owner" name="<?php echo $this->plugin_name; ?>[es_post_owner]" value="1" <?=$es_post_owner ? 'checked' : ''?>/>
+                                Add owner dropdown to the Post (default) content type.
                             </label>
                         </div>
 

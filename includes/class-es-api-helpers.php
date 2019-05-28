@@ -80,6 +80,17 @@ if ( !class_exists( 'ES_API_HELPER' ) ) {
       return self::get_language_by_locale( strtolower( str_replace( '_', '-', get_locale() ) ) );
     }
 
+    public static function get_owner( $id ) {
+      global $feeder;
+      if (get_post_type($id) === 'post') {
+        $options = get_option($feeder->get_plugin_name());
+        $use_post_owner = array_key_exists('es_post_owner', $options) && $options['es_post_owner'] ? 1 : 0;
+        $owner = get_post_meta($id, '_iip_owner', true);
+        if ($use_post_owner && $owner) return $owner;
+      }
+      return get_bloginfo('name');
+    }
+
     public static function get_index_to_cdp( $id ) {
       $value = get_post_meta($id, '_iip_index_post_to_cdp_option', true);
 
