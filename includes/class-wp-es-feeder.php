@@ -470,6 +470,9 @@ if ( !class_exists( 'wp_es_feeder' ) ) {
       if (array_key_exists('cdp_language', $_POST))
         update_post_meta($id, '_iip_language', $_POST['cdp_language']);
 
+      if (array_key_exists('cdp_owner', $_POST))
+        update_post_meta($id, '_iip_owner', $_POST['cdp_owner']);
+
       if (array_key_exists('cdp_terms', $_POST))
         update_post_meta($id, '_iip_taxonomy_terms', $_POST['cdp_terms']);
       else if ($_POST && is_array($_POST))
