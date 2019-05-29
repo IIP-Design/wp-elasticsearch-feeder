@@ -7,7 +7,7 @@
  * @wordpress-plugin
  * Plugin Name:       WP Elasticsearch Feeder
  * Description:       Creates REST api endpoints for each post type and indexes them into Elasticsearch.
- * Version:           2.4.1
+ * Version:           2.5.0
  * Author:            IIP Design
  * Author URI:        https://github.com/IIP-Design
  * License:           GPL-2.0+
