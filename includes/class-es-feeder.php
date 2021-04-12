@@ -104,7 +104,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
 
       // The classes  responsible for defining all actions that occur in the admin area.
       require_once ES_FEEDER_DIR . 'includes/class-loader.php';
-      require_once ES_FEEDER_DIR . 'admin/class-wp-es-feeder-admin.php';
+      require_once ES_FEEDER_DIR . 'admin/class-admin.php';
 
       // The classes responsible for defining all actions that define the API.
       require_once ES_FEEDER_DIR . 'includes/class-es-api-helpers.php';
@@ -121,33 +121,34 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
      * @since 0.0.1
      */
     private function define_admin_hooks() {
-      $plugin_admin = new wp_es_feeder_Admin( $this->get_plugin_name(), $this->get_version() );
+      $admin = new ES_Feeder\Admin( $this->get_plugin_name(), $this->get_version() );
 
-      $this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
-      $this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts', 10, 1 );
+      $this->loader->add_action( 'admin_enqueue_scripts', $admin, 'enqueue_styles' );
+      $this->loader->add_action( 'admin_enqueue_scripts', $admin, 'enqueue_scripts', 10, 1 );
 
       // Add menu item.
-      $this->loader->add_action( 'admin_menu', $plugin_admin, 'add_plugin_admin_menu' );
+      $this->loader->add_action( 'admin_menu', $admin, 'add_plugin_admin_menu' );
 
       // Add "Do not index" box to posts and pages.
-      $this->loader->add_action( 'add_meta_boxes', $plugin_admin, 'add_admin_meta_boxes' );
-      $this->loader->add_action( 'add_meta_boxes', $plugin_admin, 'add_admin_cdp_taxonomy' );
+      $this->loader->add_action( 'add_meta_boxes', $admin, 'add_admin_meta_boxes' );
+      $this->loader->add_action( 'add_meta_boxes', $admin, 'add_admin_cdp_taxonomy' );
 
       // Add settings link to plugin.
       $plugin_basename = plugin_basename( plugin_dir_path( __DIR__ ) . $this->plugin_name . '.php' );
-      $this->loader->add_filter( 'plugin_action_links_' . $plugin_basename, $plugin_admin, 'add_action_links' );
+      $this->loader->add_filter( 'plugin_action_links_' . $plugin_basename, $admin, 'add_action_links' );
 
       // Save/update our plugin options.
-      $this->loader->add_action( 'admin_init', $plugin_admin, 'options_update' );
+      $this->loader->add_action( 'admin_init', $admin, 'options_update' );
 
       // Admin notices.
-      $this->loader->add_action( 'admin_notices', $plugin_admin, 'sync_errors_notice' );
+      $this->loader->add_action( 'admin_notices', $admin, 'sync_errors_notice' );
 
       // Add sync status to list tables.
-      $this->loader->add_filter( 'manage_posts_columns', $plugin_admin, 'columns_head' );
-      $this->loader->add_action( 'manage_posts_custom_column', $plugin_admin, 'columns_content', 10, 2 );
+      $this->loader->add_filter( 'manage_posts_columns', $admin, 'columns_head' );
+      $this->loader->add_action( 'manage_posts_custom_column', $admin, 'columns_content', 10, 2 );
+
       foreach ( $this->get_allowed_post_types() as $post_type ) {
-        $this->loader->add_filter( 'manage_edit-' . $post_type . '_sortable_columns', $plugin_admin, 'sortable_columns' );
+        $this->loader->add_filter( 'manage_edit-' . $post_type . '_sortable_columns', $admin, 'sortable_columns' );
       }
 
       // Elasticsearch indexing hook actions.
