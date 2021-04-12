@@ -18,6 +18,10 @@ if ( ! defined( 'WPINC' ) ) {
   die;
 }
 
+// Define constants.
+define( 'ES_FEEDER_DIR', plugin_dir_path( dirname( __FILE__ ) ) . 'wp-elasticsearch-feeder/' );
+define( 'ES_FEEDER_URL', plugin_dir_url( dirname( __FILE__ ) ) . 'wp-elasticsearch-feeder/' );
+
 // Load the ES_Feeder class.
 require plugin_dir_path( __FILE__ ) . 'includes/class-es-feeder.php';
 

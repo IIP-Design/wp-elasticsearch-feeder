@@ -78,19 +78,10 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
     public function __construct() {
       $this->plugin_name = 'wp-es-feeder';
       $this->version     = '2.5.0';
-      $this->proxy       = get_option( $this->plugin_name )['es_url']; // proxy
+      $this->proxy       = get_option( $this->plugin_name )['es_url'];
       $this->error       = '[WP_ES_FEEDER] [:LOG] ';
-      $this->plugin_dir  = trailingslashit( dirname( plugin_dir_path( __FILE__ ) ) );
-      $this->load_api();
       $this->load_dependencies();
       $this->define_admin_hooks();
-    }
-
-    function load_api() {
-      require plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-es-api-helpers.php';
-      require plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-language-config.php';
-      require plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-owner-config.php';
-      require plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-elasticsearch-wp-rest-api-controller.php';
     }
 
      /**
@@ -108,11 +99,18 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       */
     private function load_dependencies() {
       if ( ! class_exists( 'GuzzleHttp\Client' ) ) {
-        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'vendor/autoload.php';
+        require_once ES_FEEDER_DIR . 'vendor/autoload.php';
       }
 
-      require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-loader.php';
-      require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-wp-es-feeder-admin.php';
+      // The classes  responsible for defining all actions that occur in the admin area.
+      require_once ES_FEEDER_DIR . 'includes/class-loader.php';
+      require_once ES_FEEDER_DIR . 'admin/class-wp-es-feeder-admin.php';
+
+      // The classes responsible for defining all actions that define the API.
+      require_once ES_FEEDER_DIR . 'includes/class-es-api-helpers.php';
+      require_once ES_FEEDER_DIR . 'includes/class-language-config.php';
+      require_once ES_FEEDER_DIR . 'includes/class-owner-config.php';
+      require_once ES_FEEDER_DIR . 'includes/class-elasticsearch-wp-rest-api-controller.php';
 
       $this->loader = new ES_Feeder\Loader();
     }
@@ -238,7 +236,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
     }
 
     public function truncate_logs() {
-      $path = $this->plugin_dir . '*.log';
+      $path = ES_FEEDER_DIR . '*.log';
       foreach ( glob( $path ) as $log ) {
         file_put_contents( $log, '' );
       }
@@ -247,7 +245,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
     }
 
     public function reload_log() {
-      $path = $this->plugin_dir . 'callback.log';
+      $path = ES_FEEDER_DIR . 'callback.log';
       $log  = $this->tail( $path, 100 );
       echo json_encode( $log );
       exit;
@@ -1126,7 +1124,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
     }
 
     public function log( $str, $file = 'feeder.log' ) {
-      $path = $this->plugin_dir . $file;
+      $path = ES_FEEDER_DIR . $file;
       file_put_contents( $path, date( '[m/d/y H:i:s] ' ) . trim( print_r( $str, 1 ) ) . "\r\n\r\n", FILE_APPEND );
     }
 
