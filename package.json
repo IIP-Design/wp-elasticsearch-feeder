@@ -1,0 +1,16 @@
+{
+  "name": "@gpa-lab/wp-elasticsearch-feeder",
+  "version": "2.5.0",
+  "license": "GPL-2.0-or-later",
+  "author": "U.S. Department of State, Bureau of Global Public Affairs Digital Lab <gpa-lab@america.gov>",
+  "description": "WordPress plugin to syncs site content to an ElasticSearch index",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/IIP-Design/wp-elasticsearch-feeder.git"
+  },
+  "bugs": {
+    "url": "https://github.com/IIP-Design/wp-elasticsearch-feeder/issues"
+  },
+  "homepage": "https://github.com/IIP-Design/wp-elasticsearch-feeder#readme"
+}

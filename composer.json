@@ -1,16 +1,37 @@
 {
-    "name": "iip-design/wp-elasticsearch-feeder",
-    "type": "wordpress-plugin",
-    "description" : "Syncs content to ElasticSearch",
-    "authors": [
-        {
-            "name": "Office of Design, U.S. Department of State",
-            "email": "orelusm@america.gov"
-        }
-    ],
-    "minimum-stability": "stable",
-    "require": {
-       "composer/installers": "~1.0",
-        "guzzlehttp/guzzle": "^6.3"
+  "name": "iip-design/wp-elasticsearch-feeder",
+  "type": "wordpress-plugin",
+  "description" : "WordPress plugin to syncs site content to an ElasticSearch index",
+  "license": "GPL-2.0-or-later",
+  "authors": [
+    {
+      "name": "U.S. Department of State, Bureau of Global Public Affairs Digital Lab",
+      "email": "gpa-lab@america.gov"
+    },
+    {
+      "name": "Marek Rewers",
+      "role": "Developer"
+    },
+    {
+      "name": "Max Orelus",
+      "role": "Developer"
+    },
+    {
+      "name": "Scott Gustas",
+      "role": "Developer"
+    },
+    {
+      "name": "Theresa Regan",
+      "role": "Developer"
+    },
+    {
+      "name": "Tyler Hebenstreit",
+      "role": "Developer"
     }
+  ],
+  "require": {
+    "composer/installers": "~1.0",
+    "guzzlehttp/guzzle": "^6.3"
+  },
+  "minimum-stability": "stable"
 }
