@@ -1,28 +1,32 @@
 <?php
-
 /**
- * @link              https://github.com/IIP-Design/wp-elasticsearch-feeder
- * @since             1.0.0
- * @package           wp_es_feeder
- * @wordpress-plugin
- * Plugin Name:       WP Elasticsearch Feeder
- * Description:       Creates REST api endpoints for each post type and indexes them into Elasticsearch.
- * Version:           2.5.0
- * Author:            IIP Design
- * Author URI:        https://github.com/IIP-Design
- * License:           GPL-2.0+
- * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
- * Text Domain:       wp-es-feeder
+ * Plugin Name: WP Elasticsearch Feeder
+ * Plugin URI: https://github.com/IIP-Design/wp-elasticsearch-feeder
+ * Description: Creates REST API endpoints for each post type and indexes them into Elasticsearch.
+ * Version: v2.5.0
+ * Author: U.S. Department of State, Bureau of Global Public Affairs Digital Lab <gpa-lab@america.gov>
+ * Author URI: https://lab.america.gov
+ * License: GNU General Public License v2.0
+ * License URI: https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
+ * Text Domain: gpalab-feeder
+ *
+ * @package  ES_FEEDER
  */
 
-// abort if not called via Wordpress
-if ( !defined( 'WPINC' ) ) {
+// If this file is called directly, abort.
+if ( ! defined( 'WPINC' ) ) {
   die;
 }
 
-// load elasticsearch REST api/elasticsearch feeder dependencies
-require plugin_dir_path( __FILE__ ) . 'includes/class-wp-es-feeder.php';
+// Load the ES_FEEDER class.
+require plugin_dir_path( __FILE__ ) . 'includes/class-es-feeder.php';
 
-// run elasticsearch feeder plugin
-$feeder = new wp_es_feeder();
+/**
+ * Begin execution of the plugin.
+ *
+ * Since everything within the plugin is registered via hooks,
+ * then kicking off the plugin from this point in the file does
+ * not affect the page life cycle.
+ */
+$feeder = new ES_FEEDER();
 $feeder->run();

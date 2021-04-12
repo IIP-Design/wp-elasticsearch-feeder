@@ -22,7 +22,7 @@
  * @link       http://github.com/MaxOrelus
  * @since      1.0.0
  *
- * @package    wp_es_feeder
+ * @package    ES_FEEDER
  */
 
 // If uninstall not called from WordPress, then exit.
@@ -45,13 +45,13 @@ function wp_es_clear_data() {
 
 
 if ( is_multisite() ) {
-  $current = get_current_blog_id();
-  $site_ids = get_sites(['fields' => 'ids']);
-  foreach ($site_ids as $site_id) {
-    switch_to_blog($site_id);
+  $current  = get_current_blog_id();
+  $site_ids = get_sites( array( 'fields' => 'ids' ) );
+  foreach ( $site_ids as $site_id ) {
+    switch_to_blog( $site_id );
     wp_es_clear_data();
   }
-  switch_to_blog($current);
+  switch_to_blog( $current );
 } else {
   wp_es_clear_data();
 }
