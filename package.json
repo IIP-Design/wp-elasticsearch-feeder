@@ -5,7 +5,17 @@
   "author": "U.S. Department of State, Bureau of Global Public Affairs Digital Lab <gpa-lab@america.gov>",
   "description": "WordPress plugin to syncs site content to an ElasticSearch index",
   "scripts": {
+    "lint": "npm run lint:JS && npm run lint:PHP",
+    "lint:JS": "eslint --ext .js --quiet ./",
     "lint:PHP": "./vendor/bin/phpcs"
+  },
+  "devDependencies": {
+    "@gpa-lab/eslint-config": "^1.4.1",
+    "eslint": "^7.24.0",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-jest": "^24.3.5",
+    "eslint-plugin-node": "^11.1.0",
+    "jest": "^26.6.3"
   },
   "repository": {
     "type": "git",
