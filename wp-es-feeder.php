@@ -10,7 +10,7 @@
  * License URI: https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
  * Text Domain: gpalab-feeder
  *
- * @package  ES_FEEDER
+ * @package  ES_Feeder
  */
 
 // If this file is called directly, abort.
@@ -18,7 +18,7 @@ if ( ! defined( 'WPINC' ) ) {
   die;
 }
 
-// Load the ES_FEEDER class.
+// Load the ES_Feeder class.
 require plugin_dir_path( __FILE__ ) . 'includes/class-es-feeder.php';
 
 /**
@@ -28,5 +28,5 @@ require plugin_dir_path( __FILE__ ) . 'includes/class-es-feeder.php';
  * then kicking off the plugin from this point in the file does
  * not affect the page life cycle.
  */
-$feeder = new ES_FEEDER();
+$feeder = new ES_Feeder();
 $feeder->run();

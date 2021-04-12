@@ -1,19 +1,83 @@
 <?php
-if ( ! class_exists( 'ES_FEEDER' ) ) {
-  class ES_FEEDER {
+/**
+ * Registers the ES_Feeder class.
+ *
+ * @package ES_Feeder
+ * @since 3.0.0
+ */
+
+if ( ! class_exists( 'ES_Feeder' ) ) {
+  /**
+   * Register all hooks to be run by the plugin.
+   *
+   * @package ES_Feeder
+   */
+  class ES_Feeder {
     const LOG_ALL    = false;
     const SYNC_LIMIT = 25;
 
+    /**
+     * The loader that's responsible for maintaining and registering all hooks that power the plugin.
+     *
+     * @var Loader $loader    Maintains and registers all hooks for the plugin.
+     *
+     * @access protected
+     * @since 0.0.1
+     */
     protected $loader;
+
+    /**
+     * The unique identifier and version of this plugin.
+     *
+     * @var string $plugin_name
+     *
+     * @access protected
+     * @since 0.0.1
+     */
     protected $plugin_name;
+
+    /**
+     * The version of this plugin.
+     *
+     * @var string $version
+     *
+     * @access protected
+     * @since 0.0.1
+     */
     protected $version;
-    public $plugin_dir;
+
+    /**
+     * The URL for the ElasticSearch proxy API.
+     *
+     * @var string $proxy
+     *
+     * @access protected
+     * @since 0.0.1
+     */
     public $proxy;
+
+    /**
+     * A prefix to add to error log entries.
+     *
+     * @var string $error
+     *
+     * @access protected
+     * @since 0.0.1
+     */
     public $error;
 
+    /**
+     * Define the core functionality of the plugin.
+     *
+     * Set the plugin name and the plugin version that can be used throughout the plugin.
+     * Load the dependencies and set the hooks for the admin area and
+     * the public-facing side of the site.
+     *
+     * @since 0.0.1
+     */
     public function __construct() {
       $this->plugin_name = 'wp-es-feeder';
-      $this->version     = '2.4.1';
+      $this->version     = '2.5.0';
       $this->proxy       = get_option( $this->plugin_name )['es_url']; // proxy
       $this->error       = '[WP_ES_FEEDER] [:LOG] ';
       $this->plugin_dir  = trailingslashit( dirname( plugin_dir_path( __FILE__ ) ) );
@@ -29,45 +93,66 @@ if ( ! class_exists( 'ES_FEEDER' ) ) {
       require plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-elasticsearch-wp-rest-api-controller.php';
     }
 
+     /**
+      * Load the required dependencies for this plugin.
+      *
+      * Include the following files that make up the plugin:
+      *
+      * - ES_Feeder\Loader. Orchestrates the hooks of the plugin.
+      * - ES_Feeder\Admin. Defines all hooks for the admin area.
+      *
+      * Create an instance of the loader which will be used to register the hooks with WordPress.
+      *
+      * @access private
+      * @since 0.0.1
+      */
     private function load_dependencies() {
       if ( ! class_exists( 'GuzzleHttp\Client' ) ) {
         require_once plugin_dir_path( dirname( __FILE__ ) ) . 'vendor/autoload.php';
       }
-      require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-wp-es-feeder-loader.php';
+
+      require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-loader.php';
       require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-wp-es-feeder-admin.php';
-      $this->loader = new wp_es_feeder_Loader();
+
+      $this->loader = new ES_Feeder\Loader();
     }
 
+    /**
+     * Register all of the hooks related to the admin area functionality of the plugin.
+     *
+     * @since 0.0.1
+     */
     private function define_admin_hooks() {
       $plugin_admin = new wp_es_feeder_Admin( $this->get_plugin_name(), $this->get_version() );
+
       $this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
       $this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts', 10, 1 );
 
-      // add menu item
+      // Add menu item.
       $this->loader->add_action( 'admin_menu', $plugin_admin, 'add_plugin_admin_menu' );
 
-      // add "Do not index" box to posts and pages
+      // Add "Do not index" box to posts and pages.
       $this->loader->add_action( 'add_meta_boxes', $plugin_admin, 'add_admin_meta_boxes' );
       $this->loader->add_action( 'add_meta_boxes', $plugin_admin, 'add_admin_cdp_taxonomy' );
 
-      // add settings link to plugin
+      // Add settings link to plugin.
       $plugin_basename = plugin_basename( plugin_dir_path( __DIR__ ) . $this->plugin_name . '.php' );
       $this->loader->add_filter( 'plugin_action_links_' . $plugin_basename, $plugin_admin, 'add_action_links' );
 
-      // save/update our plugin options
+      // Save/update our plugin options.
       $this->loader->add_action( 'admin_init', $plugin_admin, 'options_update' );
 
-      // admin notices
+      // Admin notices.
       $this->loader->add_action( 'admin_notices', $plugin_admin, 'sync_errors_notice' );
 
-      // add sync status to list tables
+      // Add sync status to list tables.
       $this->loader->add_filter( 'manage_posts_columns', $plugin_admin, 'columns_head' );
       $this->loader->add_action( 'manage_posts_custom_column', $plugin_admin, 'columns_content', 10, 2 );
       foreach ( $this->get_allowed_post_types() as $post_type ) {
         $this->loader->add_filter( 'manage_edit-' . $post_type . '_sortable_columns', $plugin_admin, 'sortable_columns' );
       }
 
-      // elasticsearch indexing hook actions
+      // Elasticsearch indexing hook actions.
       add_action( 'save_post', array( $this, 'save_post' ), 101, 2 );
       add_action( 'transition_post_status', array( $this, 'delete_post' ), 10, 3 );
       add_action( 'wp_ajax_es_request', array( $this, 'es_request' ) );
@@ -80,22 +165,49 @@ if ( ! class_exists( 'ES_FEEDER' ) ) {
       add_filter( 'heartbeat_received', array( $this, 'heartbeat' ), 10, 2 );
     }
 
+    /**
+     * Run the loader to execute all of the hooks with WordPress.
+     *
+     * @since 0.0.1
+     */
     public function run() {
       $this->loader->run();
     }
 
-    public function get_plugin_name() {
-      return $this->plugin_name;
-    }
-
+    /**
+     * The reference to the class that orchestrates the hooks with the plugin.
+     *
+     * @return Loader    Orchestrates the hooks of the plugin.
+     *
+     * @since 0.0.1
+     */
     public function get_loader() {
       return $this->loader;
     }
 
+    /**
+     * Retrieve the name of the plugin.
+     *
+     * @since 0.0.1
+     */
+    public function get_plugin_name() {
+      return $this->plugin_name;
+    }
+
+    /**
+     * Retrieve the version number of the plugin.
+     *
+     * @since 0.0.1
+     */
     public function get_version() {
       return $this->version;
     }
 
+    /**
+     * Retrieve the proxy URL.
+     *
+     * @since 0.0.1
+     */
     public function get_proxy_server() {
       return $this->proxy;
     }

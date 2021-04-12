@@ -22,7 +22,7 @@
  * @link       http://github.com/MaxOrelus
  * @since      1.0.0
  *
- * @package    ES_FEEDER
+ * @package    ES_Feeder
  */
 
 // If uninstall not called from WordPress, then exit.
