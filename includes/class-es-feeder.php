@@ -105,6 +105,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       // The classes  responsible for defining all actions that occur in the admin area.
       require_once ES_FEEDER_DIR . 'includes/class-loader.php';
       require_once ES_FEEDER_DIR . 'admin/class-admin.php';
+      require_once ES_FEEDER_DIR . 'admin/class-ajax.php';
       require_once ES_FEEDER_DIR . 'admin/class-settings.php';
 
       // The classes responsible for defining all actions that define the API.
@@ -123,6 +124,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
      */
     private function define_admin_hooks() {
       $admin    = new ES_Feeder\Admin( $this->get_plugin_name(), $this->get_version() );
+      $ajax     = new ES_Feeder\Ajax( $this->get_plugin_name(), $this->get_version() );
       $settings = new ES_Feeder\Settings( $this->get_plugin_name(), $this->get_version() );
 
       $this->loader->add_action( 'init', $admin, 'register_admin_scripts_styles' );
@@ -164,7 +166,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       add_action( 'wp_ajax_es_validate_sync', array( $this, 'validate_sync' ) );
       add_action( 'wp_ajax_es_reload_log', array( $this, 'reload_log' ) );
 
-      add_filter( 'heartbeat_received', array( $this, 'heartbeat' ), 10, 2 );
+      $this->loader->add_filter( 'heartbeat_received', $ajax, 'heartbeat', 10, 2 );
     }
 
     /**
@@ -212,31 +214,6 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
      */
     public function get_proxy_server() {
       return $this->proxy;
-    }
-
-    /**
-     * Triggered by heartbeat AJAX event, added the sync status indicator HTML
-     * if the data includes es_sync_status which contains a post ID and will be
-     * converted to the sync status indicator HTML.
-     * If the data includes es_sync_status_counts, send back an array of counts
-     * for each status ID.
-     *
-     * @param $response
-     * @param $data
-     * @return mixed
-     */
-    public function heartbeat( $response, $data ) {
-      if ( ! empty( $data['es_sync_status'] ) ) {
-        $post_id = $data['es_sync_status'];
-        $status  = $this->get_sync_status( $post_id );
-        ob_start();
-        $this->sync_status_indicator( $status );
-        $response['es_sync_status'] = ob_get_clean();
-      }
-      if ( ! empty( $data['es_sync_status_counts'] ) ) {
-        $response['es_sync_status_counts'] = $this->get_sync_status_counts();
-      }
-      return $response;
     }
 
     public function truncate_logs() {
