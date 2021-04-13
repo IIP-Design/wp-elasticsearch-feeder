@@ -10,6 +10,8 @@
  */
 
   global $wpdb, $feeder;
+
+  $api_helper = new ES_Feeder\Admin\Helpers\API_Helper();
 ?>
 
 <div class="wrap wp_es_settings">
@@ -58,7 +60,6 @@
     $log      = $feeder->tail( $pathname, 100 );
 
     settings_fields( $this->plugin );
-    // do_settings_sections($this->plugin);
     ?>
 
     <div id="poststuff">
@@ -68,20 +69,29 @@
             <div class="postbox">						
               <h3><?php esc_html_e( 'Indexed URL', 'gpalab-feeder' ); ?></h3>
               <div class="inside">
-                <select id="es_wpdomain" name="<?php echo $this->plugin; ?>[es_wpdomain]">
-                  <?php echo $domain_output; ?>
+                <select id="es_wpdomain" name="<?php echo esc_html( $this->plugin ); ?>[es_wpdomain]">
+                  <?php
+                  $option_elements = array(
+                    'option' => array(
+                      'selected' => array(),
+                      'value'    => array(),
+                    ),
+                  );
+
+                  echo wp_kses( $domain_output, $option_elements );
+                  ?>
                 </select>
-                <span>* If using domain mapping, mapped URLs will appear in dropdown.</span>
+                <span><?php echo esc_html( '* ' . __( 'If using domain mapping, mapped URLs will appear in dropdown', 'gpalab-feeder' ) . '.' ); ?></span>
               </div>
 
               <h3><?php esc_html_e( 'API Server URL', 'gpalab-feeder' ); ?></h3>
               <div class="inside">
                 <input
                   class="regular-text" id="es_url"
-                  name="<?php echo $this->plugin; ?>[es_url]"
+                  name="<?php echo esc_html( $this->plugin ); ?>[es_url]"
                   placeholder="http://localhost:9200/"
                   type="text"
-                  value="<?php echo ( ! empty( $es_url ) ? $es_url : '' ); ?>"
+                  value="<?php echo esc_html( ( ! empty( $es_url ) ? $es_url : '' ) ); ?>"
                 />
               </div>
 
@@ -90,20 +100,20 @@
                 <input
                   class="regular-text"
                   id="es_token"
-                  name="<?php echo $this->plugin . '[es_token]'; ?>"
+                  name="<?php echo esc_html( $this->plugin . '[es_token]' ); ?>"
                   placeholder="api token"
                   type="text"
-                  value="<?php echo ( ! empty( $es_url ) ? $es_url : '' ); ?>"
+                  value="<?php echo esc_html( ( ! empty( $es_url ) ? $es_url : '' ) ); ?>"
                 />
               </div>
 
               <h3><?php esc_html_e( 'API Data Display', 'gpalab-feeder' ); ?></h3>
               <div class="inside">
-                <label> 
+                <label for="es_api_data"> 
                   <input
-                    type="checkbox"
                     id="es_api_data"
-                    name="<?php echo $this->plugin; ?>[es_api_data]"
+                    name="<?php echo esc_html( $this->plugin ); ?>[es_api_data]"
+                    type="checkbox"
                     value="1"
                     <?php echo $es_api_data ? 'checked' : ''; ?>
                   />
@@ -126,17 +136,20 @@
                   ?>
                   <fieldset>
                     <legend class="screen-reader-text">
-                      <span><?php 'es_post_type_' . $value; ?></span>
+                      <span><?php echo esc_html( 'es_post_type_' . $value ); ?></span>
                     </legend>
-                    <label for="<?php 'es_post_type_' . $value; ?>" class="post_type_label">
+                    <label
+                      for="<?php echo esc_html( 'es_post_type_' . $value ); ?>"
+                      class="post_type_label"
+                    >
                       <input
-                        type="checkbox"
                         id="<?php 'es_post_type_' . $value; ?>"
-                        name="<?php $this->plugin . '[es_post_type_' . $value . ']'; ?>"
-                        <?php echo $checked; ?>
+                        name="<?php echo esc_html( $this->plugin . '[es_post_type_' . $value . ']' ); ?>"
+                        type="checkbox"
+                        <?php echo esc_attr( $checked ); ?>
                       />
-                      <span data-type="<?php $value; ?>">
-                        <?php ucfirst( ES_API_HELPER::get_post_type_label( $value, 'name' ) ); ?>
+                      <span data-type="<?php echo esc_html( $value ); ?>">
+                        <?php echo esc_html( ucfirst( $api_helper->get_post_type_label( $value, 'name' ) ) ); ?>
                       </span>
                     </label>
                   </fieldset>
@@ -147,10 +160,10 @@
 
               <h3><?php esc_html_e( 'Post Language', 'gpalab-feeder' ); ?></h3>
               <div class="inside">
-                <label>
+                <label for="es_post_language" >
                   <input
                     id="es_post_language" 
-                    name="<?php echo $this->plugin; ?>[es_post_language]" 
+                    name="<?php echo esc_html( $this->plugin ); ?>[es_post_language]" 
                     type="checkbox" 
                     value="1" 
                     <?php echo $es_post_language ? 'checked' : ''; ?>
@@ -161,10 +174,10 @@
 
               <h3><?php esc_html_e( 'Post Owner', 'gpalab-feeder' ); ?></h3>
               <div class="inside">
-                <label>
+                <label for="es_post_owner" >
                   <input
                     id="es_post_owner" 
-                    name="<?php echo $this->plugin; ?>[es_post_owner]" 
+                    name="<?php echo esc_html( $this->plugin ); ?>[es_post_owner]" 
                     type="checkbox"
                     value="1" 
                     <?php echo $es_post_owner ? 'checked' : ''; ?>
@@ -189,7 +202,12 @@
                     <?php for ( $i = 1; $i <= 5; $i++ ) : ?>
                     <tr>
                       <td><?php $feeder->sync_status_indicator( $i, true, false ); ?></td>
-                      <td class="status-count status-<?php echo $i; ?>" data-status-id="<?php echo $i; ?>"><?php echo ( array_key_exists( $i, $status_counts ) ? $status_counts[ $i ] : 0 ); ?></td>
+                      <td
+                        class="status-count status-<?php echo esc_attr( $i ); ?>"
+                        data-status-id="<?php echo esc_attr( $i ); ?>"
+                      >
+                        <?php echo esc_html( array_key_exists( $i, $status_counts ) ? $status_counts[ $i ] : 0 ); ?>
+                      </td>
                     </tr>
                     <?php endfor; ?>
                 </table>
@@ -199,22 +217,54 @@
 
               <h3><?php esc_html_e( 'Manage', 'gpalab-feeder' ); ?></h3>
               <div class="inside manage-btns">
-                <button class="button-secondary" type="button" id="es_test_connection" name="es_test_connection">
+                <button
+                  class="button-secondary" 
+                  id="es_test_connection"
+                  name="es_test_connection"
+                  type="button" 
+                >
                   <?php esc_html_e( 'Test Connection', 'gpalab-feeder' ); ?>
                 </button>
-                <button class="button-secondary" type="button" id="es_query_index" name="es_query_index">
+                <button 
+                  class="button-secondary"
+                  id="es_query_index"
+                  name="es_query_index"
+                  type="button" 
+                >
                   <?php esc_html_e( 'Query Index', 'gpalab-feeder' ); ?>
                 </button>
-                <button class="button-secondary" type="button" id="es_resync_errors" name="es_resync_errors">
+                <button 
+                  class="button-secondary"
+                  id="es_resync_errors"
+                  name="es_resync_errors"
+                  type="button" 
+                >
                   <?php esc_html_e( 'Fix Errors', 'gpalab-feeder' ); ?>
                 </button>
-                <button class="button-secondary" type="button" id="es_validate_sync" name="es_validate_sync">
+                <button 
+                  class="button-secondary"
+                  id="es_validate_sync"
+                  name="es_validate_sync"
+                  type="button" 
+                >
                   <?php esc_html_e( 'Validate Statuses', 'gpalab-feeder' ); ?>
                 </button>
-                <button class="button-primary" type="button" id="es_resync_control" name="es_resync_control" style="display: none;">
+                <button
+                  class="button-primary"
+                  id="es_resync_control"
+                  name="es_resync_control"
+                  style="display: none;"
+                  type="button"
+                >
                   <?php esc_html_e( 'Pause', 'gpalab-feeder' ); ?>
                 </button>
-                <button class="button-secondary button-danger" type="button" id="es_resync" name="es_reindex" style="float: right;">
+                <button
+                  class="button-secondary button-danger"
+                  id="es_resync"
+                  name="es_reindex"
+                  style="float: right;"
+                  type="button"
+                  >
                   <?php esc_html_e( 'Resync All Data', 'gpalab-feeder' ); ?>
                 </button>
               </div>
@@ -224,7 +274,10 @@
 
               <hr/>
 
-              <h3><?php esc_html_e( 'Results', 'gpalab-feeder' ); ?><span style="font-weight: normal;">(descending order)</span></h3>
+              <h3>
+                <?php esc_html_e( 'Results', 'gpalab-feeder' ); ?>
+                <span style="font-weight: normal;">(<?php esc_html_e( 'descending order', 'gpalab-feeder' ); ?>)</span>
+              </h3>
 
               <div class="inside" style="margin-right: 10px;">
                 <pre id="es_output" style="min-width: 100%; display: block;background-color:#eaeaea;padding:5px;overflow: scroll;"></pre>
@@ -234,20 +287,26 @@
             <div class="postbox">
               <h3><?php esc_html_e( 'Log', 'gpalab-feeder' ); ?></h3>
               <div class="inside manage-btns">
-                <button class="button-secondary" type="button" id="truncate_logs">
+                <button class="button-secondary" id="truncate_logs" type="button" >
                   <?php esc_html_e( 'Clear Log', 'gpalab-feeder' ); ?>
                 </button>
-                <a class="button-secondary" href="<?php echo plugin_dir_url( '/wp-elasticsearch-feeder/callback.log' ); ?>callback.log">
+                <a class="button-secondary" href="<?php echo esc_url( ES_FEEDER_URL . 'callback.log' ); ?>">
                   <?php esc_html_e( 'Download Log', 'gpalab-feeder' ); ?>
                 </a>
               </div>
               <div class="inside log-wrapper">
                   <p style="float: left;"><?php esc_html_e( 'Last 100 Lines', 'gpalab-feeder' ); ?></p>
-                  <button class="button-primary" type="button" id="reload_log" name="reload_log" style="float: right;">
+                  <button
+                    class="button-primary"
+                    id="reload_log"
+                    name="reload_log"
+                    style="float: right;"
+                    type="button"
+                  >
                     <?php esc_html_e( 'Reload Log', 'gpalab-feeder' ); ?>
                   </button>
                   <textarea rows="20" id="log_text" readonly style="width: 100%; overflow-y: scroll;">
-                    <?php echo $log; ?>
+                    <?php echo esc_textarea( $log ); ?>
                   </textarea>
               </div>
             </div>
