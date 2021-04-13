@@ -46,8 +46,8 @@ if ( ! class_exists( 'WP_ES_FEEDER_REST_Controller' ) ) {
             $this,
             'get_items_permissions_check',
           ),
-          ),
-		  )
+    ),
+      )
           );
 
       register_rest_route(
@@ -71,8 +71,8 @@ if ( ! class_exists( 'WP_ES_FEEDER_REST_Controller' ) ) {
             $this,
             'get_item_permissions_check',
           ),
-          ),
-		  )
+    ),
+      )
           );
     }
 
@@ -169,7 +169,7 @@ if ( ! class_exists( 'WP_ES_FEEDER_REST_Controller' ) ) {
              array(
           $server,
           'get_compact_response_links',
-			 ),
+       ),
             $response
             );
       } else {
@@ -177,7 +177,7 @@ if ( ! class_exists( 'WP_ES_FEEDER_REST_Controller' ) ) {
              array(
           $server,
           'get_response_links',
-			 ),
+       ),
             $response
             );
       }
@@ -327,8 +327,8 @@ class WP_ES_FEEDER_Callback_Controller {
           $this,
           'get_items_permissions_check',
         ),
-        ),
-		)
+    ),
+    )
         );
   }
 
@@ -338,13 +338,18 @@ class WP_ES_FEEDER_Callback_Controller {
    */
   public function processResponse( $request ) {
     global $wpdb, $feeder;
+    $sync_helper = new \ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
+    $statuses    = $sync_helper->statuses;
+
     $data = $request->get_json_params();
+
     if ( ! $data ) {
       $data = $request->get_body_params();
     }
 
     $uid     = $request->get_param( 'uid' );
     $post_id = null;
+
     if ( array_key_exists( 'doc', $data ) ) {
       $post_id = $data['doc']['post_id'];
     } elseif ( array_key_exists( 'request', $data ) && array_key_exists( 'post_id', $data['request'] ) ) {
@@ -365,9 +370,9 @@ class WP_ES_FEEDER_Callback_Controller {
         if ( ES_FEEDER::LOG_ALL ) {
           $feeder->log( "No error found for $post_id, sync_uid: $uid", 'feeder.log' );
         }
-        if ( $sync_status == ES_FEEDER_SYNC::SYNC_WHILE_SYNCING ) {
+        if ( $statuses['SYNC_WHILE_SYNCING'] === $sync_status ) {
           $resyncs = get_post_meta( $post_id, '_cdp_resync_count', true ) ?: 0;
-          update_post_meta( $post_id, '_cdp_sync_status', ES_FEEDER_SYNC::RESYNC );
+          update_post_meta( $post_id, '_cdp_sync_status', $statuses['RESYNC'] );
           if ( $resyncs < 3 ) {
             $resyncs++;
             $feeder->log( "Resyncing post: $post_id, resync #$resyncs", 'callback.log' );
@@ -380,7 +385,7 @@ class WP_ES_FEEDER_Callback_Controller {
             }
           }
         } else {
-          update_post_meta( $post_id, '_cdp_sync_status', ES_FEEDER_SYNC::SYNCED );
+          update_post_meta( $post_id, '_cdp_sync_status', $statuses['SYNCED'] );
           delete_post_meta( $post_id, '_cdp_resync_count' );
         }
       } elseif ( stripos( $data['message'], 'Document not found' ) === 0 ) {
@@ -388,7 +393,7 @@ class WP_ES_FEEDER_Callback_Controller {
         $index_cdp   = get_post_meta( $post_id, '_iip_index_post_to_cdp_option', true ) ?: 'yes';
         if ( $post_status === 'publish' && $index_cdp !== 'no' ) {
           $resyncs = get_post_meta( $post_id, '_cdp_resync_count', true ) ?: 0;
-          update_post_meta( $post_id, '_cdp_sync_status', ES_FEEDER_SYNC::RESYNC );
+          update_post_meta( $post_id, '_cdp_sync_status',$statuses['RESYNC'] );
           if ( $resyncs < 3 ) {
             $resyncs++;
             $feeder->log( "Resyncing post: $post_id, resync #$resyncs", 'callback.log' );
@@ -396,14 +401,14 @@ class WP_ES_FEEDER_Callback_Controller {
             $post = get_post( $post_id );
             $feeder->post_sync_send( $post, false );
           } else {
-            update_post_meta( $post_id, '_cdp_sync_status', ES_FEEDER_SYNC::ERROR );
+            update_post_meta( $post_id, '_cdp_sync_status', $statuses['ERROR'] );
             delete_post_meta( $post_id, '_cdp_resync_count' );
           }
-        } elseif ( $post_status !== 'publish' || $index_cdp === 'no' ) {
-          update_post_meta( $post_id, '_cdp_sync_status', ES_FEEDER_SYNC::NOT_SYNCED );
+        } elseif ( 'publish' !== $post_status || 'no' === $index_cdp ) {
+          update_post_meta( $post_id, '_cdp_sync_status', $statuses['NOT_SYNCED'] );
           delete_post_meta( $post_id, '_cdp_resync_count' );
         } else {
-          update_post_meta( $post_id, '_cdp_sync_status', ES_FEEDER_SYNC::ERROR );
+          update_post_meta( $post_id, '_cdp_sync_status', $statuses['ERROR'] );
           delete_post_meta( $post_id, '_cdp_resync_count' );
         }
       } else {
@@ -426,16 +431,18 @@ class WP_ES_FEEDER_Callback_Controller {
           $log = array_merge( $log, $data );
         }
         $feeder->log( $log, 'callback.log' );
-        update_post_meta( $post_id, '_cdp_sync_status', ES_FEEDER_SYNC::ERROR );
+        update_post_meta( $post_id, '_cdp_sync_status', $statuses['ERROR'] );
         delete_post_meta( $post_id, '_cdp_resync_count' );
       }
+
       $wpdb->delete(
-           $wpdb->postmeta,
-          array(
-      'meta_key'   => '_cdp_sync_uid',
-      'meta_value' => $uid,
-		  )
-          );
+        $wpdb->postmeta,
+        array(
+          'meta_key'   => '_cdp_sync_uid',
+          'meta_value' => $uid,
+        )
+      );
+
       if ( ES_FEEDER::LOG_ALL ) {
         $feeder->log( "Sync UID ($uid) deleted for: $post_id", 'feeder.log' );
       }
@@ -444,7 +451,6 @@ class WP_ES_FEEDER_Callback_Controller {
     }
 
     return array( 'status' => 'ok' );
-
   }
 
   public function get_items_permissions_check( $request ) {
@@ -484,7 +490,7 @@ function register_elasticsearch_rest_routes() {
   $post_types = get_post_types(
        array(
     'public' => true,
-	   )
+     )
       );
 
   if ( is_array( $post_types ) && count( $post_types ) > 0 ) {

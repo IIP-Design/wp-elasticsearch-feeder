@@ -235,6 +235,10 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
     public function validate_sync() {
       set_time_limit( 600 );
       global $wpdb;
+
+      $sync_helper = new \ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
+      $statuses    = $sync_helper->statuses;
+
       $size      = 500;
       $result    = null;
       $modifieds = array();
@@ -290,13 +294,13 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
         foreach ( $rows as $row ) {
           if ( array_key_exists( $row->ID, $modifieds ) ) {
             if ( $modifieds[ $row->ID ] == mysql2date( 'c', $row->post_modified ) ) {
-              if ( $row->sync_status != ES_FEEDER_SYNC::SYNCED ) {
+              if ( $statuses['SYNCED'] != $row->sync_status ) {
                 $update_synced[] = $row->ID;
                 $stats['updated']++;
               }
             } else {
               $stats['mismatched']++;
-              if ( $row->sync_status != ES_FEEDER_SYNC::ERROR ) {
+              if ( $statuses['ERROR'] != $row->sync_status ) {
                 $update_errors[] = $row->ID;
                 $stats['updated']++;
               }
@@ -304,20 +308,23 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
             unset( $modifieds[ $row->ID ] );
           } else {
             $stats['es_missing']++;
-            if ( $row->sync_status != ES_FEEDER_SYNC::ERROR ) {
+            if ( $statuses['ERROR'] != $row->sync_status ) {
               $update_errors[] = $row->ID;
               $stats['updated']++;
             }
           }
         }
+
         if ( count( $update_synced ) ) {
-          $query = "UPDATE $wpdb->postmeta SET meta_value = '" . ES_FEEDER_SYNC::SYNCED . "' WHERE meta_key = '_cdp_sync_status' AND post_id IN (" . implode( ',', $update_synced ) . ')';
+          $query = "UPDATE $wpdb->postmeta SET meta_value = '" . $statuses['SYNCED'] . "' WHERE meta_key = '_cdp_sync_status' AND post_id IN (" . implode( ',', $update_synced ) . ')';
           $wpdb->query( $query );
         }
+
         if ( count( $update_errors ) ) {
-          $query = "UPDATE $wpdb->postmeta SET meta_value = '" . ES_FEEDER_SYNC::ERROR . "' WHERE meta_key = '_cdp_sync_status' AND post_id IN (" . implode( ',', $update_errors ) . ')';
+          $query = "UPDATE $wpdb->postmeta SET meta_value = '" . $statuses['ERROR'] . "' WHERE meta_key = '_cdp_sync_status' AND post_id IN (" . implode( ',', $update_errors ) . ')';
           $wpdb->query( $query );
         }
+
         $stats['wp_missing'] = count( $modifieds );
       }
 
@@ -329,56 +336,34 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
     }
 
     /**
-     * Check to see how long a post has been syncing and update to
-     * error status if it's been longer than SYNC_TIMEOUT.
-     * Post modified and sync status can be supplied to save a database query or two.
-     * Then return the status.
-     *
-     * @param $post_id
-     * @param $status - Current sync status
-     * @return int
-     */
-    public function get_sync_status( $post_id, $status = null ) {
-      if ( ! $status ) {
-        $status = get_post_meta( $post_id, '_cdp_sync_status', true );
-      }
-      if ( ! in_array( $status, array( ES_FEEDER_SYNC::ERROR, ES_FEEDER_SYNC::RESYNC ) ) && ! ES_FEEDER_SYNC::sync_allowed( $status ) ) {
-        // check to see if we should resolve to error based on time since last sync
-        $last_sync = get_post_meta( $post_id, '_cdp_last_sync', true );
-        if ( $last_sync ) {
-            $last_sync = new DateTime( $last_sync );
-        } else {
-          $last_sync = new DateTime( 'now' );
-        }
-        $interval = date_diff( $last_sync, new DateTime( 'now' ) );
-        $diff     = $interval->format( '%i' );
-        if ( $diff >= ES_API_HELPER::SYNC_TIMEOUT ) {
-          $status = ES_FEEDER_SYNC::RESYNC;
-          update_post_meta( $post_id, '_cdp_sync_status', $status );
-        }
-      }
-      return $status;
-    }
-
-    /**
      * Iterate over posts in a syncing or erroneous state. If syncing for longer than
      * the SYNC_TIMEOUT time, escalate to error status.
      * Return stats on total errors (if any).
      */
     public function check_sync_errors() {
       global $wpdb;
-      $result   = array(
-      'errors' => 0,
-      'ids'    => array(),
+      $sync_helper = new \ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
+
+      $result = array(
+        'errors' => 0,
+        'ids'    => array(),
       );
-      $statuses = array( ES_FEEDER_SYNC::ERROR, ES_FEEDER_SYNC::SYNCING, ES_FEEDER_SYNC::SYNC_WHILE_SYNCING );
-      $statuses = implode( ',', $statuses );
-      $query    = "SELECT p.ID, p.post_type, m.meta_value as sync_status FROM $wpdb->posts p LEFT JOIN $wpdb->postmeta m ON p.ID = m.post_id
-                  WHERE m.meta_key = '_cdp_sync_status' AND m.meta_value IN ($statuses)";
-      $rows     = $wpdb->get_results( $query );
+
+      $statuses = array(
+        $sync_helper->statuses['ERROR'],
+        $sync_helper->statuses['SYNCING'],
+        $sync_helper->statuses['SYNC_WHILE_SYNCING'],
+      );
+
+      $imploded = implode( ',', $statuses );
+
+      $query = "SELECT p.ID, p.post_type, m.meta_value as sync_status FROM $wpdb->posts p LEFT JOIN $wpdb->postmeta m ON p.ID = m.post_id
+                  WHERE m.meta_key = '_cdp_sync_status' AND m.meta_value IN ($imploded)";
+      $rows  = $wpdb->get_results( $query );
+
       foreach ( $rows as $row ) {
-        $status = $this->get_sync_status( $row->ID, $row->sync_status );
-        if ( $status == ES_FEEDER_SYNC::ERROR ) {
+        $status = $sync_helper->get_sync_status( $row->ID, $row->sync_status );
+        if ( $sync_helper->statuses['ERROR'] === $status ) {
           $result['errors']++;
           if ( ! array_key_exists( $row->post_type, $result ) ) {
             $result[ $row->post_type ] = 0;
@@ -387,6 +372,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
           $result['ids'][] = $row->ID;
         }
       }
+
       return $result;
     }
 
@@ -445,6 +431,9 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
      */
     public function es_process_next() {
       global $wpdb;
+      $sync_helper = new \ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
+      $statuses    = $sync_helper->statuses;
+
       while ( get_option( $this->plugin_name . '_syncable_posts' ) !== false );
       update_option( $this->plugin_name . '_syncable_posts', 1, false );
       set_time_limit( 120 );
@@ -482,7 +471,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
               'message' => 'ERROR: Connection failed.',
               'error'   => true,
             );
-            update_post_meta( $post_id, '_cdp_sync_status', ES_FEEDER_SYNC::ERROR );
+            update_post_meta( $post_id, '_cdp_sync_status', $statuses['ERROR'] );
           } elseif ( ! is_object( $resp ) || $resp->message !== 'Sync in progress.' ) {
             $results[] = array(
               'title'    => $post->post_title,
@@ -491,7 +480,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
               'message'  => 'See error response.',
               'error'    => true,
             );
-            update_post_meta( $post_id, '_cdp_sync_status', ES_FEEDER_SYNC::ERROR );
+            update_post_meta( $post_id, '_cdp_sync_status', $statuses['ERROR'] );
           }
         }
         $totals            = $this->get_resync_totals();
@@ -607,6 +596,9 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
      */
     public function translate_post( $id ) {
       global $cdp_language_helper, $wpdb;
+      $sync_helper = new \ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
+      $statuses    = $sync_helper->statuses;
+
       if ( ! function_exists( 'icl_object_id' ) ) {
         return;
       }
@@ -669,10 +661,10 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
         }
         if ( ! $response ) {
           error_log( print_r( $this->error . 'translate_post() request failed', true ) );
-          update_post_meta( $post_id, '_cdp_sync_status', ES_FEEDER_SYNC::ERROR );
+          update_post_meta( $post_id, '_cdp_sync_status', $statuses['ERROR'] );
           delete_post_meta( $post_id, '_cdp_sync_uid' );
         } elseif ( isset( $response->error ) && $response->error ) {
-          update_post_meta( $post_id, '_cdp_sync_status', ES_FEEDER_SYNC::ERROR );
+          update_post_meta( $post_id, '_cdp_sync_status', $statuses['ERROR'] );
           delete_post_meta( $post_id, '_cdp_sync_uid' );
           if ( ! self::LOG_ALL && $response ) {
             $this->log( "IMMEDIATE RESPONSE (PUT):\r\n" . print_r( $response, 1 ), 'callback.log' );
@@ -711,6 +703,9 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
     }
 
     public function addOrUpdate( $post, $print = true, $callback_errors_only = false, $check_syncable = true ) {
+      $sync_helper = new \ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
+      $statuses    = $sync_helper->statuses;
+
       if ( $check_syncable && ! $this->is_syncable( $post->ID ) ) {
         $response = array(
         'error'   => 1,
@@ -757,10 +752,10 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       }
       if ( ! $response ) {
         error_log( print_r( $this->error . 'addOrUpdate()[add] request failed', true ) );
-        update_post_meta( $post->ID, '_cdp_sync_status', ES_FEEDER_SYNC::ERROR );
+        update_post_meta( $post->ID, '_cdp_sync_status', $statuses['ERROR'] );
         delete_post_meta( $post->ID, '_cdp_sync_uid' );
       } elseif ( isset( $response->error ) && $response->error ) {
-        update_post_meta( $post->ID, '_cdp_sync_status', ES_FEEDER_SYNC::ERROR );
+        update_post_meta( $post->ID, '_cdp_sync_status', $statuses['ERROR'] );
         delete_post_meta( $post->ID, '_cdp_sync_uid' );
         if ( ! self::LOG_ALL && $response ) {
           $this->log( "IMMEDIATE RESPONSE:\r\n" . print_r( $response, 1 ), 'callback.log' );
@@ -775,7 +770,10 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
         return;
       }
 
-      update_post_meta( $post->ID, '_cdp_sync_status', ES_FEEDER_SYNC::SYNCING );
+      $sync_helper = new \ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
+      $statuses    = $sync_helper->statuses;
+
+      update_post_meta( $post->ID, '_cdp_sync_status', $statuses['SYNCING'] );
 
       $uuid       = $this->get_uuid( $post );
       $delete_url = $this->get_post_type_label( $post->post_type ) . '/' . $uuid;
@@ -789,11 +787,11 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       $response = $this->es_request( $options );
       if ( ! $response ) {
         error_log( print_r( $this->error . 'addOrUpdate()[add] request failed', true ) );
-        update_post_meta( $post->ID, '_cdp_sync_status', ES_FEEDER_SYNC::ERROR );
+        update_post_meta( $post->ID, '_cdp_sync_status', $statuses['ERROR'] );
       } elseif ( isset( $response->error ) && $response->error ) {
-        update_post_meta( $post->ID, '_cdp_sync_status', ES_FEEDER_SYNC::ERROR );
+        update_post_meta( $post->ID, '_cdp_sync_status', $statuses['ERROR'] );
       } else {
-        update_post_meta( $post->ID, '_cdp_sync_status', ES_FEEDER_SYNC::NOT_SYNCED );
+        update_post_meta( $post->ID, '_cdp_sync_status', $statuses['NOT_SYNCED'] );
       }
       delete_post_meta( $post->ID, '_cdp_sync_uid' );
     }
@@ -904,11 +902,15 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
      */
     public function is_syncable( $post_id ) {
       global $wpdb;
+
+      $sync_helper = new \ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
+      $statuses    = $sync_helper->statuses;
+
       // check sync status by attempting to update and if rows updated then sync is in progress
       $query = "UPDATE $wpdb->postmeta 
-                SET meta_value = '" . ES_FEEDER_SYNC::SYNC_WHILE_SYNCING . "' 
+                SET meta_value = '" . $statuses['SYNC_WHILE_SYNCING'] . "' 
                 WHERE post_id = $post_id AND meta_key = '_cdp_sync_status' 
-                    AND meta_value IN (" . ES_FEEDER_SYNC::SYNCING . ',' . ES_FEEDER_SYNC::SYNC_WHILE_SYNCING . ')';
+                    AND meta_value IN (" . $statuses['SYNCING'] . ',' . $statuses['SYNC_WHILE_SYNCING'] . ')';
       $rows  = $wpdb->query( $query );
       if ( $rows ) {
         if ( self::LOG_ALL ) {
@@ -968,6 +970,9 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
     }
 
     private function create_callback( $post_id = null ) {
+      $sync_helper = new \ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
+      $statuses    = $sync_helper->statuses;
+
       $options     = get_option( $this->plugin_name );
       $es_wpdomain = $options['es_wpdomain'] ? $options['es_wpdomain'] : null;
       if ( ! $es_wpdomain ) {
@@ -993,7 +998,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
         $this->log( "Created callback for: $post_id with UID: $uid", 'feeder.log' );
       }
       update_post_meta( $post_id, '_cdp_sync_uid', $uid );
-      update_post_meta( $post_id, '_cdp_sync_status', ES_FEEDER_SYNC::SYNCING );
+      update_post_meta( $post_id, '_cdp_sync_status', $statuses['SYNCING'] );
       update_post_meta( $post_id, '_cdp_last_sync', date( 'Y-m-d H:i:s' ) );
       return $callback;
     }

@@ -8,6 +8,8 @@
 
 namespace ES_Feeder\Admin\Helpers;
 
+use DateTime;
+
 /**
  * Registers Sync helper functions.
  *
@@ -24,7 +26,56 @@ class Sync_Helper {
    * @since 3.0.0
    */
   public function __construct( $plugin ) {
-    $this->plugin = $plugin;
+    $this->plugin       = $plugin;
+    $this->statuses     = array(
+      'NOT_SYNCED'         => 0,
+      'SYNCING'            => 1,
+      'SYNC_WHILE_SYNCING' => 2,
+      'SYNCED'             => 3,
+      'RESYNC'             => 4,
+      'ERROR'              => 5,
+    );
+    $this->sync_timeout = 10;
+  }
+
+  /**
+   * Check to see how long a post has been syncing and update to
+   * error status if it's been longer than SYNC_TIMEOUT.
+   * Post modified and sync status can be supplied to save a database query or two.
+   * Then return the status.
+   *
+   * @param int      $post_id  The unique identifier for a given WordPress post.
+   * @param int|null $status   The numeric code representing the sync status of the given post.
+   * @return int     The updated numeric code representing the sync status of the given post.
+   */
+  public function get_sync_status( $post_id, $status = null ) {
+    if ( ! $status ) {
+      $status = get_post_meta( $post_id, '_cdp_sync_status', true );
+    }
+
+    $error_statuses = array( $this->statuses['ERROR'], $this->statuses['RESYNC'] );
+
+    if ( ! in_array( $status, $error_statuses, true ) && ! $this->sync_allowed( $status ) ) {
+
+      // Check to see if we should resolve to error based on time since last sync.
+      $last_sync = get_post_meta( $post_id, '_cdp_last_sync', true );
+
+      if ( $last_sync ) {
+        $last_sync = new DateTime( $last_sync );
+      } else {
+        $last_sync = new DateTime( 'now' );
+      }
+
+      $interval = date_diff( $last_sync, new DateTime( 'now' ) );
+      $diff     = $interval->format( '%i' );
+
+      if ( $diff >= $this->sync_timeout ) {
+        $status = $this->statuses['RESYNC'];
+        update_post_meta( $post_id, '_cdp_sync_status', $status );
+      }
+    }
+
+    return $status;
   }
 
   /**
@@ -90,55 +141,52 @@ class Sync_Helper {
    * @since 3.0.0
    */
   private function get_status_code_data( $status_code, $merge_publishes = false ) {
-    $color  = 'black';
-    $status = 'NOT_SYNCED';
-    $title  = 'Not Published';
+    $color = '';
+    $title = '';
 
     switch ( $status_code ) {
-      case 1:
-        $color  = 'yellow';
-        $status = 'SYNCING';
-        $title  = 'Publishing';
+      case $this->statuses['SYNCING']:
+        $color = 'yellow';
+        $title = 'Publishing';
           break;
-      case 2:
-        $color  = 'yellow';
-        $status = 'SYNC_WHILE_SYNCING';
-        $title  = $merge_publishes ? 'Publishing' : 'Republish Attempted';
+      case $this->statuses['SYNC_WHILE_SYNCING']:
+        $color = 'yellow';
+        $title = $merge_publishes ? 'Publishing' : 'Republish Attempted';
           break;
-      case 3:
-        $color  = 'green';
-        $status = 'SYNCED';
-        $title  = 'Published';
+      case $this->statuses['SYNCED']:
+        $color = 'green';
+        $title = 'Published';
           break;
-      case 4:
-        $color  = 'orange';
-        $status = 'RESYNC';
-        $title  = 'Validation Required';
+      case $this->statuses['RESYNC']:
+        $color = 'orange';
+        $title = 'Validation Required';
           break;
-      case 5:
-        $color  = 'red';
-        $status = 'ERROR';
-        $title  = 'Error';
+      case $this->statuses['ERROR']:
+        $color = 'red';
+        $title = 'Error';
           break;
+      default:
+        $color = 'black';
+        $title = 'Not Published';
     }
 
     return array(
-      'color'  => $color,
-      'status' => $status,
-      'title'  => $title,
+      'color' => $color,
+      'title' => $title,
     );
   }
 
   /**
-   * Returns true if the status is not representative of a syncing state.
+   * Checks whether a post is eligible for syncing.
+   * Syncing is allowed only if the current status is not one of the syncing statues.
    *
-   * @param $status
-   * @return bool
+   * @param int $status  This current post status.
+   * @return bool        Whether or not the current status is a syncing status.
    */
-  public static function sync_allowed( $status ) {
+  private function sync_allowed( $status ) {
     switch ( $status ) {
-      case self::SYNC_WHILE_SYNCING:
-      case self::SYNCING:
+      case $this->statuses['SYNC_WHILE_SYNCING']:
+      case $this->statuses['SYNCING']:
           return false;
       default:
           return true;

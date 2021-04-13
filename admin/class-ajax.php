@@ -45,7 +45,7 @@ class Ajax {
 
     if ( ! empty( $data['es_sync_status'] ) ) {
       $post_id = $data['es_sync_status'];
-      $status  = $this->get_sync_status( $post_id );
+      $status  = $sync_helper->get_sync_status( $post_id );
       ob_start();
       $sync_helper->sync_status_indicator( $status );
       $response['es_sync_status'] = ob_get_clean();
