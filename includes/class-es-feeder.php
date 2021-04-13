@@ -47,7 +47,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
     protected $version;
 
     /**
-     * The URL for the ElasticSearch proxy API.
+     * The URL for the Elasticsearch proxy API.
      *
      * @var string $proxy
      *
@@ -123,6 +123,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
     private function define_admin_hooks() {
       $admin = new ES_Feeder\Admin( $this->get_plugin_name(), $this->get_version() );
 
+      $this->loader->add_action( 'init', $admin, 'register_admin_scripts_styles' );
       $this->loader->add_action( 'admin_enqueue_scripts', $admin, 'enqueue_styles' );
       $this->loader->add_action( 'admin_enqueue_scripts', $admin, 'enqueue_scripts', 10, 1 );
 

@@ -9,7 +9,7 @@
 namespace ES_Feeder;
 
 /**
- * Registers social link optimizer admin scripts.
+ * Registers Elasticsearch feeder admin scripts.
  *
  * @package ES_Feeder\Admin
  * @since 3.0.0
@@ -22,38 +22,76 @@ class Admin {
    * @param string $plugin     The plugin name.
    * @param string $version    The plugin version number.
    *
-   * @since 0.0.1
+   * @since 3.0.0
    */
   public function __construct( $plugin, $version ) {
     $this->plugin  = $plugin;
     $this->version = $version;
   }
 
+  /**
+   * Register the scripts for the plugin's admin interface.
+   *
+   * @since 3.0.0
+   */
+  public function register_admin_scripts_styles() {
+    wp_register_script(
+      $this->plugin,
+      ES_FEEDER_URL . 'admin/js/wp-es-feeder-admin.js',
+      array( 'jquery' ),
+      $this->version,
+      false
+    );
+
+    wp_register_script(
+      $this->plugin . '-sync-status',
+      ES_FEEDER_URL . 'admin/js/wp-es-feeder-admin-post.js',
+      array( 'jquery' ),
+      $this->version,
+      false
+    );
+  }
+
+  /**
+   * Register the styles for the plugin's admin interface.
+   *
+   * @param string $hook   The current admin page.
+   *
+   * @since 0.0.1
+   */
   public function enqueue_styles( $hook ) {
     global $post, $feeder;
     wp_enqueue_style(
-         $this->plugin_name,
-        plugin_dir_url( __FILE__ ) . 'css/wp-es-feeder-admin.css',
+      $this->plugin,
+      ES_FEEDER_URL . 'admin/css/wp-es-feeder-admin.css',
       array(),
+      $this->version,
+      'all'
+    );
+
+    if (
+      ( 'post.php' === $hook || 'post-new.php' === $hook )
+      && in_array( $post->post_type, $feeder->get_allowed_post_types(), true )
+    ) {
+      wp_enqueue_style(
+        'chosen',
+        ES_FEEDER_URL . 'admin/css/chosen.css',
+        array(),
         $this->version,
         'all'
-        );
-    if ( ( $hook == 'post.php' || $hook == 'post-new.php' ) && in_array( $post->post_type, $feeder->get_allowed_post_types() ) ) {
-      wp_enqueue_style( 'chosen', plugin_dir_url( __FILE__ ) . 'css/chosen.css' );
+      );
     }
-
   }
 
+  /**
+   * Register the scripts for the plugin's admin interface.
+   *
+   * @param string $hook   The current admin page.
+   *
+   * @since 0.0.1
+   */
   public function enqueue_scripts( $hook ) {
     global $post, $feeder;
-
-    wp_register_script(
-         $this->plugin_name,
-        plugin_dir_url( __FILE__ ) . 'js/wp-es-feeder-admin.js',
-      array( 'jquery' ),
-        false,
-        false
-        );
 
     $totals = $feeder->get_resync_totals();
     $sync   = array(
@@ -62,25 +100,36 @@ class Admin {
       'paused'   => false,
       'post'     => null,
     );
+
     if ( ! $totals['done'] ) {
       $sync['complete'] = $totals['complete'];
       $sync['total']    = $totals['total'];
       $sync['paused']   = true;
     }
-    wp_localize_script( $this->plugin_name, 'es_feeder_sync', $sync );
-    wp_enqueue_script( $this->plugin_name );
 
-    if ( ( $hook == 'post.php' || $hook == 'post-new.php' ) && in_array( $post->post_type, $feeder->get_allowed_post_types() ) ) {
-      wp_enqueue_script( 'chosen', plugin_dir_url( __FILE__ ) . 'js/chosen.jquery.min.js', array( 'jquery' ), null );
-      $handle = $this->plugin_name . '-sync-status';
-      wp_register_script(
-           $handle,
-          plugin_dir_url( __FILE__ ) . 'js/wp-es-feeder-admin-post.js',
+    wp_localize_script( $this->plugin, 'es_feeder_sync', $sync );
+    wp_enqueue_script( $this->plugin );
+
+    if (
+      ( 'post.php' === $hook || 'post-new.php' === $hook )
+      && in_array( $post->post_type, $feeder->get_allowed_post_types(), true )
+    ) {
+      wp_enqueue_script(
+        'chosen',
+        ES_FEEDER_URL . 'admin/js/chosen.jquery.min.js',
         array( 'jquery' ),
-          false,
-          false
-          );
-      wp_localize_script( $handle, 'es_feeder_sync_status', array( 'post_id' => $post ? $post->ID : null ) );
+        $this->version,
+        'all'
+      );
+
+      $handle = $this->plugin . '-sync-status';
+
+      wp_localize_script(
+        $handle,
+        'es_feeder_sync_status',
+        array( 'post_id' => $post ? $post->ID : null )
+      );
+
       wp_enqueue_script( $handle );
     }
   }
@@ -106,7 +155,7 @@ class Admin {
 
   function add_admin_meta_boxes() {
 
-    $options          = get_option( $this->plugin_name );
+    $options          = get_option( $this->plugin );
     $es_post_types    = $options['es_post_types'] ? $options['es_post_types'] : null;
     $es_api_data      = ( current_user_can( 'manage_options' ) && array_key_exists( 'es_api_data', $options ) && $options['es_api_data'] );
     $es_post_language = array_key_exists( 'es_post_language', $options ) && $options['es_post_language'] ? 1 : 0;
@@ -179,7 +228,7 @@ class Admin {
   }
 
   function add_admin_cdp_taxonomy() {
-    $options       = get_option( $this->plugin_name );
+    $options       = get_option( $this->plugin );
     $es_post_types = $options['es_post_types'] ? $options['es_post_types'] : null;
     $screens       = array();
     if ( $es_post_types ) {
@@ -250,8 +299,8 @@ class Admin {
 
   public function options_update() {
     register_setting(
-         $this->plugin_name,
-        $this->plugin_name,
+         $this->plugin,
+        $this->plugin,
         array(
        $this,
       'validate',
