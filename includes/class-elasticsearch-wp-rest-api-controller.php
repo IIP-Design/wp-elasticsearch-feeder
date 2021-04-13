@@ -10,18 +10,28 @@ if ( ! class_exists( 'WP_ES_FEEDER_REST_Controller' ) ) {
     public $type;
 
     public function __construct( $post_type ) {
+      $this->plugin   = 'wp-es-feeder';
       $this->resource = ES_API_HELPER::get_post_type_label( $post_type, 'name' );
       $this->type     = $post_type;
     }
 
-    // _iip_index_post_to_cdp_option is meta data
+    /**
+     * Check whether the given post should be indexed.
+     *
+     * @param object $post  A WordPress post object.
+     * @return boolean      Whether or not to index the given post.
+     *
+     * @since 3.0.0
+     */
     public function shouldIndex( $post ) {
-      return ES_API_HELPER::get_index_to_cdp( $post->ID );
+      $api_helper = new \ES_Feeder\Admin\Helpers\API_Helper( $this->plugin );
+
+      return $api_helper->get_index_to_cdp( $post->ID );
     }
 
     public function register_routes() {
       register_rest_route(
-           ES_API_HELPER::NAME_SPACE,
+        $this->namespace,
           '/' . rawurlencode( $this->resource ),
           array(
         array(
@@ -46,12 +56,12 @@ if ( ! class_exists( 'WP_ES_FEEDER_REST_Controller' ) ) {
             $this,
             'get_items_permissions_check',
           ),
-    ),
-      )
+		),
+		  )
           );
 
       register_rest_route(
-           ES_API_HELPER::NAME_SPACE,
+        $this->namespace,
           '/' . rawurlencode( $this->resource ) . '/(?P<id>[\d]+)',
           array(
         array(
@@ -71,8 +81,8 @@ if ( ! class_exists( 'WP_ES_FEEDER_REST_Controller' ) ) {
             $this,
             'get_item_permissions_check',
           ),
-    ),
-      )
+		),
+		  )
           );
     }
 
@@ -123,6 +133,8 @@ if ( ! class_exists( 'WP_ES_FEEDER_REST_Controller' ) ) {
     }
 
     public function get_item( $request ) {
+      $api_helper = new \ES_Feeder\Admin\Helpers\API_Helper( $this->plugin );
+
       $id       = (int) $request['id'];
       $response = array();
 
@@ -136,7 +148,8 @@ if ( ! class_exists( 'WP_ES_FEEDER_REST_Controller' ) ) {
         $response = $this->prepare_item_for_response( $post, $request );
         $data     = $response->get_data();
 
-        $site_taxonomies = ES_API_HELPER::get_site_taxonomies( $post->ID );
+        $site_taxonomies = $api_helper->get_site_taxonomies( $post->ID );
+
         if ( count( $site_taxonomies ) ) {
           $data['site_taxonomies'] = $site_taxonomies;
         }
@@ -169,7 +182,7 @@ if ( ! class_exists( 'WP_ES_FEEDER_REST_Controller' ) ) {
              array(
           $server,
           'get_compact_response_links',
-       ),
+			 ),
             $response
             );
       } else {
@@ -177,7 +190,7 @@ if ( ! class_exists( 'WP_ES_FEEDER_REST_Controller' ) ) {
              array(
           $server,
           'get_response_links',
-       ),
+			 ),
             $response
             );
       }
@@ -194,10 +207,11 @@ if ( ! class_exists( 'WP_ES_FEEDER_REST_Controller' ) ) {
     }
 
     public function baseline( $post, $request ) {
-      $post_data = array();
+      $api_helper = new \ES_Feeder\Admin\Helpers\API_Helper( $this->plugin );
+      $post_data  = array();
 
-      // if atachment return right away
-      if ( $post->post_type == 'attachment' ) {
+      // If the post is an attachment return right away.
+      if ( 'attachment' === $post->post_type ) {
         $post_data         = wp_prepare_attachment_for_js( $post->ID );
         $post_data['site'] = $this->get_site();
         return rest_ensure_response( $post_data );
@@ -212,7 +226,7 @@ if ( ! class_exists( 'WP_ES_FEEDER_REST_Controller' ) ) {
 
       $post_data['site'] = $this->get_site();
 
-      $post_data['owner'] = ES_API_HELPER::get_owner( $post->ID );
+      $post_data['owner'] = $api_helper->get_owner( $post->ID );
 
       if ( isset( $post->post_date ) ) {
         $post_data['published'] = get_the_date( 'c', $post->ID );
@@ -223,11 +237,11 @@ if ( ! class_exists( 'WP_ES_FEEDER_REST_Controller' ) ) {
       }
 
       if ( isset( $post->post_author ) ) {
-        $post_data['author'] = ES_API_HELPER::get_author( $post->post_author );
+        $post_data['author'] = $api_helper->get_author( $post->post_author );
       }
 
       // pre-approved
-      $opt               = get_option( ES_API_HELPER::PLUGIN_NAME );
+      $opt               = get_option( $this->plugin );
       $opt_url           = $opt['es_wpdomain'];
       $post_data['link'] = str_replace( site_url(), $opt_url, get_permalink( $post->ID ) );
 
@@ -240,7 +254,7 @@ if ( ! class_exists( 'WP_ES_FEEDER_REST_Controller' ) ) {
       }
 
       if ( isset( $post->post_content ) ) {
-        $post_data['content'] = ES_API_HELPER::render_vs_shortcodes( $post );
+        $post_data['content'] = $api_helper->render_vc_shortcodes( $post );
       }
 
       if ( isset( $post->post_excerpt ) ) {
@@ -257,7 +271,7 @@ if ( ! class_exists( 'WP_ES_FEEDER_REST_Controller' ) ) {
         $post_data['categories'] = array();
       }
 
-      $post_data['thumbnail'] = ES_API_HELPER::get_image_size_array( get_post_thumbnail_id( $post->ID ) );
+      $post_data['thumbnail'] = $api_helper->get_image_metadata( get_post_thumbnail_id( $post->ID ) );
 
       if ( isset( $post->comment_count ) ) {
         $post_data['comment_count'] = (int) $post->comment_count;
@@ -283,7 +297,7 @@ if ( ! class_exists( 'WP_ES_FEEDER_REST_Controller' ) ) {
     }
 
     public function get_site() {
-      $opt  = get_option( ES_API_HELPER::PLUGIN_NAME );
+      $opt  = get_option( $this->plugin );
       $url  = $opt['es_wpdomain'];
       $args = parse_url( $url );
       $host = $url;
@@ -307,7 +321,7 @@ class WP_ES_FEEDER_Callback_Controller {
 
   public function register_routes() {
     register_rest_route(
-         ES_API_HELPER::NAME_SPACE,
+      $this->namespace,
         '/callback/(?P<uid>[0-9a-zA-Z]+)',
         array(
       array(
@@ -327,8 +341,8 @@ class WP_ES_FEEDER_Callback_Controller {
           $this,
           'get_items_permissions_check',
         ),
-    ),
-    )
+	  ),
+		)
         );
   }
 
@@ -393,7 +407,7 @@ class WP_ES_FEEDER_Callback_Controller {
         $index_cdp   = get_post_meta( $post_id, '_iip_index_post_to_cdp_option', true ) ?: 'yes';
         if ( $post_status === 'publish' && $index_cdp !== 'no' ) {
           $resyncs = get_post_meta( $post_id, '_cdp_resync_count', true ) ?: 0;
-          update_post_meta( $post_id, '_cdp_sync_status',$statuses['RESYNC'] );
+          update_post_meta( $post_id, '_cdp_sync_status', $statuses['RESYNC'] );
           if ( $resyncs < 3 ) {
             $resyncs++;
             $feeder->log( "Resyncing post: $post_id, resync #$resyncs", 'callback.log' );
@@ -490,7 +504,7 @@ function register_elasticsearch_rest_routes() {
   $post_types = get_post_types(
        array(
     'public' => true,
-     )
+	   )
       );
 
   if ( is_array( $post_types ) && count( $post_types ) > 0 ) {

@@ -76,6 +76,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
      * @since 0.0.1
      */
     public function __construct() {
+      $this->namespace   = 'elasticsearch/v1';
       $this->plugin_name = 'wp-es-feeder';
       $this->version     = '2.5.0';
       $this->proxy       = get_option( $this->plugin_name )['es_url'];
@@ -721,7 +722,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       $post_type_name = ES_API_HELPER::get_post_type_label( $post->post_type, 'name' );
 
       // api endpoint for wp-json
-      $wp_api_url   = '/' . ES_API_HELPER::NAME_SPACE . '/' . rawurlencode( $post_type_name ) . '/' . $post->ID;
+      $wp_api_url   = '/' . $this->namespace . '/' . rawurlencode( $post_type_name ) . '/' . $post->ID;
       $request      = new WP_REST_Request( 'GET', $wp_api_url );
       $api_response = rest_do_request( $request );
       $api_response = $api_response->data;
@@ -979,7 +980,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
         $es_wpdomain = site_url();
       }
       if ( ! $post_id ) {
-        return $es_wpdomain . '/wp-json/' . ES_API_HELPER::NAME_SPACE . '/callback/noop';
+        return $es_wpdomain . '/wp-json/' . $this->namespace . '/callback/noop';
       }
 
       // create callback for this post
@@ -993,7 +994,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       if ( ! $es_wpdomain ) {
         $es_wpdomain = site_url();
       }
-      $callback = $es_wpdomain . '/wp-json/' . ES_API_HELPER::NAME_SPACE . '/callback/' . $uid;
+      $callback = $es_wpdomain . '/wp-json/' . $this->namespace . '/callback/' . $uid;
       if ( self::LOG_ALL ) {
         $this->log( "Created callback for: $post_id with UID: $uid", 'feeder.log' );
       }
@@ -1028,7 +1029,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
     }
 
     public function get_site() {
-      $opt  = get_option( ES_API_HELPER::PLUGIN_NAME );
+      $opt  = get_option( $this->plugin );
       $url  = $opt['es_wpdomain'];
       $args = parse_url( $url );
       $host = $url;
