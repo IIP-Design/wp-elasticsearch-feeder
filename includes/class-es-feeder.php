@@ -105,6 +105,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       // The classes  responsible for defining all actions that occur in the admin area.
       require_once ES_FEEDER_DIR . 'includes/class-loader.php';
       require_once ES_FEEDER_DIR . 'admin/class-admin.php';
+      require_once ES_FEEDER_DIR . 'admin/class-settings.php';
 
       // The classes responsible for defining all actions that define the API.
       require_once ES_FEEDER_DIR . 'includes/class-es-api-helpers.php';
@@ -121,14 +122,15 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
      * @since 0.0.1
      */
     private function define_admin_hooks() {
-      $admin = new ES_Feeder\Admin( $this->get_plugin_name(), $this->get_version() );
+      $admin    = new ES_Feeder\Admin( $this->get_plugin_name(), $this->get_version() );
+      $settings = new ES_Feeder\Settings( $this->get_plugin_name(), $this->get_version() );
 
       $this->loader->add_action( 'init', $admin, 'register_admin_scripts_styles' );
       $this->loader->add_action( 'admin_enqueue_scripts', $admin, 'enqueue_styles' );
       $this->loader->add_action( 'admin_enqueue_scripts', $admin, 'enqueue_scripts', 10, 1 );
 
-      // Add menu item.
-      $this->loader->add_action( 'admin_menu', $admin, 'add_plugin_admin_menu' );
+      // Add plugin settings page.
+      $this->loader->add_action( 'admin_menu', $settings, 'add_plugin_admin_menu' );
 
       // Add "Do not index" box to posts and pages.
       $this->loader->add_action( 'add_meta_boxes', $admin, 'add_admin_meta_boxes' );

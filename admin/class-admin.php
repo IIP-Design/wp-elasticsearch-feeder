@@ -134,17 +134,6 @@ class Admin {
     }
   }
 
-  // Register the administration menu
-  public function add_plugin_admin_menu() {
-    add_options_page(
-         'WP Elasticsearch Feeder Settings',
-        'WP ES Feeder',
-        'manage_options',
-      $this->plugin_name,
-        array( $this, 'display_plugin_setup_page' )
-        );
-  }
-
   // Add settings action link to the plugins page.$_COOKIE
   public function add_action_links( $links ) {
     $mylinks = array(
@@ -257,11 +246,6 @@ class Admin {
     global $feeder;
     $taxonomy = $feeder->get_taxonomy();
     include_once ES_FEEDER_DIR . 'admin/partials/wp-es-feeder-cdp-taxonomy-display.php';
-  }
-
-  // Render the settings page for this plugin.
-  public function display_plugin_setup_page() {
-    include_once ES_FEEDER_DIR . 'admin/partials/wp-es-feeder-admin-display.php';
   }
 
   public function validate( $input ) {
