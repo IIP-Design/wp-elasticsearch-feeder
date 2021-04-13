@@ -26,6 +26,45 @@ define( 'ES_FEEDER_URL', plugin_dir_url( dirname( __FILE__ ) ) . 'wp-elasticsear
 require plugin_dir_path( __FILE__ ) . 'includes/class-es-feeder.php';
 
 /**
+ * Autoload plugin's class to make them available without require statements.
+ *
+ * @param string $class_name   The name of the class getting called.
+ *
+ * @since 3.0.0
+ */
+function feeder_autoloader( $class_name ) {
+  // Plugin-specific namespace prefix.
+  $prefix = 'ES_Feeder\\';
+
+  /**
+   * Check if the class use the namespace prefix.
+   * If not, move to the next registered autoloader.
+   */
+  $len = strlen( $prefix );
+  if ( strncmp( $prefix, $class_name, $len ) !== 0 ) {
+    return;
+  }
+
+  // Get the relative class name.
+  $relative_class = str_replace( '_', '-', substr( $class_name, $len ) );
+  $exploded_class = explode( '\\', strtolower( $relative_class ) );
+
+  // Build file path to class file.
+  $class_file = 'class-' . end( $exploded_class ) . '.php';
+  $remainder  = array_slice( $exploded_class, 0, -1, false );
+  $filepath   = implode( DIRECTORY_SEPARATOR, $remainder ) . DIRECTORY_SEPARATOR . $class_file;
+  $file       = ES_FEEDER_DIR . $filepath;
+
+  // If the file exists, require it.
+  if ( file_exists( $file ) ) {
+    require $file;
+  }
+};
+
+// Register our autoload function with SPL.
+spl_autoload_register( 'feeder_autoloader' );
+
+/**
  * Begin execution of the plugin.
  *
  * Since everything within the plugin is registered via hooks,
