@@ -1,7 +1,7 @@
 {
   "name": "iip-design/wp-elasticsearch-feeder",
   "type": "wordpress-plugin",
-  "description" : "WordPress plugin to syncs site content to an ElasticSearch index",
+  "description" : "WordPress plugin to syncs site content to an Elasticsearch index",
   "license": "GPL-2.0-or-later",
   "authors": [
     {
