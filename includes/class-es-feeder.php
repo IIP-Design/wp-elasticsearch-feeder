@@ -352,60 +352,6 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
     }
 
     /**
-     * Gets counts for each sync status
-     */
-    public function get_sync_status_counts() {
-      global $wpdb;
-      $opts       = get_option( $this->plugin_name );
-      $post_types = $opts['es_post_types'] ?: array();
-      $formats    = implode( ',', array_fill( 0, count( $post_types ), '%s' ) );
-
-      $query  = "SELECT IFNULL(ms.meta_value, 0) as status, COUNT(IFNULL(ms.meta_value, 0)) as total 
-                  FROM $wpdb->posts p 
-                  LEFT JOIN (SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_status') ms ON p.ID = ms.post_id
-                  LEFT JOIN (SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '_iip_index_post_to_cdp_option') m ON p.ID = m.post_id
-                  WHERE p.post_type IN ($formats) AND p.post_status = 'publish' AND (m.meta_value IS NULL OR m.meta_value != 'no') GROUP BY IFNULL(ms.meta_value, 0)";
-      $query  = $wpdb->prepare( $query, array_keys( $post_types ) );
-      $totals = $wpdb->get_results( $query );
-      $ret    = array();
-      foreach ( $totals as $total ) {
-          $ret[ $total->status ] = $total->total;
-      }
-      return $ret;
-    }
-
-    /**
-     * Prints the appropriately colored sync status indicator dot given a status.
-     * Text indicates whether or not to include indicator label text.
-     *
-     * @param $status
-     * @param $text boolean
-     * @param $merge_publishes
-     */
-    public function sync_status_indicator( $status, $text = true, $merge_publishes = true ) {
-      $color = 'black';
-      switch ( $status ) {
-        case ES_FEEDER_SYNC::SYNCING:
-        case ES_FEEDER_SYNC::SYNC_WHILE_SYNCING:
-          $color = 'yellow';
-            break;
-        case ES_FEEDER_SYNC::SYNCED:
-          $color = 'green';
-            break;
-        case ES_FEEDER_SYNC::RESYNC:
-          $color = 'orange';
-            break;
-        case ES_FEEDER_SYNC::ERROR:
-          $color = 'red';
-            break;
-      }
-      ?>
-      <div class="sync-status sync-status-<?php echo $color; ?>" title="<?php echo ES_FEEDER_SYNC::display( $status, $merge_publishes ); ?>"></div>
-      <div class="sync-status-label"><?php echo $text ? ES_FEEDER_SYNC::display( $status, $merge_publishes ) : ''; ?></div>
-      <?php
-    }
-
-    /**
      * Check to see how long a post has been syncing and update to
      * error status if it's been longer than SYNC_TIMEOUT.
      * Post modified and sync status can be supplied to save a database query or two.

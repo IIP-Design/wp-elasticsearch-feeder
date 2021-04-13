@@ -11,7 +11,8 @@
 
   global $wpdb, $feeder;
 
-  $api_helper = new ES_Feeder\Admin\Helpers\API_Helper();
+  $api_helper  = new ES_Feeder\Admin\Helpers\API_Helper( $this->plugin );
+  $sync_helper = new ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
 ?>
 
 <div class="wrap wp_es_settings">
@@ -20,7 +21,7 @@
   
     <?php
 
-    $status_counts = $feeder->get_sync_status_counts();
+    $status_counts = $sync_helper->get_sync_status_counts();
     // Import all the options from the database.
     $options = get_option( $this->plugin ) ? get_option( $this->plugin ) : array();
 
@@ -201,7 +202,7 @@
                 <table>
                     <?php for ( $i = 1; $i <= 5; $i++ ) : ?>
                     <tr>
-                      <td><?php $feeder->sync_status_indicator( $i, true, false ); ?></td>
+                      <td><?php $sync_helper->sync_status_indicator( $i, true, false ); ?></td>
                       <td
                         class="status-count status-<?php echo esc_attr( $i ); ?>"
                         data-status-id="<?php echo esc_attr( $i ); ?>"

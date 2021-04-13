@@ -330,10 +330,11 @@ class Admin {
   }
 
   public function columns_content( $column_name, $post_ID ) {
-    global $feeder;
-    if ( $column_name == 'sync_status' ) {
+    $sync_helper = new \ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
+
+    if ( 'sync_status' === $column_name ) {
       $status = get_post_meta( $post_ID, '_cdp_sync_status', true );
-      $feeder->sync_status_indicator( $status, false, true );
+      $sync_helper->sync_status_indicator( $status, false, true );
     }
   }
 
