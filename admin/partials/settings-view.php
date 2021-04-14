@@ -104,7 +104,7 @@
                   name="<?php echo esc_html( $this->plugin . '[es_token]' ); ?>"
                   placeholder="api token"
                   type="text"
-                  value="<?php echo esc_html( ( ! empty( $es_url ) ? $es_url : '' ) ); ?>"
+                  value="<?php echo esc_html( ( ! empty( $es_token ) ? $es_token : '' ) ); ?>"
                 />
               </div>
 

@@ -43,20 +43,6 @@ class Language_Helper {
     );
   }
 
-  public function get_language_by_locale( $locale ) {
-    $locale = strtolower( $locale );
-    if ( ! $this->languages ) {
-      $this->load_languages();
-    }
-    if ( ! $this->languages || ! count( $this->languages ) ) {
-      if ( 'en' === $locale || 'en-us' === $locale ) {
-        return $this->default_lang;
-      }
-      return null;
-    }
-    return $this->languages[ strtolower( $locale ) ];
-  }
-
   public function get_language_by_code( $code ) {
     $code = strtolower( $code );
 

@@ -115,22 +115,25 @@ class API_Helper {
   public function get_language( $id ) {
     global $sitepress;
 
+    $language_helper = new \ES_Feeder\Admin\Helpers\Language_Helper();
+
     if ( $sitepress ) {
       $output           = apply_filters( 'wpml_post_language_details', null, $id );
       $output['locale'] = str_replace( '_', '-', $output['locale'] );
       if ( $output['locale'] ) {
-        return $this->get_language_by_locale( $output['locale'] );
+        return $language_helper->get_language_by_code( $output['locale'] );
       }
     } elseif ( get_post_type( $id ) === 'post' ) {
       $options       = get_option( $this->plugin );
       $use_post_lang = array_key_exists( 'es_post_language', $options ) && $options['es_post_language'] ? 1 : 0;
       $locale        = get_post_meta( $id, '_iip_language', true );
+
       if ( $use_post_lang && $locale ) {
-        return $this->get_language_by_locale( $locale );
+        return $language_helper->get_language_by_code( $locale );
       }
     }
 
-    return $this->get_language_by_locale( strtolower( str_replace( '_', '-', get_locale() ) ) );
+    return $language_helper->get_language_by_code( strtolower( str_replace( '_', '-', get_locale() ) ) );
   }
 
   /**
@@ -170,18 +173,6 @@ class API_Helper {
     return ( 'no' === $value ) ? false : true;
   }
 
-  private function get_language_by_locale( $locale ) {
-    $language_helper = new \ES_Feeder\Admin\Helpers\Language_Helper();
-
-    return $language_helper->get_language_by_code( $locale );
-  }
-
-  public static function get_language_by_meta_field( $id, $meta_field ) {
-    $language_helper = new \ES_Feeder\Admin\Helpers\Language_Helper();
-
-    return $language_helper->get_language_by_meta_field( $id, $meta_field );
-  }
-
   public static function get_related_translated_posts( $id, $post_type ) {
     $language_helper = new \ES_Feeder\Admin\Helpers\Language_Helper();
 
@@ -209,7 +200,6 @@ class API_Helper {
     }
     return $output;
   }
-
 
   /**
    * .
