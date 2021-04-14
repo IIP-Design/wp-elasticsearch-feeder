@@ -1,22 +1,21 @@
-'use strict';
-(function($) {
+(function ($) {
   // sync object contains data related to the current (if any) resync
-  var sync = {
+  let sync = {
     total: 0,
     complete: 0,
     post: null,
     paused: false,
-    results: null
+    results: null,
   };
 
-  var last_heartbeat = null;
-  var last_heartbeat_timer = null;
+  let last_heartbeat = null;
+  let last_heartbeat_timer = null;
 
   /**
    * Register click listener functions, load sync data from the injected variable, and
    * update sync state if a sync was in progress.
    */
-  $(window).load(function() {
+  $(window).load(() => {
     $('#truncate_logs').on('click', truncateLogs);
     $('#es_test_connection').on('click', testConnection);
     $('#es_query_index').on('click', queryIndex);
@@ -29,41 +28,41 @@
     // console.log(es_feeder_sync);
     sync.total = parseInt(es_feeder_sync.total);
     sync.complete = parseInt(es_feeder_sync.complete);
-    sync.paused = es_feeder_sync.paused === "1";
+    sync.paused = es_feeder_sync.paused === '1';
     if (sync.paused) {
       createProgress();
       updateProgress();
     }
 
-    $(document).on('heartbeat-send', function (event, data) {
+    $(document).on('heartbeat-send', (event, data) => {
       data.es_sync_status_counts = 1;
     });
-    $(document).on('heartbeat-tick', function (event, data) {
+    $(document).on('heartbeat-tick', (event, data) => {
       resetHeartbeatTimer();
       if (!data.es_sync_status_counts) return;
-      $('.status-count').each(function (i, status) {
-        var $status = $(status);
-        var id = $status.attr('data-status-id');
-        var newCount = data.es_sync_status_counts[id] || 0;
-        if ($status.html() !== '' + newCount) {
-          $status.fadeOut( 'slow', function () {
-            $status.html( newCount );
+      $('.status-count').each((i, status) => {
+        const $status = $(status);
+        const id = $status.attr('data-status-id');
+        const newCount = data.es_sync_status_counts[id] || 0;
+
+        if ($status.html() !== `${newCount}`) {
+          $status.fadeOut('slow', () => {
+            $status.html(newCount);
             $status.fadeIn('slow');
-          } );
+          });
         }
       });
-    } );
+    });
     resetHeartbeatTimer();
   });
 
   function resetHeartbeatTimer() {
-    if (last_heartbeat_timer)
-      clearInterval(last_heartbeat_timer);
+    if (last_heartbeat_timer) clearInterval(last_heartbeat_timer);
     last_heartbeat = 0;
-    $('#last-heartbeat').html(last_heartbeat + 's ago (usually every 15s)');
-    last_heartbeat_timer = setInterval(function() {
+    $('#last-heartbeat').html(`${last_heartbeat}s ago (usually every 15s)`);
+    last_heartbeat_timer = setInterval(() => {
       last_heartbeat++;
-      $('#last-heartbeat').html(last_heartbeat + 's ago (usually every 15s)');
+      $('#last-heartbeat').html(`${last_heartbeat}s ago (usually every 15s)`);
     }, 1000);
   }
 
@@ -74,17 +73,17 @@
       dataType: 'JSON',
       data: {
         _wpnonce: $('#_wpnonce').val(),
-        action: 'es_truncate_logs'
+        action: 'es_truncate_logs',
       },
-      success: function (result) {
+      success(result) {
         $('#log_text').empty();
         alert('Logs truncated.');
       },
-      error: function (result) {
+      error(result) {
         console.error(result);
         alert('Communication error while truncating logs.');
-      }
-    })
+      },
+    });
   }
 
   /**
@@ -98,56 +97,58 @@
       dataType: 'JSON',
       data: {
         _wpnonce: $('#_wpnonce').val(),
-        action: 'es_reload_log'
+        action: 'es_reload_log',
       },
-      success: function (result) {
+      success(result) {
         $('#log_text').text(result);
       },
-      error: function (result) {
+      error(result) {
         console.error(result);
         alert('Communication error while reloading log.');
-      }
-    })
+      },
+    });
   }
 
   function validateSync() {
-    var unpause = false;
+    let unpause = false;
+
     if (!sync.paused) {
       unpause = true;
       resyncControl();
     }
     clearProgress();
     $('#es_output').text('');
-    var html = '<div class="spinner is-active spinner-animation">';
+    let html = '<div class="spinner is-active spinner-animation">';
+
     html += '<span class="spinner-text">Validating...</span>';
     html += '</div>';
     $('.index-spinner').html(html);
     disableManage();
-    $.ajax( {
+    $.ajax({
       timeout: 120000,
       url: ajaxurl,
       type: 'POST',
       dataType: 'JSON',
       data: {
-        _wpnonce: $( '#_wpnonce' ).val(),
-        action: 'es_validate_sync'
+        _wpnonce: $('#_wpnonce').val(),
+        action: 'es_validate_sync',
       },
-      success: function ( result ) {
+      success(result) {
         clearProgress();
         createProgress();
         $('#es_output').text(JSON.stringify(result, null, 2));
         if (unpause) resyncControl();
         else updateProgress();
       },
-      error: function ( result ) {
-        console.error( result );
+      error(result) {
+        console.error(result);
         clearProgress();
         createProgress();
         $('#es_output').text(JSON.stringify(result, null, 2));
         if (unpause) resyncControl();
         else updateProgress();
-      }
-    } ).always(enableManage);
+      },
+    }).always(enableManage);
   }
 
   /**
@@ -165,15 +166,15 @@
         action: 'es_request',
         data: {
           method: 'GET',
-          url: $('#es_url').val()
-        }
+          url: $('#es_url').val(),
+        },
       },
-      success: function (result) {
+      success(result) {
         $('#es_output').text(JSON.stringify(result, null, 2));
       },
-      error: function (result) {
+      error(result) {
         $('#es_output').text(JSON.stringify(result, null, 2));
-      }
+      },
     }).always(enableManage);
   }
 
@@ -189,43 +190,44 @@
    * Clear out old sync post meta (if any) and initiate a new sync process.
    */
   function resyncStart(errorsOnly) {
-    return function() {
-      var $notice = $('.feeder-notice.notice-error');
+    return function () {
+      const $notice = $('.feeder-notice.notice-error');
+
       if ($notice.length > 0) {
-        $notice.fadeTo( 100, 0, function () {
-          $notice.slideUp( 100, function () {
+        $notice.fadeTo(100, 0, () => {
+          $notice.slideUp(100, () => {
             $notice.remove();
-          } );
-        } );
+          });
+        });
       }
       sync = {
         total: 0,
         complete: 0,
         post: null,
-        paused: false
+        paused: false,
       };
       createProgress();
       updateProgress();
       disableManage();
-      $.ajax( {
+      $.ajax({
         timeout: 120000,
         url: ajaxurl,
         type: 'POST',
         dataType: 'JSON',
         data: {
-          _wpnonce: $( '#_wpnonce' ).val(),
+          _wpnonce: $('#_wpnonce').val(),
           action: 'es_initiate_sync',
-          sync_errors: errorsOnly
+          sync_errors: errorsOnly,
         },
-        success: function ( result ) {
-          handleQueueResult( result );
+        success(result) {
+          handleQueueResult(result);
         },
-        error: function ( result ) {
-          console.error( result );
+        error(result) {
+          console.error(result);
           clearProgress();
-        }
-      } ).always(enableManage);
-    }
+        },
+      }).always(enableManage);
+    };
   }
 
   /**
@@ -258,14 +260,14 @@
       url: ajaxurl,
       data: {
         _wpnonce: $('#_wpnonce').val(),
-        action: 'es_process_next'
+        action: 'es_process_next',
       },
-      success: function (result) {
+      success(result) {
         handleQueueResult(result);
       },
-      error: function (result) {
+      error(result) {
         console.error(result);
-      }
+      },
     });
   }
 
@@ -276,11 +278,10 @@
    * @param result
    */
   function handleQueueResult(result) {
-    console.log( result );
+    console.log(result);
     if (result.error || result.done) {
       clearProgress();
-      if ( result.error && result.message )
-        $('#es_output').html(result.message);
+      if (result.error && result.message) $('#es_output').html(result.message);
       reloadLog();
     } else {
       sync.complete = result.complete;
@@ -299,21 +300,29 @@
       processQueue();
     }
     if (result.results)
-      $( '#es_output' ).html( (result.results.length > 0 ? JSON.stringify( result.results, null, 2 ) : 'No errors.') );
-    else if (result.response)
-      $('#es_output').prepend(JSON.stringify(result, null, 2) + "\r\n\r\n");
+      $('#es_output').html(
+        result.results.length > 0 ? JSON.stringify(result.results, null, 2) : 'No errors.'
+      );
+    else if (result.response) $('#es_output').prepend(`${JSON.stringify(result, null, 2)}\r\n\r\n`);
   }
 
   /**
    * Add relevant markup for the progress bar and state UI/UX.
    */
   function createProgress() {
-    var html = '<div class="spinner is-active spinner-animation">';
-    html += '<span class="spinner-text">' + (sync.paused ? 'Paused.' : 'Processing... Leaving this page will pause the resync.') + '</span> <span class="count"></span> <span class="current-post"></span>';
+    let html = '<div class="spinner is-active spinner-animation">';
+
+    html += `<span class="spinner-text">${
+      sync.paused ? 'Paused.' : 'Processing... Leaving this page will pause the resync.'
+    }</span> <span class="count"></span> <span class="current-post"></span>`;
     html += '</div>';
     $('.index-spinner').html(html);
-    $('.progress-wrapper').html('<div id="progress-bar" ' + (sync.paused ? 'class="paused"' : '') + '><span></span></div>');
-    $('#es_resync_control').html(sync.paused ? 'Resume Sync' : 'Pause Sync').show();
+    $('.progress-wrapper').html(
+      `<div id="progress-bar" ${sync.paused ? 'class="paused"' : ''}><span></span></div>`
+    );
+    $('#es_resync_control')
+      .html(sync.paused ? 'Resume Sync' : 'Pause Sync')
+      .show();
     $('#es_output').empty();
   }
 
@@ -321,9 +330,15 @@
    * Update the pgoress bar and state UI using the local sync variable.
    */
   function updateProgress() {
-    $('.index-spinner .count').html(sync.complete + ' / ' + sync.total);
-    $('#progress-bar span').animate({'width': (sync.complete / sync.total * 100) + '%'});
-    $('.current-post').html((sync.post ? 'Indexing post: ' + (sync.post.title ? sync.post.title : sync.post.type + ' post #' + sync.post.post_id) : ''));
+    $('.index-spinner .count').html(`${sync.complete} / ${sync.total}`);
+    $('#progress-bar span').animate({ width: `${(sync.complete / sync.total) * 100}%` });
+    $('.current-post').html(
+      sync.post
+        ? `Indexing post: ${
+            sync.post.title ? sync.post.title : `${sync.post.type} post #${sync.post.post_id}`
+          }`
+        : ''
+    );
   }
 
   /**

@@ -446,7 +446,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
         $wpdb->query( $query );
         delete_option( $this->plugin_name . '_syncable_posts' );
         foreach ( $post_ids as $post_id ) {
-          update_post_meta( $post_id, '_cdp_last_sync', date( 'Y-m-d H:i:s' ) );
+          update_post_meta( $post_id, '_cdp_last_sync', gmdate( 'Y-m-d H:i:s' ) );
           $post = get_post( $post_id );
           $resp = $this->addOrUpdate( $post, false, true, false );
           $wpdb->update( $wpdb->posts, array( 'post_status' => 'publish' ), array( 'ID' => $post_id ) );
@@ -458,7 +458,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
               'error'   => true,
             );
             update_post_meta( $post_id, '_cdp_sync_status', $statuses['ERROR'] );
-          } elseif ( ! is_object( $resp ) || $resp->message !== 'Sync in progress.' ) {
+          } elseif ( ! is_object( $resp ) || 'Sync in progress.' !== $resp->message ) {
             $results[] = array(
               'title'    => $post->post_title,
               'post_id'  => $post->ID,
@@ -546,7 +546,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
         return;
       }
 
-      if ( $post->post_status !== 'publish' ) {
+      if ( 'publish' !== $post->post_status ) {
         return;
       }
 
@@ -556,7 +556,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
 
     public function post_sync_send( $post, $print = true ) {
       // we only care about modifying published posts
-      if ( $post->post_status === 'publish' ) {
+      if ( 'publish' === $post->post_status ) {
         if ( array_key_exists( 'index_post_to_cdp_option', $_POST ) ) {
           // check to see if post should be indexed or removed from index
           $shouldIndex = $_POST['index_post_to_cdp_option'];
@@ -566,7 +566,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
 
         if ( isset( $shouldIndex ) && $shouldIndex ) {
           // default to indexing - post has to be specifically set to 'no'
-          if ( $shouldIndex === 'no' ) {
+          if ( 'no' === $shouldIndex ) {
             $this->delete( $post );
           } else {
             $this->addOrUpdate( $post, $print );
@@ -599,11 +599,11 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       $settings  = get_option( $this->plugin_name );
       $post_type = $post->post_type;
 
-      if ( $post == null || ! array_key_exists( 'es_post_types', $settings ) || ! array_key_exists( $post_type, $settings['es_post_types'] ) || ! $settings['es_post_types'][ $post_type ] ) {
+      if ( null === $post || ! array_key_exists( 'es_post_types', $settings ) || ! array_key_exists( $post_type, $settings['es_post_types'] ) || ! $settings['es_post_types'][ $post_type ] ) {
         return;
       }
 
-      // get associated post IDs
+      // Get associated post IDs.
       $query = "SELECT trid, element_type FROM {$wpdb->prefix}icl_translations WHERE element_id = $post->ID";
       $vars  = $wpdb->get_row( $query );
       if ( ! $vars || ! $vars->trid || ! $vars->element_type ) {
@@ -674,7 +674,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
      * @param $id
      */
     public function delete_post( $new_status, $old_status, $id ) {
-      if ( $old_status === $new_status || $old_status !== 'publish' ) {
+      if ( $old_status === $new_status || 'publish' !== $old_status ) {
         return;
       }
       if ( is_object( $id ) ) {
@@ -686,7 +686,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       $settings  = get_option( $this->plugin_name );
       $post_type = $post->post_type;
 
-      if ( $post == null || ! array_key_exists( 'es_post_types', $settings ) || ! array_key_exists( $post_type, $settings['es_post_types'] ) || ! $settings['es_post_types'][ $post_type ] ) {
+      if ( null === $post || ! array_key_exists( 'es_post_types', $settings ) || ! array_key_exists( $post_type, $settings['es_post_types'] ) || ! $settings['es_post_types'][ $post_type ] ) {
         return;
       }
 
@@ -730,7 +730,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
         return $api_response;
       }
 
-      // create callback for this post
+      // Create callback for this post.
       $callback = $this->create_callback( $post->ID );
 
       $options = array(
@@ -827,9 +827,9 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
 
       $client = new GuzzleHttp\Client( $opts );
       try {
-        // if a body is provided
+        // If a body is provided.
         if ( isset( $request['body'] ) ) {
-          // unwrap the post data from ajax call
+          // Unwrap the post data from ajax call.
           if ( ! $is_internal ) {
             $body = urldecode( base64_decode( $request['body'] ) );
           } else {
@@ -922,7 +922,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
     }
 
     private function is_domain_mapped( $body ) {
-      // check if domain is mapped
+      // Check if domain is mapped.
       $opt      = get_option( $this->plugin_name );
       $protocol = is_ssl() ? 'https://' : 'http://';
       $opt_url  = $opt['es_wpdomain'];
@@ -983,7 +983,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
         return $es_wpdomain . '/wp-json/' . $this->namespace . '/callback/noop';
       }
 
-      // create callback for this post
+      // Create callback for this post.
       global $wpdb;
       do {
         $uid   = uniqid();
@@ -1000,7 +1000,8 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       }
       update_post_meta( $post_id, '_cdp_sync_uid', $uid );
       update_post_meta( $post_id, '_cdp_sync_status', $statuses['SYNCING'] );
-      update_post_meta( $post_id, '_cdp_last_sync', date( 'Y-m-d H:i:s' ) );
+      update_post_meta( $post_id, '_cdp_last_sync', gmdate( 'Y-m-d H:i:s' ) );
+
       return $callback;
     }
 
@@ -1032,13 +1033,15 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
     public function get_site() {
       $opt  = get_option( $this->plugin );
       $url  = $opt['es_wpdomain'];
-      $args = parse_url( $url );
+      $args = wp_parse_url( $url );
       $host = $url;
+
       if ( array_key_exists( 'host', $args ) ) {
         $host = $args['host'];
       } else {
         $host = str_ireplace( 'https://', '', str_ireplace( 'http://', '', $host ) );
       }
+
       return $host;
     }
 
