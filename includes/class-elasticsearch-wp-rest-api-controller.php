@@ -10,8 +10,10 @@ if ( ! class_exists( 'WP_ES_FEEDER_REST_Controller' ) ) {
     public $type;
 
     public function __construct( $post_type ) {
+      $api_helper = new ES_Feeder\Admin\Helpers\API_Helper( $this->plugin );
+
       $this->plugin   = 'wp-es-feeder';
-      $this->resource = ES_API_HELPER::get_post_type_label( $post_type, 'name' );
+      $this->resource = $api_helper->get_post_type_label( $post_type, 'name' );
       $this->type     = $post_type;
     }
 
@@ -32,58 +34,58 @@ if ( ! class_exists( 'WP_ES_FEEDER_REST_Controller' ) ) {
     public function register_routes() {
       register_rest_route(
         $this->namespace,
-          '/' . rawurlencode( $this->resource ),
-          array(
+        '/' . rawurlencode( $this->resource ),
         array(
-          'methods'             => WP_REST_Server::READABLE,
-          'callback'            => array(
-            $this,
-            'get_items',
-          ),
-          'args'                => array(
-            'per_page' => array(
-              'validate_callback' => function ( $param, $request, $key ) {
-                return is_numeric( $param );
-              },
+          array(
+            'methods'             => WP_REST_Server::READABLE,
+            'callback'            => array(
+              $this,
+              'get_items',
             ),
-            'page'     => array(
-              'validate_callback' => function ( $param, $request, $key ) {
-                return is_numeric( $param );
-              },
+            'args'                => array(
+              'per_page' => array(
+                'validate_callback' => function ( $param, $request, $key ) {
+                  return is_numeric( $param );
+                },
+              ),
+              'page'     => array(
+                'validate_callback' => function ( $param, $request, $key ) {
+                  return is_numeric( $param );
+                },
+              ),
+            ),
+            'permission_callback' => array(
+              $this,
+              'get_items_permissions_check',
             ),
           ),
-          'permission_callback' => array(
-            $this,
-            'get_items_permissions_check',
-          ),
-		),
-		  )
-          );
+        )
+      );
 
       register_rest_route(
         $this->namespace,
-          '/' . rawurlencode( $this->resource ) . '/(?P<id>[\d]+)',
-          array(
+        '/' . rawurlencode( $this->resource ) . '/(?P<id>[\d]+)',
         array(
-          'methods'             => WP_REST_Server::READABLE,
-          'callback'            => array(
-            $this,
-            'get_item',
-          ),
-          'args'                => array(
-            'id' => array(
-              'validate_callback' => function ( $param, $request, $key ) {
-                return is_numeric( $param );
-              },
+          array(
+            'methods'             => WP_REST_Server::READABLE,
+            'callback'            => array(
+              $this,
+              'get_item',
+            ),
+            'args'                => array(
+              'id' => array(
+                'validate_callback' => function ( $param, $request, $key ) {
+                  return is_numeric( $param );
+                },
+              ),
+            ),
+            'permission_callback' => array(
+              $this,
+              'get_item_permissions_check',
             ),
           ),
-          'permission_callback' => array(
-            $this,
-            'get_item_permissions_check',
-          ),
-		),
-		  )
-          );
+        )
+      );
     }
 
     public function get_items( $request ) {
@@ -98,7 +100,7 @@ if ( ! class_exists( 'WP_ES_FEEDER_REST_Controller' ) ) {
       }
 
       if ( is_numeric( $page ) ) {
-        if ( $page == 1 ) {
+        if ( 1 === $page ) {
           $args['offset'] = 0;
         } elseif ( $page > 1 ) {
           $args['offset'] = ( $page * $args['posts_per_page'] ) - $args['posts_per_page'];
@@ -322,28 +324,28 @@ class WP_ES_FEEDER_Callback_Controller {
   public function register_routes() {
     register_rest_route(
       $this->namespace,
-        '/callback/(?P<uid>[0-9a-zA-Z]+)',
-        array(
+      '/callback/(?P<uid>[0-9a-zA-Z]+)',
       array(
-        'methods'             => WP_REST_Server::ALLMETHODS,
-        'callback'            => array(
-          $this,
-          'processResponse',
-        ),
-        'args'                => array(
-          'uid' => array(
-            'validate_callback' => function ( $param, $request, $key ) {
-              return true;
-            },
+        array(
+          'methods'             => WP_REST_Server::ALLMETHODS,
+          'callback'            => array(
+            $this,
+            'processResponse',
+          ),
+          'args'                => array(
+            'uid' => array(
+              'validate_callback' => function ( $param, $request, $key ) {
+                return true;
+              },
+            ),
+          ),
+          'permission_callback' => array(
+            $this,
+            'get_items_permissions_check',
           ),
         ),
-        'permission_callback' => array(
-          $this,
-          'get_items_permissions_check',
-        ),
-	  ),
-		)
-        );
+      )
+    );
   }
 
   /**
@@ -405,7 +407,7 @@ class WP_ES_FEEDER_Callback_Controller {
       } elseif ( stripos( $data['message'], 'Document not found' ) === 0 ) {
         $post_status = $wpdb->get_var( "SELECT post_status FROM $wpdb->posts WHERE ID = $post_id" );
         $index_cdp   = get_post_meta( $post_id, '_iip_index_post_to_cdp_option', true ) ?: 'yes';
-        if ( $post_status === 'publish' && $index_cdp !== 'no' ) {
+        if ( 'publish' === $post_status && 'no' !== $index_cdp ) {
           $resyncs = get_post_meta( $post_id, '_cdp_resync_count', true ) ?: 0;
           update_post_meta( $post_id, '_cdp_sync_status', $statuses['RESYNC'] );
           if ( $resyncs < 3 ) {
@@ -502,10 +504,10 @@ function register_post_types( $type ) {
 
 function register_elasticsearch_rest_routes() {
   $post_types = get_post_types(
-       array(
-    'public' => true,
-	   )
-      );
+    array(
+      'public' => true,
+    )
+  );
 
   if ( is_array( $post_types ) && count( $post_types ) > 0 ) {
     foreach ( $post_types as $type ) {
@@ -519,5 +521,5 @@ function register_elasticsearch_rest_routes() {
 
 add_action( 'rest_api_init', 'register_elasticsearch_rest_routes' );
 
-// Add cdp-rest support for the base post type
+// Add cdp-rest support for the base post type.
 add_post_type_support( 'post', 'cdp-rest' );

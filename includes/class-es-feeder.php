@@ -110,7 +110,6 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       require_once ES_FEEDER_DIR . 'admin/class-settings.php';
 
       // The classes responsible for defining all actions that define the API.
-      require_once ES_FEEDER_DIR . 'includes/class-es-api-helpers.php';
       require_once ES_FEEDER_DIR . 'includes/class-elasticsearch-wp-rest-api-controller.php';
 
       $this->loader = new ES_Feeder\Loader();
@@ -704,6 +703,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
     }
 
     public function addOrUpdate( $post, $print = true, $callback_errors_only = false, $check_syncable = true ) {
+      $api_helper  = new \ES_Feeder\Admin\Helpers\API_Helper( $this->plugin );
       $sync_helper = new \ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
       $statuses    = $sync_helper->statuses;
 
@@ -718,10 +718,10 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
         return $response;
       }
 
-      // plural form of post type
-      $post_type_name = ES_API_HELPER::get_post_type_label( $post->post_type, 'name' );
+      // Plural form of post type.
+      $post_type_name = $api_helper->get_post_type_label( $post->post_type, 'name' );
 
-      // api endpoint for wp-json
+      // API endpoint for wp-json.
       $wp_api_url   = '/' . $this->namespace . '/' . rawurlencode( $post_type_name ) . '/' . $post->ID;
       $request      = new WP_REST_Request( 'GET', $wp_api_url );
       $api_response = rest_do_request( $request );

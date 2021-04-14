@@ -30,9 +30,11 @@ class API_Helper {
 
   public function get_post_type_label( $post_type = 'post', $display = 'name' ) {
     $obj = get_post_type_object( $post_type );
+
     if ( is_object( $obj ) ) {
       $labels = $obj->labels;
     }
+
     return strtolower( isset( $labels ) ? $labels->$display : $post_type );
   }
 
