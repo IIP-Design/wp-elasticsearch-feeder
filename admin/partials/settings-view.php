@@ -12,6 +12,7 @@
   global $wpdb, $feeder;
 
   $api_helper  = new ES_Feeder\Admin\Helpers\API_Helper( $this->plugin );
+  $log_helper  = new ES_Feeder\Admin\Helpers\Log_Helper();
   $sync_helper = new ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
 ?>
 
@@ -57,8 +58,8 @@
       }
     }
 
-    $pathname = $feeder->plugin_dir . 'callback.log';
-    $log      = $feeder->tail( $pathname, 100 );
+    $pathname = ES_FEEDER_DIR . 'callback.log';
+    $log      = $log_helper->tail( $pathname, 100 );
 
     settings_fields( $this->plugin );
     ?>

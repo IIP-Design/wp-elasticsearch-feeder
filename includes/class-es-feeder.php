@@ -123,6 +123,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
     private function define_admin_hooks() {
       $admin    = new ES_Feeder\Admin( $this->get_plugin_name(), $this->get_version() );
       $ajax     = new ES_Feeder\Ajax( $this->get_plugin_name(), $this->get_version() );
+      $logging  = new ES_Feeder\Admin\Helpers\Log_Helper();
       $settings = new ES_Feeder\Settings( $this->get_plugin_name(), $this->get_version() );
 
       $this->loader->add_action( 'init', $admin, 'register_admin_scripts_styles' );
@@ -160,11 +161,14 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       add_action( 'wp_ajax_es_request', array( $this, 'es_request' ) );
       add_action( 'wp_ajax_es_initiate_sync', array( $this, 'es_initiate_sync' ) );
       add_action( 'wp_ajax_es_process_next', array( $this, 'es_process_next' ) );
-      add_action( 'wp_ajax_es_truncate_logs', array( $this, 'truncate_logs' ) );
       add_action( 'wp_ajax_es_validate_sync', array( $this, 'validate_sync' ) );
-      add_action( 'wp_ajax_es_reload_log', array( $this, 'reload_log' ) );
 
+      // Ajax hooks.
       $this->loader->add_filter( 'heartbeat_received', $ajax, 'heartbeat', 10, 2 );
+
+      // Logging hooks.
+      $this->loader->add_action( 'wp_ajax_es_reload_log', $logging, 'reload_log' );
+      $this->loader->add_action( 'wp_ajax_es_truncate_logs', $logging, 'truncate_logs' );
     }
 
     /**
@@ -212,22 +216,6 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
      */
     public function get_proxy_server() {
       return $this->proxy;
-    }
-
-    public function truncate_logs() {
-      $path = ES_FEEDER_DIR . '*.log';
-      foreach ( glob( $path ) as $log ) {
-        file_put_contents( $log, '' );
-      }
-      echo 1;
-      exit;
-    }
-
-    public function reload_log() {
-      $path = ES_FEEDER_DIR . 'callback.log';
-      $log  = $this->tail( $path, 100 );
-      echo json_encode( $log );
-      exit;
     }
 
     public function validate_sync() {
@@ -595,6 +583,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
     public function translate_post( $id ) {
       global $wpdb;
       $language_helper = new \ES_Feeder\Admin\Helpers\Language_Helper();
+      $log_helper      = new ES_Feeder\Admin\Helpers\Log_Helper();
       $sync_helper     = new \ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
       $statuses        = $sync_helper->statuses;
 
@@ -622,8 +611,9 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       }
       $query    = "SELECT element_id FROM {$wpdb->prefix}icl_translations WHERE trid = $vars->trid AND element_type = '$vars->element_type' AND element_id != $post->ID";
       $post_ids = $wpdb->get_col( $query );
+
       if ( self::LOG_ALL ) {
-        $this->log( 'Found ' . count( $post_ids ) . " translations for: $post->ID", 'feeder.log' );
+        $log_helper->log( 'Found ' . count( $post_ids ) . " translations for: $post->ID", 'feeder.log' );
       }
 
       foreach ( $post_ids as $post_id ) {
@@ -652,13 +642,14 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
         $callback     = $this->create_callback( $post_id );
 
         if ( self::LOG_ALL ) {
-            $this->log( "Sending off translations for: $post_id", 'feeder.log' );
+          $log_helper->log( "Sending off translations for: $post_id", 'feeder.log' );
         }
 
         $response = $this->es_request( $options, $callback, false );
         if ( self::LOG_ALL && $response ) {
-          $this->log( "IMMEDIATE RESPONSE (PUT):\r\n" . print_r( $response, 1 ), 'callback.log' );
+          $log_helper->log( "IMMEDIATE RESPONSE (PUT):\r\n" . print_r( $response, 1 ), 'callback.log' );
         }
+
         if ( ! $response ) {
           error_log( print_r( $this->error . 'translate_post() request failed', true ) );
           update_post_meta( $post_id, '_cdp_sync_status', $statuses['ERROR'] );
@@ -666,8 +657,9 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
         } elseif ( isset( $response->error ) && $response->error ) {
           update_post_meta( $post_id, '_cdp_sync_status', $statuses['ERROR'] );
           delete_post_meta( $post_id, '_cdp_sync_uid' );
+
           if ( ! self::LOG_ALL && $response ) {
-            $this->log( "IMMEDIATE RESPONSE (PUT):\r\n" . print_r( $response, 1 ), 'callback.log' );
+            $log_helper->log( "IMMEDIATE RESPONSE (PUT):\r\n" . print_r( $response, 1 ), 'callback.log' );
           }
         }
       }
@@ -704,6 +696,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
 
     public function addOrUpdate( $post, $print = true, $callback_errors_only = false, $check_syncable = true ) {
       $api_helper  = new \ES_Feeder\Admin\Helpers\API_Helper( $this->plugin );
+      $log_helper  = new ES_Feeder\Admin\Helpers\Log_Helper();
       $sync_helper = new \ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
       $statuses    = $sync_helper->statuses;
 
@@ -748,9 +741,11 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       );
 
       $response = $this->es_request( $options, $callback, $callback_errors_only );
+
       if ( self::LOG_ALL ) {
-        $this->log( "IMMEDIATE RESPONSE:\r\n" . print_r( $response, 1 ), 'callback.log' );
+        $log_helper->log( "IMMEDIATE RESPONSE:\r\n" . print_r( $response, 1 ), 'callback.log' );
       }
+
       if ( ! $response ) {
         error_log( print_r( $this->error . 'addOrUpdate()[add] request failed', true ) );
         update_post_meta( $post->ID, '_cdp_sync_status', $statuses['ERROR'] );
@@ -758,8 +753,9 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       } elseif ( isset( $response->error ) && $response->error ) {
         update_post_meta( $post->ID, '_cdp_sync_status', $statuses['ERROR'] );
         delete_post_meta( $post->ID, '_cdp_sync_uid' );
+
         if ( ! self::LOG_ALL && $response ) {
-          $this->log( "IMMEDIATE RESPONSE:\r\n" . print_r( $response, 1 ), 'callback.log' );
+          $log_helper->log( "IMMEDIATE RESPONSE:\r\n" . print_r( $response, 1 ), 'callback.log' );
         }
       }
 
@@ -798,6 +794,8 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
     }
 
     public function es_request( $request, $callback = null, $callback_errors_only = false ) {
+      $log_helper = new ES_Feeder\Admin\Helpers\Log_Helper();
+
       $is_internal = false;
       $error       = false;
       $results     = null;
@@ -864,10 +862,10 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       }
 
       if ( self::LOG_ALL && ! in_array( $request['url'], array( 'owner', 'language', 'taxonomy' ) ) ) {
-        $this->log( 'Sending ' . $request['method'] . ' request to: ' . $request['url'] . ( array_key_exists( 'body', $request ) && array_key_exists( 'post_id', $request['body'] ) ? ', post_id : ' . $request['body']['post_id'] : '' ), 'feeder.log' );
-        $this->log( "\n\nREQUEST: " . print_r( $request, 1 ), 'es_request.log' );
-        $this->log( 'RESULTS: ' . print_r( $results, 1 ), 'es_request.log' );
-        $this->log( 'ERROR: ' . print_r( $error, 1 ), 'es_request.log' );
+        $log_helper->log( 'Sending ' . $request['method'] . ' request to: ' . $request['url'] . ( array_key_exists( 'body', $request ) && array_key_exists( 'post_id', $request['body'] ) ? ', post_id : ' . $request['body']['post_id'] : '' ), 'feeder.log' );
+        $log_helper->log( "\n\nREQUEST: " . print_r( $request, 1 ), 'es_request.log' );
+        $log_helper->log( 'RESULTS: ' . print_r( $results, 1 ), 'es_request.log' );
+        $log_helper->log( 'ERROR: ' . print_r( $error, 1 ), 'es_request.log' );
       }
 
       if ( $error ) {
@@ -904,6 +902,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
     public function is_syncable( $post_id ) {
       global $wpdb;
 
+      $log_helper  = new ES_Feeder\Admin\Helpers\Log_Helper();
       $sync_helper = new \ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
       $statuses    = $sync_helper->statuses;
 
@@ -915,7 +914,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       $rows  = $wpdb->query( $query );
       if ( $rows ) {
         if ( self::LOG_ALL ) {
-            $this->log( "Post not syncable so status updated to SYNC_WHILE_SYNCING: $post_id, sync_uid:" . get_post_meta( $post_id, '_cdp_sync_uid', true ) ?: 'none', 'feeder.log' );
+            $log_helper->log( "Post not syncable so status updated to SYNC_WHILE_SYNCING: $post_id, sync_uid:" . get_post_meta( $post_id, '_cdp_sync_uid', true ) ?: 'none', 'feeder.log' );
         }
         return false;
       }
@@ -971,6 +970,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
     }
 
     private function create_callback( $post_id = null ) {
+      $log_helper  = new ES_Feeder\Admin\Helpers\Log_Helper();
       $sync_helper = new \ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
       $statuses    = $sync_helper->statuses;
 
@@ -996,7 +996,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       }
       $callback = $es_wpdomain . '/wp-json/' . $this->namespace . '/callback/' . $uid;
       if ( self::LOG_ALL ) {
-        $this->log( "Created callback for: $post_id with UID: $uid", 'feeder.log' );
+        $log_helper->log( "Created callback for: $post_id with UID: $uid", 'feeder.log' );
       }
       update_post_meta( $post_id, '_cdp_sync_uid', $uid );
       update_post_meta( $post_id, '_cdp_sync_status', $statuses['SYNCING'] );
@@ -1019,6 +1019,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       $url  = $opt['es_wpdomain'];
       $args = parse_url( $url );
       $host = $url;
+
       if ( array_key_exists( 'host', $args ) ) {
         $host = $args['host'];
       } else {
@@ -1050,75 +1051,12 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
      */
     public function get_post_type_label( $post_type ) {
       $obj = get_post_type_object( $post_type );
+
       if ( ! $obj ) {
         return $post_type;
       }
+
       return $obj->labels->singular_name;
-    }
-
-    public function log( $str, $file = 'feeder.log' ) {
-      $path = ES_FEEDER_DIR . $file;
-      file_put_contents( $path, date( '[m/d/y H:i:s] ' ) . trim( print_r( $str, 1 ) ) . "\r\n\r\n", FILE_APPEND );
-    }
-
-    /**
-     * Slightly modified version of http://www.geekality.net/2011/05/28/php-tail-tackling-large-files/
-     *
-     * @author Torleif Berger, Lorenzo Stanco
-     * @link http://stackoverflow.com/a/15025877/995958
-     * @license http://creativecommons.org/licenses/by/3.0/
-     *
-     * @param $filepath
-     * @param $lines
-     * @param $adaptive
-     * @return string
-     */
-    public function tail( $filepath, $lines = 1, $adaptive = true ) {
-      // Open file
-      $f = @fopen( $filepath, 'rb' );
-      if ( $f === false ) {
-        return '';
-      }
-      // Sets buffer size, according to the number of lines to retrieve.
-      // This gives a performance boost when reading a few lines from the file.
-      if ( ! $adaptive ) {
-        $buffer = 4096;
-      } else {
-        $buffer = ( $lines < 2 ? 64 : ( $lines < 10 ? 512 : 4096 ) );
-      }
-      // Jump to last character
-      fseek( $f, -1, SEEK_END );
-      // Read it and adjust line number if necessary
-      // (Otherwise the result would be wrong if file doesn't end with a blank line)
-      if ( fread( $f, 1 ) != "\n" ) {
-        $lines -= 1;
-      }
-
-      // Start reading
-      $output = '';
-      $chunk  = '';
-      // While we would like more
-      while ( ftell( $f ) > 0 && $lines >= 0 ) {
-        // Figure out how far back we should jump
-        $seek = min( ftell( $f ), $buffer );
-        // Do the jump (backwards, relative to where we are)
-        fseek( $f, -$seek, SEEK_CUR );
-        // Read a chunk and prepend it to our output
-        $output = ( $chunk = fread( $f, $seek ) ) . $output;
-        // Jump back to where we started reading
-        fseek( $f, -mb_strlen( $chunk, '8bit' ), SEEK_CUR );
-        // Decrease our line counter
-        $lines -= substr_count( $chunk, "\n" );
-      }
-      // While we have too many lines
-      // (Because of buffer size we might have read too many)
-      while ( $lines++ < 0 ) {
-        // Find first newline and remove all text before that
-        $output = substr( $output, strpos( $output, "\n" ) + 1 );
-      }
-      // Close file and return
-      fclose( $f );
-      return trim( $output );
     }
   }
 }

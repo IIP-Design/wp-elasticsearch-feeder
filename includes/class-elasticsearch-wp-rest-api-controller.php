@@ -354,6 +354,8 @@ class WP_ES_FEEDER_Callback_Controller {
    */
   public function processResponse( $request ) {
     global $wpdb, $feeder;
+
+    $logger      = new ES_Feeder\Admin\Helpers\Log_Helper();
     $sync_helper = new \ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
     $statuses    = $sync_helper->statuses;
 
@@ -377,21 +379,21 @@ class WP_ES_FEEDER_Callback_Controller {
     $sync_status = get_post_meta( $post_id, '_cdp_sync_status', true );
 
     if ( ES_FEEDER::LOG_ALL ) {
-      $feeder->log( "INCOMING CALLBACK FOR UID: $uid, post_id: $post_id, sync_status: $sync_status\r\n" . print_r( $data, 1 ) . "\r\n", 'callback.log' );
-      $feeder->log( "Callback received with sync_status: $sync_status for: $post_id, uid: $uid", 'feeder.log' );
+      $logger->log( "INCOMING CALLBACK FOR UID: $uid, post_id: $post_id, sync_status: $sync_status\r\n" . print_r( $data, 1 ) . "\r\n", 'callback.log' );
+      $logger->log( "Callback received with sync_status: $sync_status for: $post_id, uid: $uid", 'feeder.log' );
     }
 
     if ( $post_id == $wpdb->get_var( "SELECT post_id FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_uid' AND meta_value = '" . $wpdb->_real_escape( $uid ) . "'" ) ) {
       if ( ! $data['error'] ) {
         if ( ES_FEEDER::LOG_ALL ) {
-          $feeder->log( "No error found for $post_id, sync_uid: $uid", 'feeder.log' );
+          $logger->log( "No error found for $post_id, sync_uid: $uid", 'feeder.log' );
         }
         if ( $statuses['SYNC_WHILE_SYNCING'] === $sync_status ) {
           $resyncs = get_post_meta( $post_id, '_cdp_resync_count', true ) ?: 0;
           update_post_meta( $post_id, '_cdp_sync_status', $statuses['RESYNC'] );
           if ( $resyncs < 3 ) {
             $resyncs++;
-            $feeder->log( "Resyncing post: $post_id, resync #$resyncs", 'callback.log' );
+            $logger->log( "Resyncing post: $post_id, resync #$resyncs", 'callback.log' );
             update_post_meta( $post_id, '_cdp_resync_count', $resyncs );
             $post = get_post( $post_id );
             if ( $post->post_status === 'publish' ) {
@@ -412,7 +414,7 @@ class WP_ES_FEEDER_Callback_Controller {
           update_post_meta( $post_id, '_cdp_sync_status', $statuses['RESYNC'] );
           if ( $resyncs < 3 ) {
             $resyncs++;
-            $feeder->log( "Resyncing post: $post_id, resync #$resyncs", 'callback.log' );
+            $logger->log( "Resyncing post: $post_id, resync #$resyncs", 'callback.log' );
             update_post_meta( $post_id, '_cdp_resync_count', $resyncs );
             $post = get_post( $post_id );
             $feeder->post_sync_send( $post, false );
@@ -446,7 +448,7 @@ class WP_ES_FEEDER_Callback_Controller {
           );
           $log = array_merge( $log, $data );
         }
-        $feeder->log( $log, 'callback.log' );
+        $logger->log( $log, 'callback.log' );
         update_post_meta( $post_id, '_cdp_sync_status', $statuses['ERROR'] );
         delete_post_meta( $post_id, '_cdp_resync_count' );
       }
@@ -460,10 +462,10 @@ class WP_ES_FEEDER_Callback_Controller {
       );
 
       if ( ES_FEEDER::LOG_ALL ) {
-        $feeder->log( "Sync UID ($uid) deleted for: $post_id", 'feeder.log' );
+        $logger->log( "Sync UID ($uid) deleted for: $post_id", 'feeder.log' );
       }
     } else {
-      $feeder->log( "UID ($uid) did not match post_id: $post_id\r\n\r\n", 'callback.log' );
+      $logger->log( "UID ($uid) did not match post_id: $post_id\r\n\r\n", 'callback.log' );
     }
 
     return array( 'status' => 'ok' );
