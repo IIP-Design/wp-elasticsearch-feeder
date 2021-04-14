@@ -1,8 +1,19 @@
 <?php
+/**
+ * Registers the Owner_Helper class.
+ *
+ * @package ES_Feeder\Admin\Helpers\Owner_Helper
+ * @since 3.0.0
+ */
 
-global $cdp_owner_helper;
-$cdp_owner_helper = new Owner_Helper();
+namespace ES_Feeder\Admin\Helpers;
 
+/**
+ * Registers owner helper functions.
+ *
+ * @package ES_Feeder\Admin\Helpers\Owner_Helper
+ * @since 3.0.0
+ */
 class Owner_Helper {
 
   public $owners;

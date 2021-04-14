@@ -112,23 +112,25 @@ class API_Helper {
     return $meta;
   }
 
-  public static function get_language( $id ) {
-    global $feeder, $sitepress;
+  public function get_language( $id ) {
+    global $sitepress;
+
     if ( $sitepress ) {
       $output           = apply_filters( 'wpml_post_language_details', null, $id );
       $output['locale'] = str_replace( '_', '-', $output['locale'] );
       if ( $output['locale'] ) {
-        return self::get_language_by_locale( $output['locale'] );
+        return $this->get_language_by_locale( $output['locale'] );
       }
     } elseif ( get_post_type( $id ) === 'post' ) {
-      $options       = get_option( $feeder->get_plugin_name() );
+      $options       = get_option( $this->plugin );
       $use_post_lang = array_key_exists( 'es_post_language', $options ) && $options['es_post_language'] ? 1 : 0;
       $locale        = get_post_meta( $id, '_iip_language', true );
       if ( $use_post_lang && $locale ) {
-        return self::get_language_by_locale( $locale );
+        return $this->get_language_by_locale( $locale );
       }
     }
-    return self::get_language_by_locale( strtolower( str_replace( '_', '-', get_locale() ) ) );
+
+    return $this->get_language_by_locale( strtolower( str_replace( '_', '-', get_locale() ) ) );
   }
 
   /**
@@ -168,19 +170,22 @@ class API_Helper {
     return ( 'no' === $value ) ? false : true;
   }
 
-  public static function get_language_by_locale( $locale ) {
-    global $cdp_language_helper;
-    return $cdp_language_helper->get_language_by_code( $locale );
+  private function get_language_by_locale( $locale ) {
+    $language_helper = new \ES_Feeder\Admin\Helpers\Language_Helper();
+
+    return $language_helper->get_language_by_code( $locale );
   }
 
   public static function get_language_by_meta_field( $id, $meta_field ) {
-    global $cdp_language_helper;
-    return $cdp_language_helper->get_language_by_meta_field( $id, $meta_field );
+    $language_helper = new \ES_Feeder\Admin\Helpers\Language_Helper();
+
+    return $language_helper->get_language_by_meta_field( $id, $meta_field );
   }
 
   public static function get_related_translated_posts( $id, $post_type ) {
-    global $cdp_language_helper;
-    return $cdp_language_helper->get_translations( $id );
+    $language_helper = new \ES_Feeder\Admin\Helpers\Language_Helper();
+
+    return $language_helper->get_translations( $id );
   }
 
   public static function get_categories( $id ) {
@@ -298,7 +303,15 @@ class API_Helper {
     return $output;
   }
 
-  public static function get_tags_searchable( $id ) {
+  /**
+   * Retrieve the slug for each of the post's tags.
+   *
+   * @param int $id   The unique identifier for a given WordPress post.
+   * @return array    The slug for each of the post's tags.
+   *
+   * @since 3.0.0
+   */
+  public function get_tags_searchable( $id ) {
     $tags = wp_get_post_tags( $id );
 
     $output = array();
@@ -308,6 +321,7 @@ class API_Helper {
         $output[] = $tag->slug;
       }
     }
+
     return $output;
   }
 

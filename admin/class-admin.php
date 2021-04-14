@@ -207,13 +207,11 @@ class Admin {
   }
 
   function language_dropdown( $post ) {
-    global $cdp_language_helper;
     include_once ES_FEEDER_DIR . 'admin/partials/wp-es-feeder-language-display.php';
   }
 
   function owner_dropdown( $post ) {
-    global $cdp_owner_helper;
-    include_once ES_FEEDER_DIR . 'admin/partials/wp-es-feeder-owner-display.php';
+    include_once ES_FEEDER_DIR . 'admin/partials/owner-view.php';
   }
 
   function add_admin_cdp_taxonomy() {

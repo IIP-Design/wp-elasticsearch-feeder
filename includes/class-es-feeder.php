@@ -111,8 +111,6 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
 
       // The classes responsible for defining all actions that define the API.
       require_once ES_FEEDER_DIR . 'includes/class-es-api-helpers.php';
-      require_once ES_FEEDER_DIR . 'includes/class-language-config.php';
-      require_once ES_FEEDER_DIR . 'includes/class-owner-config.php';
       require_once ES_FEEDER_DIR . 'includes/class-elasticsearch-wp-rest-api-controller.php';
 
       $this->loader = new ES_Feeder\Loader();
@@ -596,9 +594,10 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
      * @param $id
      */
     public function translate_post( $id ) {
-      global $cdp_language_helper, $wpdb;
-      $sync_helper = new \ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
-      $statuses    = $sync_helper->statuses;
+      global $wpdb;
+      $language_helper = new \ES_Feeder\Admin\Helpers\Language_Helper();
+      $sync_helper     = new \ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
+      $statuses        = $sync_helper->statuses;
 
       if ( ! function_exists( 'icl_object_id' ) ) {
         return;
@@ -630,18 +629,19 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
 
       foreach ( $post_ids as $post_id ) {
         $post = get_post( $post_id );
-        if ( $post->post_status !== 'publish' ) {
+        if ( 'publish' !== $post->post_status ) {
           continue;
         }
         $sync = get_post_meta( $post_id, '_iip_index_post_to_cdp_option', true );
-        if ( $sync === 'no' ) {
+
+        if ( 'no' === $sync ) {
           continue;
         }
         if ( ! $this->is_syncable( $post_id ) ) {
           continue;
         }
 
-        $translations = $cdp_language_helper->get_translations( $post_id );
+        $translations = $language_helper->get_translations( $post_id );
         $options      = array(
           'url'    => $this->get_post_type_label( $post->post_type ) . '/' . $this->get_uuid( $post_id ),
           'method' => 'PUT',

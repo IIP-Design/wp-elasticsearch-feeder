@@ -2,7 +2,7 @@
 /**
  * Registers the Sync_Helper class.
  *
- * @package ES_Feeder\Sync_Helper
+ * @package ES_Feeder\Admin\Helpers\Sync_Helper
  * @since 3.0.0
  */
 
@@ -13,7 +13,7 @@ use DateTime;
 /**
  * Registers Sync helper functions.
  *
- * @package ES_Feeder\Sync_Helper
+ * @package ES_Feeder\Admin\Helpers\Sync_Helper
  * @since 3.0.0
  */
 class Sync_Helper {
