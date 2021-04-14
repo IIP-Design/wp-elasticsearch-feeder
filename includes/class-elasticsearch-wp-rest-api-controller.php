@@ -262,7 +262,7 @@ if ( ! class_exists( 'WP_ES_FEEDER_REST_Controller' ) ) {
       }
 
       $post_data['language']  = $api_helper->get_language( $post->ID );
-      $post_data['languages'] = ES_API_HELPER::get_related_translated_posts( $post->ID, $post->post_type ) ?: array();
+      $post_data['languages'] = $api_helper->get_related_translated_posts( $post->ID, $post->post_type ) ?: array();
 
       if ( ! array_key_exists( 'tags', $post_data ) ) {
         $post_data['tags'] = array();

@@ -165,38 +165,42 @@ class Admin {
         }
       }
     }
+
     foreach ( $screens as $screen ) {
       add_meta_box(
-          'index-to-cdp-mb',           // Unique ID
-          'Publish to Content Commons',  // Box title
-          array( $this, 'index_to_cdp_display' ),  // Content callback, must be of type callable
-          $screen,                   // Post type
-          'side',
-          'high'
+        'index-to-cdp-mb',
+        'Publish to Content Commons',
+        array( $this, 'index_to_cdp_display' ),
+        $screen,
+        'side',
+        'high'
       );
+
       if ( $es_api_data ) {
         add_meta_box(
-          'es-feeder-response',           // Unique ID
-          'API Data',  // Box title
-          array( $this, 'api_response_data' ),  // Content callback, must be of type callable
+          'es-feeder-response',
+          'API Data',
+          array( $this, 'api_response_data' ),
           $screen
         );
       }
-      if ( $screen === 'post' && $es_post_language ) {
+
+      if ( 'post' === $screen && $es_post_language ) {
         add_meta_box(
-          'es-language',           // Unique ID
-          'Language',  // Box title
-          array( $this, 'language_dropdown' ),  // Content callback, must be of type callable
+          'es-language',
+          'Language',
+          array( $this, 'language_dropdown' ),
           $screen,
           'side',
           'high'
         );
       }
-      if ( $screen === 'post' && $es_post_owner ) {
+
+      if ( 'post' === $screen && $es_post_owner ) {
         add_meta_box(
-          'es-owner',           // Unique ID
-          'Owner',  // Box title
-          array( $this, 'owner_dropdown' ),  // Content callback, must be of type callable
+          'es-owner',
+          'Owner',
+          array( $this, 'owner_dropdown' ),
           $screen,
           'side',
           'high'
@@ -238,10 +242,10 @@ class Admin {
     }
     foreach ( $screens as $screen ) {
       add_meta_box(
-          'cdp-taxonomy',           // Unique ID
-          'Categories',  // Box title
-          array( $this, 'cdp_taxonomy_display' ),  // Content callback, must be of type callable
-          $screen,                   // Post type
+          'cdp-taxonomy',
+          'Categories',
+          array( $this, 'cdp_taxonomy_display' ),
+          $screen,
           'side',
           'high'
       );
