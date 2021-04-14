@@ -134,12 +134,20 @@ class Admin {
     }
   }
 
-  // Add settings action link to the plugins page.$_COOKIE
+  /**
+   * Add an action link to the plugin's settings page to the plugin listing.
+   *
+   * @param array $links   The list of default action links displayed under the plugin name.
+   * @return array         The original link with a 'Settings' link appended.
+   *
+   * @since 0.0.1
+   */
   public function add_action_links( $links ) {
-    $mylinks = array(
-       '<a href="' . admin_url( 'options-general.php?page=myplugin' ) . '">Settings</a>',
+    $settings_link = array(
+      '<a href="' . admin_url( 'options-general.php?page=' . $this->plugin ) . '">Settings</a>',
     );
-    return array_merge( $links, $mylinks );
+
+    return array_merge( $links, $settings_link );
   }
 
   function add_admin_meta_boxes() {
