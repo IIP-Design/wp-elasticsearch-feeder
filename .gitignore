@@ -1,5 +1,4 @@
 # Dependencies
-composer.lock
 node_modules/
 vendor/
 
