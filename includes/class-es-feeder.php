@@ -3,7 +3,6 @@
  * Registers the ES_Feeder class.
  *
  * @package ES_Feeder
- * @since 3.0.0
  */
 
 if ( ! class_exists( 'ES_Feeder' ) ) {
@@ -11,6 +10,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
    * Register all hooks to be run by the plugin.
    *
    * @package ES_Feeder
+   * @since 3.0.0
    */
   class ES_Feeder {
     const LOG_ALL    = false;
@@ -22,7 +22,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
      * @var Loader $loader    Maintains and registers all hooks for the plugin.
      *
      * @access protected
-     * @since 0.0.1
+     * @since 1.0.0
      */
     protected $loader;
 
@@ -32,7 +32,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
      * @var string $plugin_name
      *
      * @access protected
-     * @since 0.0.1
+     * @since 1.0.0
      */
     protected $plugin_name;
 
@@ -42,7 +42,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
      * @var string $version
      *
      * @access protected
-     * @since 0.0.1
+     * @since 1.0.0
      */
     protected $version;
 
@@ -52,7 +52,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
      * @var string $proxy
      *
      * @access protected
-     * @since 0.0.1
+     * @since 1.0.0
      */
     public $proxy;
 
@@ -62,18 +62,18 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
      * @var string $error
      *
      * @access protected
-     * @since 0.0.1
+     * @since 1.0.0
      */
     public $error;
 
     /**
-     * Define the core functionality of the plugin.
+     * Define the methods called whenever this class is initialized.
      *
      * Set the plugin name and the plugin version that can be used throughout the plugin.
      * Load the dependencies and set the hooks for the admin area and
      * the public-facing side of the site.
      *
-     * @since 0.0.1
+     * @since 1.0.0
      */
     public function __construct() {
       $this->namespace   = 'elasticsearch/v1';
@@ -96,7 +96,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       * Create an instance of the loader which will be used to register the hooks with WordPress.
       *
       * @access private
-      * @since 0.0.1
+      * @since 1.0.0
       */
     private function load_dependencies() {
       if ( ! class_exists( 'GuzzleHttp\Client' ) ) {
@@ -119,7 +119,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
     /**
      * Register all of the hooks related to the admin area functionality of the plugin.
      *
-     * @since 0.0.1
+     * @since 1.0.0
      */
     private function define_admin_hooks() {
       $admin    = new ES_Feeder\Admin( $this->get_plugin_name(), $this->get_version() );
@@ -181,44 +181,68 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
      *
      * @return Loader    Orchestrates the hooks of the plugin.
      *
-     * @since 0.0.1
+     * @since 1.0.0
      */
     public function get_loader() {
       return $this->loader;
     }
 
     /**
+     * Retrieve the API namespace.
+     *
+     * @since 3.0.0
+     */
+    public function get_namespace() {
+      return $this->namespace;
+    }
+
+    /**
      * Retrieve the name of the plugin.
      *
-     * @since 0.0.1
+     * @since 1.0.0
      */
     public function get_plugin_name() {
       return $this->plugin_name;
     }
 
     /**
+     * Retrieve the proxy URL.
+     *
+     * @since 1.0.0
+     */
+    public function get_proxy_server() {
+      return $this->proxy;
+    }
+
+    /**
      * Retrieve the version number of the plugin.
      *
-     * @since 0.0.1
+     * @since 1.0.0
      */
     public function get_version() {
       return $this->version;
     }
 
     /**
-     * Retrieve the proxy URL.
+     * Run the loader to execute all of the hooks with WordPress.
      *
-     * @since 0.0.1
+     * @since 1.0.0
      */
-    public function get_proxy_server() {
-      return $this->proxy;
+    public function run() {
+      $this->loader->run();
     }
 
+
+    /**
+     *
+     *
+     * @since 2.0.0
+     */
     public function validate_sync() {
       set_time_limit( 600 );
       global $wpdb;
 
-      $sync_helper = new \ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
+      $sync_helper = new ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
       $statuses    = $sync_helper->statuses;
 
       $size      = 500;
@@ -321,10 +345,12 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
      * Iterate over posts in a syncing or erroneous state. If syncing for longer than
      * the SYNC_TIMEOUT time, escalate to error status.
      * Return stats on total errors (if any).
+     *
+     * @since 2.0.0
      */
     public function check_sync_errors() {
       global $wpdb;
-      $sync_helper = new \ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
+      $sync_helper = new ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
 
       $result = array(
         'errors' => 0,
@@ -361,6 +387,8 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
     /**
      * Triggered via AJAX, clears out old sync data and initiates a new sync process.
      * If sync_errors is present, we will only initiate a sync for posts with a sync error.
+     *
+     * @since 2.0.0
      */
     public function es_initiate_sync() {
       global $wpdb;
@@ -371,36 +399,39 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
           $wpdb->query( "DELETE FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_status' AND post_id IN (" . implode( ',', $post_ids ) . ')' );
         } else {
           echo json_encode(
-               array(
-          'error'   => true,
-          'message' => 'No posts found.',
-			   )
-              );
+            array(
+              'error'   => true,
+              'message' => 'No posts found.',
+            )
+          );
           exit;
         }
         $results = $this->get_resync_totals();
+
         wp_send_json( $results );
       } else {
         $wpdb->delete( $wpdb->postmeta, array( 'meta_key' => '_cdp_sync_status' ) );
         $post_ids = $this->get_syncable_posts();
+
         if ( ! count( $post_ids ) ) {
           echo json_encode(
-               array(
-          'error'   => true,
-          'message' => 'No posts found.',
-			   )
-              );
+            array(
+              'error'   => true,
+              'message' => 'No posts found.',
+            )
+          );
           exit;
         }
+
         wp_send_json(
-             array(
-        'done'     => 0,
-        'response' => null,
-        'results'  => null,
-        'total'    => count( $post_ids ),
-        'complete' => 0,
-			 )
-            );
+          array(
+            'done'     => 0,
+            'response' => null,
+            'results'  => null,
+            'total'    => count( $post_ids ),
+            'complete' => 0,
+          )
+        );
       }
       exit;
     }
@@ -410,10 +441,12 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
      * Updates the postmeta indicating that this post has been synced.
      * Returns a JSON object containing the API response for the current post
      * as well as stats on the sync queue.
+     *
+     * @since 2.0.0
      */
     public function es_process_next() {
       global $wpdb;
-      $sync_helper = new \ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
+      $sync_helper = new ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
       $statuses    = $sync_helper->statuses;
 
       while ( get_option( $this->plugin_name . '_syncable_posts' ) !== false );
@@ -473,6 +506,9 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       exit;
     }
 
+    /**
+     * @since 2.1.0
+     */
     private function get_syncable_posts( $limit = null ) {
       global $wpdb;
       $opts       = get_option( $this->plugin_name );
@@ -491,6 +527,9 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       return $post_ids ?: array();
     }
 
+    /**
+     * @since 2.1.0
+     */
     public function get_resync_totals() {
       global $wpdb;
       $opts       = get_option( $this->plugin_name );
@@ -511,6 +550,11 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       );
     }
 
+    /**
+     *
+     *
+     * @since 1.0.0
+     */
     public function save_post( $id, $post ) {
       $settings  = get_option( $this->plugin_name );
       $post_type = $post->post_type;
@@ -550,6 +594,9 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       $this->translate_post( $post );
     }
 
+    /**
+     * @since 2.1.0
+     */
     public function post_sync_send( $post, $print = true ) {
       // we only care about modifying published posts
       if ( 'publish' === $post->post_status ) {
@@ -575,12 +622,14 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
      * Fire PUT requests containing associated translations after save_post.
      *
      * @param $id
+     *
+     * @since 2.1.0
      */
     public function translate_post( $id ) {
       global $wpdb;
-      $language_helper = new \ES_Feeder\Admin\Helpers\Language_Helper();
+      $language_helper = new ES_Feeder\Admin\Helpers\Language_Helper();
       $log_helper      = new ES_Feeder\Admin\Helpers\Log_Helper();
-      $sync_helper     = new \ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
+      $sync_helper     = new ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
       $statuses        = $sync_helper->statuses;
 
       if ( ! function_exists( 'icl_object_id' ) ) {
@@ -668,6 +717,8 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
      * @param $new_status
      * @param $old_status
      * @param $id
+     *
+     * @since 1.0.0
      */
     public function delete_post( $new_status, $old_status, $id ) {
       if ( $old_status === $new_status || 'publish' !== $old_status ) {
@@ -690,10 +741,15 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       $this->translate_post( $post );
     }
 
+    /**
+     *
+     *
+     * @since 1.0.0
+     */
     public function addOrUpdate( $post, $print = true, $callback_errors_only = false, $check_syncable = true ) {
-      $api_helper  = new \ES_Feeder\Admin\Helpers\API_Helper( $this->plugin );
+      $api_helper  = new ES_Feeder\Admin\Helpers\API_Helper( $this->plugin );
       $log_helper  = new ES_Feeder\Admin\Helpers\Log_Helper();
-      $sync_helper = new \ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
+      $sync_helper = new ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
       $statuses    = $sync_helper->statuses;
 
       if ( $check_syncable && ! $this->is_syncable( $post->ID ) ) {
@@ -758,12 +814,17 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       return $response;
     }
 
+    /**
+     *
+     *
+     * @since 1.0.0
+     */
     public function delete( $post ) {
       if ( ! $this->is_syncable( $post->ID ) ) {
         return;
       }
 
-      $sync_helper = new \ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
+      $sync_helper = new ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
       $statuses    = $sync_helper->statuses;
 
       update_post_meta( $post->ID, '_cdp_sync_status', $statuses['SYNCING'] );
@@ -789,6 +850,11 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       delete_post_meta( $post->ID, '_cdp_sync_uid' );
     }
 
+    /**
+     *
+     *
+     * @since 1.0.0
+     */
     public function es_request( $request, $callback = null, $callback_errors_only = false ) {
       $log_helper = new ES_Feeder\Admin\Helpers\Log_Helper();
 
@@ -894,12 +960,14 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
      *
      * @param $post_id
      * @return bool
+     *
+     * @since 2.0.0
      */
     public function is_syncable( $post_id ) {
       global $wpdb;
 
       $log_helper  = new ES_Feeder\Admin\Helpers\Log_Helper();
-      $sync_helper = new \ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
+      $sync_helper = new ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
       $statuses    = $sync_helper->statuses;
 
       // check sync status by attempting to update and if rows updated then sync is in progress
@@ -917,6 +985,9 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       return true;
     }
 
+    /**
+     * @since 2.0.0
+     */
     private function is_domain_mapped( $body ) {
       // Check if domain is mapped.
       $opt      = get_option( $this->plugin_name );
@@ -933,6 +1004,9 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       return $body;
     }
 
+    /**
+     * @since 2.0.0
+     */
     public function get_taxonomy() {
       $args = array(
         'method' => 'GET',
@@ -952,6 +1026,9 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       return array();
     }
 
+    /**
+     * @since 2.0.0
+     */
     public function get_allowed_post_types() {
       $settings = get_option( $this->plugin_name );
       $types    = array();
@@ -965,9 +1042,12 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       return $types;
     }
 
+    /**
+     * @since 2.1.0
+     */
     private function create_callback( $post_id = null ) {
       $log_helper  = new ES_Feeder\Admin\Helpers\Log_Helper();
-      $sync_helper = new \ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
+      $sync_helper = new ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
       $statuses    = $sync_helper->statuses;
 
       $options     = get_option( $this->plugin_name );
@@ -1006,6 +1086,8 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
      *
      * @param $post
      * @return string
+     *
+     * @since 2.0.0
      */
     public function get_uuid( $post ) {
       $post_id = $post;
@@ -1026,6 +1108,9 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       return "{$host}_{$post_id}";
     }
 
+    /**
+     * @since 2.0.0
+     */
     public function get_site() {
       $opt  = get_option( $this->plugin );
       $url  = $opt['es_wpdomain'];
@@ -1047,6 +1132,8 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
      *
      * @param $post_type
      * @return string
+     *
+     * @since 2.0.0
      */
     public function get_post_type_label( $post_type ) {
       $obj = get_post_type_object( $post_type );

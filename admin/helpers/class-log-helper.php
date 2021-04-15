@@ -16,11 +16,19 @@ namespace ES_Feeder\Admin\Helpers;
  */
 class Log_Helper {
 
+  /**
+   * @since 2.0.0
+   */
   public function log( $str, $file = 'feeder.log' ) {
     $path = ES_FEEDER_DIR . $file;
     file_put_contents( $path, gmdate( '[m/d/y H:i:s] ' ) . trim( print_r( $str, 1 ) ) . "\r\n\r\n", FILE_APPEND );
   }
 
+  /**
+   *
+   *
+   * @since 2.0.0
+   */
   public function truncate_logs() {
     $path = ES_FEEDER_DIR . '*.log';
 
@@ -32,6 +40,9 @@ class Log_Helper {
     exit;
   }
 
+  /**
+   * @since 2.4.0
+   */
   public function reload_log() {
     $path = ES_FEEDER_DIR . 'callback.log';
 
@@ -53,6 +64,8 @@ class Log_Helper {
    * @param $lines
    * @param $adaptive
    * @return string
+   *
+   * @since 2.4.0
    */
   public function tail( $filepath, $lines = 1, $adaptive = true ) {
     // Open file.

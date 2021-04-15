@@ -34,12 +34,12 @@ class Settings {
   /**
    * Register the administration menu.
    *
-   * @since 3.0.0
+   * @since 1.0.0
    */
   public function add_plugin_admin_menu() {
     add_options_page(
-      'WP Elasticsearch Feeder Settings',
-      'WP ES Feeder',
+      __( 'WP Elasticsearch Feeder Settings', 'gpalab-feeder' ),
+      __( 'WP ES Feeder', 'gpalab-feeder' ),
       'manage_options',
       $this->plugin,
       array( $this, 'display_plugin_setup_page' )
@@ -49,7 +49,7 @@ class Settings {
   /**
    * Render the settings page for this plugin.
    *
-   * @since 3.0.0
+   * @since 1.0.0
    */
   public function display_plugin_setup_page() {
     include_once ES_FEEDER_DIR . 'admin/partials/settings-view.php';

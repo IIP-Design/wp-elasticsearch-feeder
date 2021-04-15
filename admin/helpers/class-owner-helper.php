@@ -23,6 +23,8 @@ class Owner_Helper {
    * in the owner dropdown.
    *
    * @return array
+   *
+   * @since 2.5.0
    */
   public static function get_owners() {
     if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {

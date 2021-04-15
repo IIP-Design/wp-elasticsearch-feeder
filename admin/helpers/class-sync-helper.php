@@ -47,6 +47,8 @@ class Sync_Helper {
    * @param int      $post_id  The unique identifier for a given WordPress post.
    * @param int|null $status   The numeric code representing the sync status of the given post.
    * @return int     The updated numeric code representing the sync status of the given post.
+   *
+   * @since 2.0.0
    */
   public function get_sync_status( $post_id, $status = null ) {
     if ( ! $status ) {
@@ -81,7 +83,7 @@ class Sync_Helper {
   /**
    * Gets counts for each sync status
    *
-   * @since 3.0.0
+   * @since 2.0.0
    */
   public function get_sync_status_counts() {
     global $wpdb;
@@ -114,7 +116,7 @@ class Sync_Helper {
    * @param boolean $text boolean      Whether or not to include indicator label text.
    * @param boolean $merge_publishes   Whether of not to bundle republishing attempts in publishing status.
    *
-   * @since 3.0.0
+   * @since 2.0.0
    */
   public function sync_status_indicator( $status_code, $text = true, $merge_publishes = true ) {
     $status_data = $this->get_status_code_data( $status_code, $merge_publishes );
@@ -182,6 +184,8 @@ class Sync_Helper {
    *
    * @param int $status  This current post status.
    * @return bool        Whether or not the current status is a syncing status.
+   *
+   * @since 2.0.0
    */
   private function sync_allowed( $status ) {
     switch ( $status ) {

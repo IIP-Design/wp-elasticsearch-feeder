@@ -36,12 +36,14 @@ class Ajax {
    * If the data includes es_sync_status_counts, send back an array of counts
    * for each status ID.
    *
-   * @param $response
-   * @param $data
+   * @param array $response
+   * @param array $data
    * @return mixed
+   *
+   * @since 2.0.0
    */
   public function heartbeat( $response, $data ) {
-    $sync_helper = new \ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
+    $sync_helper = new Admin\Helpers\Sync_Helper( $this->plugin );
 
     if ( ! empty( $data['es_sync_status'] ) ) {
       $post_id = $data['es_sync_status'];

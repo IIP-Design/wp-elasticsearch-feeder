@@ -28,6 +28,9 @@ class API_Helper {
     $this->name_space = 'elasticsearch/v1';
   }
 
+  /**
+   * @since 1.0.0
+   */
   public function get_post_type_label( $post_type = 'post', $display = 'name' ) {
     $obj = get_post_type_object( $post_type );
 
@@ -44,7 +47,7 @@ class API_Helper {
    * @param int $id   The selected WordPress attachment id.
    * @return array    The array of image data.
    *
-   * @since 3.0.0
+   * @since 1.0.0
    */
   public static function get_featured_image( $id ) {
     $image = wp_prepare_attachment_for_js( $id );
@@ -114,6 +117,9 @@ class API_Helper {
     return $meta;
   }
 
+  /**
+   * @since 1.0.0
+   */
   public function get_language( $id ) {
     global $sitepress;
 
@@ -145,7 +151,7 @@ class API_Helper {
    * @param int $id   The unique identifier for a given WordPress post.
    * @return string   The owner for the given post.
    *
-   * @since 3.0.0
+   * @since 2.5.0
    */
   public function get_owner( $id ) {
     if ( get_post_type( $id ) === 'post' ) {
@@ -167,7 +173,7 @@ class API_Helper {
    * @param int $id   The unique identifier for a given WordPress post.
    * @return boolean  Whether or not to index the given post.
    *
-   * @since 3.0.0
+   * @since 1.0.0
    */
   public function get_index_to_cdp( $id ) {
     $value = get_post_meta( $id, '_iip_index_post_to_cdp_option', true );
@@ -175,12 +181,18 @@ class API_Helper {
     return ( 'no' === $value ) ? false : true;
   }
 
+  /**
+   * @since 1.0.0
+   */
   public static function get_related_translated_posts( $id, $post_type ) {
     $language_helper = new \ES_Feeder\Admin\Helpers\Language_Helper();
 
     return $language_helper->get_translations( $id );
   }
 
+  /**
+   * @since 1.0.0
+   */
   public static function get_categories( $id ) {
     $categories = wp_get_post_categories(
       $id,
@@ -238,6 +250,9 @@ class API_Helper {
     return $output;
   }
 
+  /**
+   * @since 1.0.0
+   */
   private function remap_terms( $terms ) {
     $arr = array();
 
@@ -251,6 +266,9 @@ class API_Helper {
     return $arr;
   }
 
+  /**
+   * @since 1.0.0
+   */
   public static function get_categories_searchable( $id ) {
     $categories = wp_get_post_categories(
       $id,
@@ -275,7 +293,7 @@ class API_Helper {
    * @param int $id   The unique identifier for a given WordPress post.
    * @return array    The id, name, and slug for each of the post's tags.
    *
-   * @since 3.0.0
+   * @since 1.0.0
    */
   public static function get_tags( $id ) {
     $tags = wp_get_post_tags( $id );
@@ -301,7 +319,7 @@ class API_Helper {
    * @param int $id   The unique identifier for a given WordPress post.
    * @return array    The slug for each of the post's tags.
    *
-   * @since 3.0.0
+   * @since 1.0.0
    */
   public function get_tags_searchable( $id ) {
     $tags = wp_get_post_tags( $id );
@@ -323,7 +341,7 @@ class API_Helper {
    * @param int $id  The unique identifier for a given WordPress user.
    * @return array   The author's id and name.
    *
-   * @since 3.0.0
+   * @since 1.0.0
    */
   public function get_author( $id ) {
     $user_data = array(
@@ -339,6 +357,8 @@ class API_Helper {
    *
    * @param object $post_object  A WordPress post object.
    * @return string              The content of the provided post.
+   *
+   * @since 1.0.0
    */
   public static function render_vc_shortcodes( $post_object ) {
     if ( ! class_exists( 'WPBMap' ) ) {

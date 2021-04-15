@@ -57,7 +57,7 @@ class Admin {
    *
    * @param string $hook   The current admin page.
    *
-   * @since 0.0.1
+   * @since 1.0.0
    */
   public function enqueue_styles( $hook ) {
     global $post, $feeder;
@@ -88,7 +88,7 @@ class Admin {
    *
    * @param string $hook   The current admin page.
    *
-   * @since 0.0.1
+   * @since 1.0.0
    */
   public function enqueue_scripts( $hook ) {
     global $post, $feeder;
@@ -140,7 +140,7 @@ class Admin {
    * @param array $links   The list of default action links displayed under the plugin name.
    * @return array         The original link with a 'Settings' link appended.
    *
-   * @since 0.0.1
+   * @since 1.0.0
    */
   public function add_action_links( $links ) {
     $settings_link = array(
@@ -150,14 +150,17 @@ class Admin {
     return array_merge( $links, $settings_link );
   }
 
+  /**
+   * @since 2.1.0
+   */
   function add_admin_meta_boxes() {
-
     $options          = get_option( $this->plugin );
     $es_post_types    = $options['es_post_types'] ? $options['es_post_types'] : null;
     $es_api_data      = ( current_user_can( 'manage_options' ) && array_key_exists( 'es_api_data', $options ) && $options['es_api_data'] );
     $es_post_language = array_key_exists( 'es_post_language', $options ) && $options['es_post_language'] ? 1 : 0;
     $es_post_owner    = array_key_exists( 'es_post_owner', $options ) && $options['es_post_owner'] ? 1 : 0;
     $screens          = array();
+
     if ( $es_post_types ) {
       foreach ( $es_post_types as $key => $value ) {
         if ( $value ) {
@@ -209,23 +212,38 @@ class Admin {
     }
   }
 
+  /**
+   * @since 1.0.0
+   */
   function index_to_cdp_display( $post ) {
     global $feeder;
     include_once ES_FEEDER_DIR . 'admin/partials/wp-es-feeder-index-to-cdp-display.php';
   }
 
+  /**
+   * @since 2.1.0
+   */
   function api_response_data( $post ) {
     include_once ES_FEEDER_DIR . 'admin/partials/wp-es-feeder-api-view-display.php';
   }
 
+  /**
+   * @since 2.2.0
+   */
   function language_dropdown( $post ) {
     include_once ES_FEEDER_DIR . 'admin/partials/wp-es-feeder-language-display.php';
   }
 
+  /**
+   * @since 2.5.0
+   */
   function owner_dropdown( $post ) {
     include_once ES_FEEDER_DIR . 'admin/partials/owner-view.php';
   }
 
+  /**
+   * @since 2.0.0
+   */
   function add_admin_cdp_taxonomy() {
     $options       = get_option( $this->plugin );
     $es_post_types = $options['es_post_types'] ? $options['es_post_types'] : null;
@@ -252,12 +270,18 @@ class Admin {
     }
   }
 
+  /**
+   * @since 2.0.0
+   */
   function cdp_taxonomy_display( $post ) {
     global $feeder;
     $taxonomy = $feeder->get_taxonomy();
     include_once ES_FEEDER_DIR . 'admin/partials/wp-es-feeder-cdp-taxonomy-display.php';
   }
 
+  /**
+   * @since 1.0.0
+   */
   public function validate( $input ) {
 
     $valid = array(
@@ -291,20 +315,25 @@ class Admin {
     return $valid;
   }
 
+  /**
+   * @since 1.0.0
+   */
   public function options_update() {
     register_setting(
-         $this->plugin,
-        $this->plugin,
-        array(
-       $this,
-      'validate',
-		)
-        );
+      $this->plugin,
+      $this->plugin,
+      array(
+        $this,
+        'validate',
+      )
+    );
   }
 
   /**
    * Checks for sync errors and displays an admin notice if there are errors and the notice
    * wasn't dismissed in the last 24 hours.
+   *
+   * @since 2.0.0
    */
   public function sync_errors_notice() {
     global $feeder;
@@ -331,6 +360,9 @@ class Admin {
     }
   }
 
+  /**
+   * @since 2.0.0
+   */
   public function columns_head( $defaults ) {
     global $feeder;
     if ( in_array( get_post_type(), $feeder->get_allowed_post_types() ) ) {
@@ -339,6 +371,9 @@ class Admin {
     return $defaults;
   }
 
+  /**
+   * @since 2.0.0
+   */
   public function columns_content( $column_name, $post_ID ) {
     $sync_helper = new \ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
 
@@ -348,6 +383,9 @@ class Admin {
     }
   }
 
+  /**
+   * @since 2.0.0
+   */
   public function sortable_columns( $columns ) {
     $columns['sync_status'] = '_cdp_sync_status';
     return $columns;

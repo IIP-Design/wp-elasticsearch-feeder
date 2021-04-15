@@ -5,11 +5,9 @@
  * This file is used to markup the admin-facing aspects of the plugin.
  *
  * @since 1.0.0
- *
- * @package ES_Feeder\Settings
  */
 
-  global $wpdb, $feeder;
+  global $wpdb;
 
   $api_helper  = new ES_Feeder\Admin\Helpers\API_Helper( $this->plugin );
   $log_helper  = new ES_Feeder\Admin\Helpers\Log_Helper();

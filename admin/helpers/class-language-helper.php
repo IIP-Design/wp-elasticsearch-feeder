@@ -43,6 +43,9 @@ class Language_Helper {
     );
   }
 
+  /**
+   * @since 2.0.0
+   */
   public function get_language_by_code( $code ) {
     $code = strtolower( $code );
 
@@ -77,12 +80,18 @@ class Language_Helper {
     return $code_match;
   }
 
+  /**
+   * @since 1.0.0
+   */
   public function get_language_by_meta_field( $id, $meta_field ) {
     $locale = get_post_meta( $id, $meta_field, true );   // '
     $locale = empty( $locale ) ? 'en' : $locale;
     return $this->get_language_by_code( $locale );
   }
 
+  /**
+   * @since 2.0.0
+   */
   public function load_languages() {
     if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
       $this->languages = get_option( 'cdp_languages' );
@@ -110,6 +119,9 @@ class Language_Helper {
     update_option( 'cdp_languages', $this->languages );
   }
 
+  /**
+   * @since 2.0.0
+   */
   public function get_languages() {
     if ( ! $this->languages ) {
       $this->load_languages();
@@ -125,6 +137,9 @@ class Language_Helper {
     return $this->languages;
   }
 
+  /**
+   * @since 2.0.0
+   */
   public function get_translations( $post_id ) {
     global $wpdb;
     if ( ! function_exists( 'icl_object_id' ) ) {
@@ -158,5 +173,4 @@ class Language_Helper {
     }
     return $translations;
   }
-
 }
