@@ -105,6 +105,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
 
       // The classes  responsible for defining all actions that occur in the admin area.
       require_once ES_FEEDER_DIR . 'includes/class-loader.php';
+      require_once ES_FEEDER_DIR . 'admin/api/class-api.php';
       require_once ES_FEEDER_DIR . 'admin/class-admin.php';
       require_once ES_FEEDER_DIR . 'admin/class-ajax.php';
       require_once ES_FEEDER_DIR . 'admin/class-settings.php';
@@ -123,6 +124,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
     private function define_admin_hooks() {
       $admin    = new ES_Feeder\Admin( $this->get_plugin_name(), $this->get_version() );
       $ajax     = new ES_Feeder\Ajax( $this->get_plugin_name(), $this->get_version() );
+      $api      = new ES_Feeder\API( $this->get_namespace(), $this->get_plugin_name(), $this->get_version() );
       $logging  = new ES_Feeder\Admin\Helpers\Log_Helper();
       $settings = new ES_Feeder\Settings( $this->get_plugin_name(), $this->get_version() );
 
@@ -169,15 +171,9 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       // Logging hooks.
       $this->loader->add_action( 'wp_ajax_es_reload_log', $logging, 'reload_log' );
       $this->loader->add_action( 'wp_ajax_es_truncate_logs', $logging, 'truncate_logs' );
-    }
 
-    /**
-     * Run the loader to execute all of the hooks with WordPress.
-     *
-     * @since 0.0.1
-     */
-    public function run() {
-      $this->loader->run();
+      // API hooks.
+      $this->loader->add_action( 'rest_api_init', $api, 'register_elasticsearch_rest_routes' );
     }
 
     /**
