@@ -1,14 +1,30 @@
 <?php
 /**
- * Class WP_ES_FEEDER_Callback_Controller
+ * Registers the Elasticsearch callback API endpoint.
  *
+ * @package ES_Feeder\Admin\API\REST_Callback_Controller
+ * @see https://developer.wordpress.org/rest-api/extending-the-rest-api/adding-custom-endpoints/#the-controller-pattern
+ * @since 3.0.0
+ */
+
+namespace ES_Feeder\Admin\API;
+
+use WP_REST_Controller;
+
+/**
  * Handles the callback from the ES API when the sync of a post completes or fails.
  *
- * @since 2.0.0
+ * @package ES_Feeder\Admin\API\REST_Callback_Controller
+ * @see https://developer.wordpress.org/rest-api/extending-the-rest-api/adding-custom-endpoints/#the-controller-pattern
+ * @since 3.0.0
  */
-class WP_ES_FEEDER_Callback_Controller {
+class REST_Callback_Controller extends WP_REST_Controller {
+
+  const LOG_ALL = false;
 
   /**
+   * Registers a REST API routes to accept callback responses from Elasticsearch.
+   *
    * @since 2.0.0
    */
   public function register_routes() {
@@ -17,11 +33,8 @@ class WP_ES_FEEDER_Callback_Controller {
       '/callback/(?P<uid>[0-9a-zA-Z]+)',
       array(
         array(
-          'methods'             => WP_REST_Server::ALLMETHODS,
-          'callback'            => array(
-            $this,
-            'processResponse',
-          ),
+          'methods'             => \WP_REST_Server::ALLMETHODS,
+          'callback'            => array( $this, 'process_response' ),
           'args'                => array(
             'uid' => array(
               'validate_callback' => function ( $param, $request, $key ) {
@@ -44,11 +57,11 @@ class WP_ES_FEEDER_Callback_Controller {
    *
    * @since 2.0.0
    */
-  public function processResponse( $request ) {
+  public function process_response( $request ) {
     global $wpdb, $feeder;
 
-    $logger      = new ES_Feeder\Admin\Helpers\Log_Helper();
-    $sync_helper = new ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
+    $logger      = new \ES_Feeder\Admin\Helpers\Log_Helper();
+    $sync_helper = new \ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
     $statuses    = $sync_helper->statuses;
 
     $data = $request->get_json_params();
@@ -70,14 +83,14 @@ class WP_ES_FEEDER_Callback_Controller {
 
     $sync_status = get_post_meta( $post_id, '_cdp_sync_status', true );
 
-    if ( ES_FEEDER::LOG_ALL ) {
+    if ( self::LOG_ALL ) {
       $logger->log( "INCOMING CALLBACK FOR UID: $uid, post_id: $post_id, sync_status: $sync_status\r\n" . print_r( $data, 1 ) . "\r\n", 'callback.log' );
       $logger->log( "Callback received with sync_status: $sync_status for: $post_id, uid: $uid", 'feeder.log' );
     }
 
     if ( $post_id == $wpdb->get_var( "SELECT post_id FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_uid' AND meta_value = '" . $wpdb->_real_escape( $uid ) . "'" ) ) {
       if ( ! $data['error'] ) {
-        if ( ES_FEEDER::LOG_ALL ) {
+        if ( self::LOG_ALL ) {
           $logger->log( "No error found for $post_id, sync_uid: $uid", 'feeder.log' );
         }
         if ( $statuses['SYNC_WHILE_SYNCING'] === $sync_status ) {
@@ -153,7 +166,7 @@ class WP_ES_FEEDER_Callback_Controller {
         )
       );
 
-      if ( ES_FEEDER::LOG_ALL ) {
+      if ( self::LOG_ALL ) {
         $logger->log( "Sync UID ($uid) deleted for: $post_id", 'feeder.log' );
       }
     } else {
@@ -177,6 +190,3 @@ class WP_ES_FEEDER_Callback_Controller {
     return true;
   }
 }
-
-// Add cdp-rest support for the base post type.
-add_post_type_support( 'post', 'cdp-rest' );

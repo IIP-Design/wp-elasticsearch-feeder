@@ -110,9 +110,6 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       require_once ES_FEEDER_DIR . 'admin/class-ajax.php';
       require_once ES_FEEDER_DIR . 'admin/class-settings.php';
 
-      // The classes responsible for defining all actions that define the API.
-      require_once ES_FEEDER_DIR . 'includes/class-elasticsearch-wp-rest-api-controller.php';
-
       $this->loader = new ES_Feeder\Loader();
     }
 
@@ -174,6 +171,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
 
       // API hooks.
       $this->loader->add_action( 'rest_api_init', $api, 'register_elasticsearch_rest_routes' );
+      $this->loader->add_action( 'init', $api, 'add_posts_to_api' );
     }
 
     /**

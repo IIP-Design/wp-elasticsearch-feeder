@@ -1,10 +1,20 @@
 <?php
+/**
+ * Registers an API endpoint for a given public post type.
+ *
+ * @package ES_Feeder\Admin\API\REST_Controller
+ * @see https://developer.wordpress.org/rest-api/extending-the-rest-api/adding-custom-endpoints/#the-controller-pattern
+ * @since 3.0.0
+ */
 
 namespace ES_Feeder\Admin\API;
 
 use WP_REST_Controller;
 
 /**
+ * Registers an API endpoint for a given public post type.
+ *
+ * @package ES_Feeder\Admin\API\REST_Controller
  * @see https://developer.wordpress.org/rest-api/extending-the-rest-api/adding-custom-endpoints/#the-controller-pattern
  * @since 3.0.0
  */
@@ -34,6 +44,7 @@ class REST_Controller extends WP_REST_Controller {
    * @since 1.0.0
    */
   public function register_routes() {
+    // Add endpoint for all instances of the given post type.
     register_rest_route(
       $this->namespace,
       '/' . rawurlencode( $this->resource ),
@@ -64,6 +75,7 @@ class REST_Controller extends WP_REST_Controller {
       )
     );
 
+    // Add endpoint for a single instance of the given post type by post ID.
     register_rest_route(
       $this->namespace,
       '/' . rawurlencode( $this->resource ) . '/(?P<id>[\d]+)',
@@ -91,6 +103,11 @@ class REST_Controller extends WP_REST_Controller {
   }
 
   /**
+   * Fetch a all instances of a given post type.
+   *
+   * @param WP_REST_Request $request    Full data about the request.
+   * @return WP_Error|WP_REST_Response  The requested data or an error if not found.
+   *
    * @since 1.0.0
    */
   public function get_items( $request ) {
@@ -140,6 +157,11 @@ class REST_Controller extends WP_REST_Controller {
   }
 
   /**
+   * Fetch a single instance of a post type by it's post id.
+   *
+   * @param WP_REST_Request $request    Full data about the request.
+   * @return WP_Error|WP_REST_Response  The requested data or an error if not found.
+   *
    * @since 1.0.0
    */
   public function get_item( $request ) {
@@ -180,6 +202,11 @@ class REST_Controller extends WP_REST_Controller {
   }
 
   /**
+   * Normalize the data provided by the API request for multiple items.
+   *
+   * @param WP_Error|WP_REST_Response $response   The data returned by the API request.
+   * @return array                                The normalized data.
+   *
    * @since 1.0.0
    */
   public function prepare_response_for_collection( $response ) {
@@ -216,6 +243,12 @@ class REST_Controller extends WP_REST_Controller {
   }
 
   /**
+   * Normalize the data provided by the API request for a single item.
+   *
+   * @param WP_Post                   $post       The WordPress post data for a given post.
+   * @param WP_Error|WP_REST_Response $request   The data returned by the API request.
+   * @return array                                The normalized data.
+   *
    * @since 1.0.0
    */
   public function prepare_item_for_response( $post, $request ) {

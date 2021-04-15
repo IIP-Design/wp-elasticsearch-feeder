@@ -32,6 +32,15 @@ class API {
   }
 
   /**
+   * Add the base post type as an indexable post-type.
+   *
+   * @since 3.0.0
+   */
+  public function add_posts_to_api() {
+    add_post_type_support( 'post', 'cdp-rest' );
+  }
+
+  /**
    * Creates API endpoints for all public post types.
    *
    * @since 1.0.0
@@ -49,7 +58,7 @@ class API {
       }
     }
 
-    $controller = new \WP_ES_FEEDER_Callback_Controller();
+    $controller = new Admin\API\REST_Callback_Controller();
     $controller->register_routes();
   }
 
