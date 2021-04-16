@@ -30,7 +30,7 @@ class REST_Controller extends WP_REST_Controller {
    * @since 3.0.0
    */
   public function __construct( $namespace, $plugin, $post_type ) {
-    $api_helper = new \ES_Feeder\Admin\Helpers\API_Helper( $this->plugin );
+    $api_helper = new \ES_Feeder\Admin\Helpers\API_Helper( $plugin );
 
     $this->namespace = $namespace;
     $this->plugin    = $plugin;

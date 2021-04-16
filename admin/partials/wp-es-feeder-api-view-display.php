@@ -1,7 +1,7 @@
 <?php
 global $feeder, $post;
 
-$options = get_option( $this->plugin_name );
+$options = get_option( $this->plugin );
 $es_url  = $options['es_url'] ? $options['es_url'] : null;
 $token   = $options['es_token'];
 

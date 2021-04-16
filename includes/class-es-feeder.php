@@ -240,7 +240,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       set_time_limit( 600 );
       global $wpdb;
 
-      $sync_helper = new ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
+      $sync_helper = new ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin_name );
       $statuses    = $sync_helper->statuses;
 
       $size      = 500;
@@ -348,7 +348,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
      */
     public function check_sync_errors() {
       global $wpdb;
-      $sync_helper = new ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
+      $sync_helper = new ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin_name );
 
       $result = array(
         'errors' => 0,
@@ -444,7 +444,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
      */
     public function es_process_next() {
       global $wpdb;
-      $sync_helper = new ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
+      $sync_helper = new ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin_name );
       $statuses    = $sync_helper->statuses;
 
       while ( get_option( $this->plugin_name . '_syncable_posts' ) !== false );
@@ -627,7 +627,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       global $wpdb;
       $language_helper = new ES_Feeder\Admin\Helpers\Language_Helper();
       $log_helper      = new ES_Feeder\Admin\Helpers\Log_Helper();
-      $sync_helper     = new ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
+      $sync_helper     = new ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin_name );
       $statuses        = $sync_helper->statuses;
 
       if ( ! function_exists( 'icl_object_id' ) ) {
@@ -745,9 +745,9 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
      * @since 1.0.0
      */
     public function addOrUpdate( $post, $print = true, $callback_errors_only = false, $check_syncable = true ) {
-      $api_helper  = new ES_Feeder\Admin\Helpers\API_Helper( $this->plugin );
+      $api_helper  = new ES_Feeder\Admin\Helpers\API_Helper( $this->plugin_name );
       $log_helper  = new ES_Feeder\Admin\Helpers\Log_Helper();
-      $sync_helper = new ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
+      $sync_helper = new ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin_name );
       $statuses    = $sync_helper->statuses;
 
       if ( $check_syncable && ! $this->is_syncable( $post->ID ) ) {
@@ -822,7 +822,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
         return;
       }
 
-      $sync_helper = new ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
+      $sync_helper = new ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin_name );
       $statuses    = $sync_helper->statuses;
 
       update_post_meta( $post->ID, '_cdp_sync_status', $statuses['SYNCING'] );
@@ -965,7 +965,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       global $wpdb;
 
       $log_helper  = new ES_Feeder\Admin\Helpers\Log_Helper();
-      $sync_helper = new ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
+      $sync_helper = new ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin_name );
       $statuses    = $sync_helper->statuses;
 
       // check sync status by attempting to update and if rows updated then sync is in progress
@@ -1045,7 +1045,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
      */
     private function create_callback( $post_id = null ) {
       $log_helper  = new ES_Feeder\Admin\Helpers\Log_Helper();
-      $sync_helper = new ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
+      $sync_helper = new ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin_name );
       $statuses    = $sync_helper->statuses;
 
       $options     = get_option( $this->plugin_name );
@@ -1110,7 +1110,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
      * @since 2.0.0
      */
     public function get_site() {
-      $opt  = get_option( $this->plugin );
+      $opt  = get_option( $this->plugin_name );
       $url  = $opt['es_wpdomain'];
       $args = wp_parse_url( $url );
       $host = $url;
