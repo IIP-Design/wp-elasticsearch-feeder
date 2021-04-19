@@ -27,8 +27,6 @@ class Owner_Helper {
     $this->plugin = $plugin;
   }
 
-  public $owners;
-
   /**
    * Retrieves the allowed owner list from the API and populates an array for use
    * in the owner dropdown.
@@ -42,12 +40,13 @@ class Owner_Helper {
 
     if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
       $owners = get_option( 'cdp_owners' );
+
       if ( $owners ) {
         return $owners;
       }
     }
 
-    $owners = array( '' );
+    $owners = array();
     $args   = array(
       'method' => 'GET',
       'url'    => 'owner',
@@ -66,5 +65,4 @@ class Owner_Helper {
 
     return $owners;
   }
-
 }

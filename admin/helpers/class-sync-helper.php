@@ -155,7 +155,7 @@ class Sync_Helper {
     // Check sync status by attempting to update and if rows updated then sync is in progress.
     $rows = $wpdb->query(
       $wpdb->prepare(
-        "UPDATE $wpdb->postmeta SET meta_value = %d WHERE post_id = %d AND meta_key = '_cdp_sync_status' AND meta_value IN (%d . ',' . %d)",
+        "UPDATE $wpdb->postmeta SET meta_value = %d WHERE post_id = %d AND meta_key = '_cdp_sync_status' AND meta_value IN (%d,%d)",
         $while_syncing,
         $post_id,
         $syncing,
@@ -217,15 +217,15 @@ class Sync_Helper {
     $status_data = $this->get_status_code_data( $status_code, $merge_publishes );
 
     ?>
-      <div
-        class="sync-status sync-status-<?php echo esc_attr( $status_data['color'] ); ?>"
-        title="<?php echo esc_attr( $status_data['title'] ); ?>"
-      ></div>
+    <div
+      class="sync-status sync-status-<?php echo esc_attr( $status_data['color'] ); ?>"
+      title="<?php echo esc_attr( $status_data['title'] ); ?>"
+    ></div>
 
-      <div class="sync-status-label">
-        <?php echo $text ? esc_html( $status_data['title'] ) : ''; ?>
-      </div>
-      <?php
+    <div class="sync-status-label">
+      <?php echo $text ? esc_html( $status_data['title'] ) : ''; ?>
+    </div>
+    <?php
   }
 
   /**

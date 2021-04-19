@@ -179,7 +179,7 @@ class Admin {
       add_meta_box(
         'index-to-cdp-mb',
         'Publish to Content Commons',
-        array( $this, 'index_to_cdp_display' ),
+        array( $this, 'index_item_toggle' ),
         $screen,
         'side',
         'high'
@@ -189,7 +189,7 @@ class Admin {
         add_meta_box(
           'es-feeder-response',
           'API Data',
-          array( $this, 'api_response_data' ),
+          array( $this, 'api_debugger' ),
           $screen
         );
       }
@@ -219,31 +219,80 @@ class Admin {
   }
 
   /**
+   * Render a radio toggle to determine whether or not to index a given post.
+   *
+   * @param object $post  WordPress post Object.
+   *
    * @since 1.0.0
    */
-  public function index_to_cdp_display( $post ) {
-    include_once ES_FEEDER_DIR . 'admin/partials/wp-es-feeder-index-to-cdp-display.php';
+  public function index_item_toggle( $post ) {
+    $sync_helper = new Admin\Helpers\Sync_Helper( $this->plugin ); // Do not remove, used in the partial below.
+
+    $sync_status = get_post_meta( $post->ID, '_cdp_sync_status', true );
+    $value       = get_post_meta( $post->ID, '_iip_index_post_to_cdp_option', true ); // Do not remove, used in the partial below.
+    $sync        = ! empty( $sync_status ) ? $sync_status : 'Never synced'; // Do not remove, used in the partial below.
+
+    include_once ES_FEEDER_DIR . 'admin/partials/index-item-toggle.php';
   }
 
   /**
+   * Render a debugger window to show API response data.
+   *
+   * @param object $post  WordPress post Object.
+   *
    * @since 2.1.0
    */
-  public function api_response_data( $post ) {
-    include_once ES_FEEDER_DIR . 'admin/partials/wp-es-feeder-api-view-display.php';
+  public function api_debugger( $post ) {
+    $post_helper = new Admin\Helpers\Post_Helper( $this->plugin );
+
+    $options = get_option( $this->plugin );
+    $es_url  = ! empty( $options['es_url'] ) ? $options['es_url'] : null;
+    $token   = $options['es_token'];
+
+    if ( $es_url && $token ) {
+      $uuid     = $post_helper->get_uuid( $post );
+      $endpoint = $es_url . $post_helper->get_post_type_label( $post->post_type ) . '/' . $uuid; // Do not remove, used in the partial below.
+
+      include_once ES_FEEDER_DIR . 'admin/partials/api-debugger.php';
+    }
   }
 
   /**
+   * Renders an select element populated with the possible post languages.
+   *
+   * @param object $post  WordPress post Object.
+   *
    * @since 2.2.0
    */
   public function language_dropdown( $post ) {
-    include_once ES_FEEDER_DIR . 'admin/partials/wp-es-feeder-language-display.php';
+    // Get list of available languages.
+    $language_helper = new Admin\Helpers\Language_Helper( $this->plugin );
+    $langs           = $language_helper->get_languages(); // Do not remove, used in the partial below.
+
+    // Get the current language, falling back to English if not set.
+    $language = get_post_meta( $post->ID, '_iip_language', true );
+    $selected = ! empty( $language ) ? $language : 'en-us'; // Do not remove, used in the partial below.
+
+    include_once ES_FEEDER_DIR . 'admin/partials/dropdown-language.php';
   }
 
   /**
+   * Renders an select element populated with the possible post owners.
+   *
+   * @param object $post  WordPress post Object.
+   *
    * @since 2.5.0
    */
   public function owner_dropdown( $post ) {
-    include_once ES_FEEDER_DIR . 'admin/partials/owner-view.php';
+    // Get list of available owners.
+    $owner_helper = new Admin\Helpers\Owner_Helper( $this->plugin );
+    $owners       = $owner_helper->get_owners(); // Do not remove, used in the partial below.
+
+    $post_owner = get_post_meta( $post->ID, '_iip_owner', true );
+    $sitename   = get_bloginfo( 'name' );
+    $selected   = ! empty( $post_owner ) ? $post_owner : $sitename; // Do not remove, used in the partial below.
+
+    include_once ES_FEEDER_DIR . 'admin/partials/dropdown-owner.php';
   }
 
   /**
@@ -253,6 +302,7 @@ class Admin {
     $options       = get_option( $this->plugin );
     $es_post_types = $options['es_post_types'] ? $options['es_post_types'] : null;
     $screens       = array();
+
     if ( $es_post_types ) {
       foreach ( $es_post_types as $key => $value ) {
         if ( $value ) {
@@ -263,6 +313,7 @@ class Admin {
         }
       }
     }
+
     foreach ( $screens as $screen ) {
       add_meta_box(
           'cdp-taxonomy',
@@ -276,11 +327,18 @@ class Admin {
   }
 
   /**
+   * Renders an select element populated with the possible post taxonomy.
+   *
+   * @param object $post  WordPress post Object.
+   *
    * @since 2.0.0
    */
   private function cdp_taxonomy_display( $post ) {
-    $taxonomy = $this->get_taxonomy();
-    include_once ES_FEEDER_DIR . 'admin/partials/wp-es-feeder-cdp-taxonomy-display.php';
+    $current_terms = get_post_meta( $post->ID, '_iip_taxonomy_terms', true );
+    $selected      = ! empty( $current_terms ) ? $current_terms : array(); // Do not remove, used in the partial below.
+    $taxonomy      = $this->get_taxonomy(); // Do not remove, used in the partial below.
+
+    include_once ES_FEEDER_DIR . 'admin/partials/dropdown-taxonomy.php';
   }
 
   /**
@@ -378,7 +436,7 @@ class Admin {
     if ( $errors['errors'] ) {
       $plural = ( 1 != $errors['errors'] ? 's' : '' );?>
       <div class="notice notice-error feeder-notice is-dismissible">
-          <p>WP ES Feeder has encountered <?php echo $errors['errors']; ?> error<?php echo $plural; ?>. Click <a href="<?php echo admin_url( 'options-general.php?page=wp-es-feeder' ); ?>">here</a> to go to the <a href="<?php echo admin_url( 'options-general.php?page=wp-es-feeder' ); ?>">settings page</a> where you can fix the error<?php echo $plural; ?>.</p>
+          <p>WP ES Feeder has encountered <?php echo $errors['errors']; ?> error<?php echo $plural; ?>. Click <a href="<?php echo admin_url( 'options-general.php?page=wp-es-feeder' ); ?>">here</a> to go to the <a href="<?php echo esc_url( admin_url( 'options-general.php?page=wp-es-feeder' ) ); ?>">settings page</a> where you can fix the error<?php echo $plural; ?>.</p>
       </div>
       <script type="text/javascript">
         jQuery(function($) {

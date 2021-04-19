@@ -1,9 +1,11 @@
 <?php
-$sync_helper = new ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
+/**
+ * Radio toggle to determine whether or not to index a given post.
+ *
+ * @package ES_Feeder\Admin
+ * @since 1.0.0
+ */
 
-$sync_status = get_post_meta( $post->ID, '_cdp_sync_status', true );
-$value       = get_post_meta( $post->ID, '_iip_index_post_to_cdp_option', true );
-$sync        = ! empty( $sync_status ) ? $sync_status : 'Never synced';
 ?>
 <label for="index_cdp_yes">
   <input 
@@ -29,5 +31,6 @@ $sync        = ! empty( $sync_status ) ? $sync_status : 'Never synced';
 </label>
 
 <div style="margin-top: 6px;">
-    Publish Status: <div id="cdp_sync_status" style="display: inline-block;"><?php $sync_helper->sync_status_indicator( $sync, true, true ); ?></div>
+  <?php esc_html_e( 'Publish Status:', 'gpalab-feeder' ); ?>
+  <div id="cdp_sync_status" style="display: inline-block;"><?php $sync_helper->sync_status_indicator( $sync, true, true ); ?></div>
 </div>
