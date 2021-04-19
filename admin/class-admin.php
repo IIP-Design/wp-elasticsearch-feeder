@@ -60,7 +60,10 @@ class Admin {
    * @since 1.0.0
    */
   public function enqueue_styles( $hook ) {
-    global $post, $feeder;
+    global $post;
+
+    $post_helper = new Admin\Helpers\Post_Helper( $this->plugin );
+
     wp_enqueue_style(
       $this->plugin,
       ES_FEEDER_URL . 'admin/css/wp-es-feeder-admin.css',
@@ -71,7 +74,7 @@ class Admin {
 
     if (
       ( 'post.php' === $hook || 'post-new.php' === $hook )
-      && in_array( $post->post_type, $feeder->get_allowed_post_types(), true )
+      && in_array( $post->post_type, $post_helper->get_allowed_post_types(), true )
     ) {
       wp_enqueue_style(
         'chosen',
@@ -91,9 +94,12 @@ class Admin {
    * @since 1.0.0
    */
   public function enqueue_scripts( $hook ) {
-    global $post, $feeder;
+    global $post;
 
-    $totals = $feeder->get_resync_totals();
+    $post_helper = new Admin\Helpers\Post_Helper( $this->plugin );
+    $sync_helper = new Admin\Helpers\Sync_Helper( $this->plugin );
+
+    $totals = $sync_helper->get_resync_totals();
     $sync   = array(
       'complete' => 0,
       'total'    => 0,
@@ -112,7 +118,7 @@ class Admin {
 
     if (
       ( 'post.php' === $hook || 'post-new.php' === $hook )
-      && in_array( $post->post_type, $feeder->get_allowed_post_types(), true )
+      && in_array( $post->post_type, $post_helper->get_allowed_post_types(), true )
     ) {
       wp_enqueue_script(
         'chosen',
@@ -153,7 +159,7 @@ class Admin {
   /**
    * @since 2.1.0
    */
-  function add_admin_meta_boxes() {
+  public function add_admin_meta_boxes() {
     $options          = get_option( $this->plugin );
     $es_post_types    = $options['es_post_types'] ? $options['es_post_types'] : null;
     $es_api_data      = ( current_user_can( 'manage_options' ) && array_key_exists( 'es_api_data', $options ) && $options['es_api_data'] );
@@ -215,36 +221,35 @@ class Admin {
   /**
    * @since 1.0.0
    */
-  function index_to_cdp_display( $post ) {
-    global $feeder;
+  public function index_to_cdp_display( $post ) {
     include_once ES_FEEDER_DIR . 'admin/partials/wp-es-feeder-index-to-cdp-display.php';
   }
 
   /**
    * @since 2.1.0
    */
-  function api_response_data( $post ) {
+  public function api_response_data( $post ) {
     include_once ES_FEEDER_DIR . 'admin/partials/wp-es-feeder-api-view-display.php';
   }
 
   /**
    * @since 2.2.0
    */
-  function language_dropdown( $post ) {
+  public function language_dropdown( $post ) {
     include_once ES_FEEDER_DIR . 'admin/partials/wp-es-feeder-language-display.php';
   }
 
   /**
    * @since 2.5.0
    */
-  function owner_dropdown( $post ) {
+  public function owner_dropdown( $post ) {
     include_once ES_FEEDER_DIR . 'admin/partials/owner-view.php';
   }
 
   /**
    * @since 2.0.0
    */
-  function add_admin_cdp_taxonomy() {
+  public function add_admin_cdp_taxonomy() {
     $options       = get_option( $this->plugin );
     $es_post_types = $options['es_post_types'] ? $options['es_post_types'] : null;
     $screens       = array();
@@ -273,9 +278,8 @@ class Admin {
   /**
    * @since 2.0.0
    */
-  function cdp_taxonomy_display( $post ) {
-    global $feeder;
-    $taxonomy = $feeder->get_taxonomy();
+  private function cdp_taxonomy_display( $post ) {
+    $taxonomy = $this->get_taxonomy();
     include_once ES_FEEDER_DIR . 'admin/partials/wp-es-feeder-cdp-taxonomy-display.php';
   }
 
@@ -316,6 +320,33 @@ class Admin {
   }
 
   /**
+   * @since 2.0.0
+   */
+  private function get_taxonomy() {
+    $post_actions = new Post_Actions( $this->plugin );
+
+    $args = array(
+      'method' => 'GET',
+      'url'    => 'taxonomy?tree',
+    );
+
+    $data = $post_actions->request( $args );
+
+    if ( $data ) {
+      if ( is_object( $data ) && $data->error ) {
+          return array();
+      }
+      if ( is_array( $data ) && array_key_exists( 'error', $data ) && $data['error'] ) {
+          return array();
+      } elseif ( is_array( $data ) ) {
+            return $data;
+      }
+    }
+
+    return array();
+  }
+
+  /**
    * @since 1.0.0
    */
   public function options_update() {
@@ -336,13 +367,16 @@ class Admin {
    * @since 2.0.0
    */
   public function sync_errors_notice() {
-    global $feeder;
+    $sync_helper = new Admin\Helpers\Sync_Helper( $this->plugin );
+
     if ( ! current_user_can( 'manage_options' ) || isset( $_COOKIE['cdp-feeder-notice-dismissed'] ) ) {
       return;
     }
-    $errors = $feeder->check_sync_errors();
+
+    $errors = $sync_helper->check_sync_errors();
+
     if ( $errors['errors'] ) {
-      $plural = ( $errors['errors'] != 1 ? 's' : '' );?>
+      $plural = ( 1 != $errors['errors'] ? 's' : '' );?>
       <div class="notice notice-error feeder-notice is-dismissible">
           <p>WP ES Feeder has encountered <?php echo $errors['errors']; ?> error<?php echo $plural; ?>. Click <a href="<?php echo admin_url( 'options-general.php?page=wp-es-feeder' ); ?>">here</a> to go to the <a href="<?php echo admin_url( 'options-general.php?page=wp-es-feeder' ); ?>">settings page</a> where you can fix the error<?php echo $plural; ?>.</p>
       </div>
@@ -364,10 +398,12 @@ class Admin {
    * @since 2.0.0
    */
   public function columns_head( $defaults ) {
-    global $feeder;
-    if ( in_array( get_post_type(), $feeder->get_allowed_post_types() ) ) {
-        $defaults['sync_status'] = 'Publish Status';
+    $post_helper = new Admin\Helpers\Post_Helper( $this->plugin );
+
+    if ( in_array( get_post_type(), $post_helper->get_allowed_post_types(), true ) ) {
+      $defaults['sync_status'] = 'Publish Status';
     }
+
     return $defaults;
   }
 
@@ -375,7 +411,7 @@ class Admin {
    * @since 2.0.0
    */
   public function columns_content( $column_name, $post_ID ) {
-    $sync_helper = new \ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
+    $sync_helper = new Admin\Helpers\Sync_Helper( $this->plugin );
 
     if ( 'sync_status' === $column_name ) {
       $status = get_post_meta( $post_ID, '_cdp_sync_status', true );
@@ -388,6 +424,7 @@ class Admin {
    */
   public function sortable_columns( $columns ) {
     $columns['sync_status'] = '_cdp_sync_status';
+
     return $columns;
   }
 }

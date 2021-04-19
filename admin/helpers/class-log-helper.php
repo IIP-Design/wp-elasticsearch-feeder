@@ -17,6 +17,15 @@ namespace ES_Feeder\Admin\Helpers;
 class Log_Helper {
 
   /**
+   * Initializes the class with the plugin name and version.
+   *
+   * @since 3.0.0
+   */
+  public function __construct() {
+    $this->log_all = false;
+  }
+
+  /**
    * @since 2.0.0
    */
   public function log( $str, $file = 'feeder.log' ) {
@@ -48,7 +57,7 @@ class Log_Helper {
 
     $log = $this->tail( $path, 100 );
 
-    echo json_encode( $log );
+    echo wp_json_encode( $log );
 
     exit;
   }

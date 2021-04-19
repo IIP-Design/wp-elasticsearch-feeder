@@ -33,11 +33,21 @@
     $es_post_owner    = array_key_exists( 'es_post_owner', $options ) && $options['es_post_owner'] ? 1 : 0;
 
     // Get domain(s) - support for Domain Mapping.
-    $site          = site_url();
-    $wpdb->dmtable = $wpdb->base_prefix . 'domain_mapping';
-    $domains       = $wpdb->get_col( "SELECT domain FROM {$wpdb->dmtable}" );
-    $protocol      = is_ssl() ? 'https://' : 'http://';
+    $site = site_url();
 
+    $dmtable = $wpdb->base_prefix . 'domain_mapping';
+
+    $has_domain_mapping = $wpdb->get_results(
+      $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $dmtable ) )
+    );
+
+    $domains;
+
+    if ( ! empty( $use_domain_mapping ) ) {
+      $domains = $wpdb->get_col( "SELECT domain FROM {$wpdb->prefix}domain_mapping" );
+    }
+
+    $protocol = is_ssl() ? 'https://' : 'http://';
     $selected = '';
 
     if ( $site === $es_wpdomain || empty( $es_wpdomain ) ) {

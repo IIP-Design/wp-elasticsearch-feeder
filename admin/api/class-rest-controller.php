@@ -51,10 +51,7 @@ class REST_Controller extends WP_REST_Controller {
       array(
         array(
           'methods'             => \WP_REST_Server::READABLE,
-          'callback'            => array(
-            $this,
-            'get_items',
-          ),
+          'callback'            => array( $this, 'get_items' ),
           'args'                => array(
             'per_page' => array(
               'validate_callback' => function ( $param, $request, $key ) {
@@ -67,10 +64,7 @@ class REST_Controller extends WP_REST_Controller {
               },
             ),
           ),
-          'permission_callback' => array(
-            $this,
-            'get_items_permissions_check',
-          ),
+          'permission_callback' => array( $this, 'get_items_permissions_check' ),
         ),
       )
     );
@@ -82,10 +76,7 @@ class REST_Controller extends WP_REST_Controller {
       array(
         array(
           'methods'             => \WP_REST_Server::READABLE,
-          'callback'            => array(
-            $this,
-            'get_item',
-          ),
+          'callback'            => array( $this, 'get_item' ),
           'args'                => array(
             'id' => array(
               'validate_callback' => function ( $param, $request, $key ) {
@@ -93,10 +84,7 @@ class REST_Controller extends WP_REST_Controller {
               },
             ),
           ),
-          'permission_callback' => array(
-            $this,
-            'get_item_permissions_check',
-          ),
+          'permission_callback' => array( $this, 'get_item_permissions_check' ),
         ),
       )
     );
@@ -265,7 +253,7 @@ class REST_Controller extends WP_REST_Controller {
     // If the post is an attachment return right away.
     if ( 'attachment' === $post->post_type ) {
       $post_data         = wp_prepare_attachment_for_js( $post->ID );
-      $post_data['site'] = $this->get_site();
+      $post_data['site'] = $api_helper->get_site();
       return rest_ensure_response( $post_data );
     }
 
@@ -276,7 +264,7 @@ class REST_Controller extends WP_REST_Controller {
 
     $post_data['type'] = $this->type;
 
-    $post_data['site'] = $this->get_site();
+    $post_data['site'] = $api_helper->get_site();
 
     $post_data['owner'] = $api_helper->get_owner( $post->ID );
 
@@ -357,24 +345,6 @@ class REST_Controller extends WP_REST_Controller {
     }
 
     return $status;
-  }
-
-  /**
-   * @since 2.0.0
-   */
-  public function get_site() {
-    $opt  = get_option( $this->plugin );
-    $url  = $opt['es_wpdomain'];
-    $args = wp_parse_url( $url );
-    $host = $url;
-
-    if ( array_key_exists( 'host', $args ) ) {
-      $host = $args['host'];
-    } else {
-      $host = str_ireplace( 'https://', '', str_ireplace( 'http://', '', $host ) );
-    }
-
-    return $host;
   }
 
   /**

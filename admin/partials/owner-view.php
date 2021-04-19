@@ -3,7 +3,7 @@ $post_owner = get_post_meta( $post->ID, '_iip_owner', true );
 $sitename   = get_bloginfo( 'name' );
 $selected   = empty( $post_owner ) ? $post_owner : $sitename;
 
-$owner_helper = new \ES_Feeder\Admin\Helpers\Owner_Helper();
+$owner_helper = new \ES_Feeder\Admin\Helpers\Owner_Helper( $this->plugin );
 $owners       = $owner_helper->get_owners();
 
 ?>

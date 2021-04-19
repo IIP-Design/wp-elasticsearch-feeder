@@ -20,7 +20,18 @@ use WP_REST_Controller;
  */
 class REST_Callback_Controller extends WP_REST_Controller {
 
-  const LOG_ALL = false;
+  /**
+   * Initializes the class with the plugin name and version.
+   *
+   * @param string $namespace   The namespace to use for the API endpoint.
+   * @param string $plugin      The plugin name.
+   *
+   * @since 3.0.0
+   */
+  public function __construct( $namespace, $plugin ) {
+    $this->namespace = $namespace;
+    $this->plugin    = $plugin;
+  }
 
   /**
    * Registers a REST API routes to accept callback responses from Elasticsearch.
@@ -42,10 +53,7 @@ class REST_Callback_Controller extends WP_REST_Controller {
               },
             ),
           ),
-          'permission_callback' => array(
-            $this,
-            'get_items_permissions_check',
-          ),
+          'permission_callback' => array( $this, 'get_items_permissions_check' ),
         ),
       )
     );
@@ -58,9 +66,10 @@ class REST_Callback_Controller extends WP_REST_Controller {
    * @since 2.0.0
    */
   public function process_response( $request ) {
-    global $wpdb, $feeder;
+    global $wpdb;
 
     $logger      = new \ES_Feeder\Admin\Helpers\Log_Helper();
+    $post_helper = new \ES_Feeder\Admin\Helpers\Post_Helper( $this->plugin );
     $sync_helper = new \ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
     $statuses    = $sync_helper->statuses;
 
@@ -83,14 +92,14 @@ class REST_Callback_Controller extends WP_REST_Controller {
 
     $sync_status = get_post_meta( $post_id, '_cdp_sync_status', true );
 
-    if ( self::LOG_ALL ) {
+    if ( $logger->log_all ) {
       $logger->log( "INCOMING CALLBACK FOR UID: $uid, post_id: $post_id, sync_status: $sync_status\r\n" . print_r( $data, 1 ) . "\r\n", 'callback.log' );
       $logger->log( "Callback received with sync_status: $sync_status for: $post_id, uid: $uid", 'feeder.log' );
     }
 
     if ( $post_id == $wpdb->get_var( "SELECT post_id FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_uid' AND meta_value = '" . $wpdb->_real_escape( $uid ) . "'" ) ) {
       if ( ! $data['error'] ) {
-        if ( self::LOG_ALL ) {
+        if ( $logger->log_all ) {
           $logger->log( "No error found for $post_id, sync_uid: $uid", 'feeder.log' );
         }
         if ( $statuses['SYNC_WHILE_SYNCING'] === $sync_status ) {
@@ -102,9 +111,9 @@ class REST_Callback_Controller extends WP_REST_Controller {
             update_post_meta( $post_id, '_cdp_resync_count', $resyncs );
             $post = get_post( $post_id );
             if ( 'publish' === $post->post_status ) {
-              $feeder->post_sync_send( $post, false );
+              $post_helper->post_sync_send( $post, false );
             } else {
-              $feeder->delete( $post );
+              $post_helper->delete( $post );
             }
           }
         } else {
@@ -122,7 +131,7 @@ class REST_Callback_Controller extends WP_REST_Controller {
             $logger->log( "Resyncing post: $post_id, resync #$resyncs", 'callback.log' );
             update_post_meta( $post_id, '_cdp_resync_count', $resyncs );
             $post = get_post( $post_id );
-            $feeder->post_sync_send( $post, false );
+            $post_helper->post_sync_send( $post, false );
           } else {
             update_post_meta( $post_id, '_cdp_sync_status', $statuses['ERROR'] );
             delete_post_meta( $post_id, '_cdp_resync_count' );
@@ -135,7 +144,6 @@ class REST_Callback_Controller extends WP_REST_Controller {
           delete_post_meta( $post_id, '_cdp_resync_count' );
         }
       } else {
-        // $feeder->log( "INCOMING CALLBACK FOR UID: $uid, post_id: $post_id, sync_status: $sync_status\r\n" . print_r( $data, 1 ) . "\r\n", 'callback.log' );
         $log = null;
         if ( $data['message'] ) {
           $log = "Incoming Callback: $uid - ID: $post_id - ";
@@ -166,7 +174,7 @@ class REST_Callback_Controller extends WP_REST_Controller {
         )
       );
 
-      if ( self::LOG_ALL ) {
+      if ( $logger->log_all ) {
         $logger->log( "Sync UID ($uid) deleted for: $post_id", 'feeder.log' );
       }
     } else {

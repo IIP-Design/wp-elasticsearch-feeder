@@ -58,7 +58,7 @@ class API {
       }
     }
 
-    $controller = new Admin\API\REST_Callback_Controller();
+    $controller = new Admin\API\REST_Callback_Controller( $this->namespace, $this->plugin );
     $controller->register_routes();
   }
 

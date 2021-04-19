@@ -1,7 +1,7 @@
 <?php
 $selected = get_post_meta( $post->ID, '_iip_language', true ) ?: 'en-us';
 
-$language_helper = new \ES_Feeder\Admin\Helpers\Language_Helper();
+$language_helper = new \ES_Feeder\Admin\Helpers\Language_Helper( $this->plugin );
 $langs           = $language_helper->get_languages();
 ?>
 <select id="cdp-language" data-placeholder="Select Language" name="cdp_language" title="Language" style="width: 100%">

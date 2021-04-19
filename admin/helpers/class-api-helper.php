@@ -8,6 +8,8 @@
 
 namespace ES_Feeder\Admin\Helpers;
 
+use WPBMap;
+
 /**
  * Registers API helper functions.
  *
@@ -49,7 +51,7 @@ class API_Helper {
    *
    * @since 1.0.0
    */
-  public static function get_featured_image( $id ) {
+  public function get_featured_image( $id ) {
     $image = wp_prepare_attachment_for_js( $id );
 
     $data = array(
@@ -123,7 +125,7 @@ class API_Helper {
   public function get_language( $id ) {
     global $sitepress;
 
-    $language_helper = new \ES_Feeder\Admin\Helpers\Language_Helper();
+    $language_helper = new \ES_Feeder\Admin\Helpers\Language_Helper( $this->plugin );
 
     if ( $sitepress ) {
       $output           = apply_filters( 'wpml_post_language_details', null, $id );
@@ -168,6 +170,24 @@ class API_Helper {
   }
 
   /**
+   * @since 2.0.0
+   */
+  public function get_site() {
+    $opt  = get_option( $this->plugin );
+    $url  = $opt['es_wpdomain'];
+    $args = wp_parse_url( $url );
+    $host = $url;
+
+    if ( array_key_exists( 'host', $args ) ) {
+      $host = $args['host'];
+    } else {
+      $host = str_ireplace( 'https://', '', str_ireplace( 'http://', '', $host ) );
+    }
+
+    return $host;
+  }
+
+  /**
    * Check whether the given post should be indexed.
    *
    * @param int $id   The unique identifier for a given WordPress post.
@@ -184,8 +204,8 @@ class API_Helper {
   /**
    * @since 1.0.0
    */
-  public static function get_related_translated_posts( $id, $post_type ) {
-    $language_helper = new \ES_Feeder\Admin\Helpers\Language_Helper();
+  public function get_related_translated_posts( $id, $post_type ) {
+    $language_helper = new \ES_Feeder\Admin\Helpers\Language_Helper( $this->plugin );
 
     return $language_helper->get_translations( $id );
   }
@@ -193,7 +213,7 @@ class API_Helper {
   /**
    * @since 1.0.0
    */
-  public static function get_categories( $id ) {
+  public function get_categories( $id ) {
     $categories = wp_get_post_categories(
       $id,
       array(
@@ -269,7 +289,7 @@ class API_Helper {
   /**
    * @since 1.0.0
    */
-  public static function get_categories_searchable( $id ) {
+  public function get_categories_searchable( $id ) {
     $categories = wp_get_post_categories(
       $id,
       array(
@@ -295,7 +315,7 @@ class API_Helper {
    *
    * @since 1.0.0
    */
-  public static function get_tags( $id ) {
+  public function get_tags( $id ) {
     $tags = wp_get_post_tags( $id );
 
     $output = array();
@@ -360,12 +380,12 @@ class API_Helper {
    *
    * @since 1.0.0
    */
-  public static function render_vc_shortcodes( $post_object ) {
+  public function render_vc_shortcodes( $post_object ) {
     if ( ! class_exists( 'WPBMap' ) ) {
       return apply_filters( 'the_content', $post_object->post_content );
     }
 
-    \WPBMap::addAllMappedShortcodes();
+    WPBMap::addAllMappedShortcodes();
 
     $post   = get_post( $post_object->ID );
     $output = apply_filters( 'the_content', $post->post_content );

@@ -31,13 +31,14 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 }
 
 function wp_es_clear_data() {
-  $PLUGIN_NAME = 'wp-es-feeder';
-  delete_option( $PLUGIN_NAME );
-  delete_option( $PLUGIN_NAME . '_syncable_posts' );
+  $plugin_name = 'wp-es-feeder';
+  delete_option( $plugin_name );
+  delete_option( $plugin_name . '_syncable_posts' );
   delete_option( 'cdp_languages' );
   delete_option( 'cdp_owners' );
 
   global $wpdb;
+
   $wpdb->delete( $wpdb->postmeta, array( 'meta_key' => '_cdp_sync_status' ) );
   $wpdb->delete( $wpdb->postmeta, array( 'meta_key' => '_cdp_sync_uid' ) );
   $wpdb->delete( $wpdb->postmeta, array( 'meta_key' => '_cdp_sync_queue' ) );
