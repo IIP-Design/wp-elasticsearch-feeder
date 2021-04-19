@@ -71,5 +71,9 @@ spl_autoload_register( 'feeder_autoloader' );
  * then kicking off the plugin from this point in the file does
  * not affect the page life cycle.
  */
-$feeder = new ES_Feeder();
-$feeder->run();
+function run_gpalab_feeder() {
+  $feeder = new ES_Feeder();
+  $feeder->run();
+}
+
+run_gpalab_feeder();
