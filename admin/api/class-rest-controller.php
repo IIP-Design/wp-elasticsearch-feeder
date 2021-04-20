@@ -174,7 +174,7 @@ class REST_Controller extends WP_REST_Controller {
         $data['site_taxonomies'] = $site_taxonomies;
       }
 
-      $categories = get_post_meta( $id, '_iip_taxonomy_terms', true ) ?: array();
+      $categories = ! empty( get_post_meta( $id, '_iip_taxonomy_terms', true ) ) ? get_post_meta( $id, '_iip_taxonomy_terms', true ) : array();
       $cat_ids    = array();
       foreach ( $categories as $cat ) {
         $args = explode( '<', $cat );
@@ -234,7 +234,7 @@ class REST_Controller extends WP_REST_Controller {
    * Normalize the data provided by the API request for a single item.
    *
    * @param WP_Post                   $post       The WordPress post data for a given post.
-   * @param WP_Error|WP_REST_Response $request   The data returned by the API request.
+   * @param WP_Error|WP_REST_Response $request    The data returned by the API request.
    * @return array                                The normalized data.
    *
    * @since 1.0.0
@@ -244,11 +244,18 @@ class REST_Controller extends WP_REST_Controller {
   }
 
   /**
+   * Retrieve the post data required to index a post.
+   *
+   * @param WP_Post $post   A WordPress post object.
+   * @return array          Normalize post data.
+   *
    * @since 1.0.0
    */
-  public function baseline( $post, $request ) {
-    $api_helper = new \ES_Feeder\Admin\Helpers\API_Helper( $this->plugin );
-    $post_data  = array();
+  public function baseline( $post ) {
+    $api_helper      = new \ES_Feeder\Admin\Helpers\API_Helper( $this->plugin );
+    $language_helper = new \ES_Feeder\Admin\Helpers\Language_Helper( $this->plugin );
+
+    $post_data = array();
 
     // If the post is an attachment return right away.
     if ( 'attachment' === $post->post_type ) {
@@ -300,8 +307,10 @@ class REST_Controller extends WP_REST_Controller {
       $post_data['excerpt'] = $post->post_excerpt;
     }
 
-    $post_data['language']  = $api_helper->get_language( $post->ID );
-    $post_data['languages'] = $api_helper->get_related_translated_posts( $post->ID, $post->post_type ) ?: array();
+    $post_data['language'] = $api_helper->get_language( $post->ID );
+
+    $post_translations      = $language_helper->get_translations( $post->ID );
+    $post_data['languages'] = ! empty( $post_translations ) ? $post_translations : array();
 
     if ( ! array_key_exists( 'tags', $post_data ) ) {
       $post_data['tags'] = array();
@@ -321,6 +330,10 @@ class REST_Controller extends WP_REST_Controller {
   }
 
   /**
+   * Set the response status code.
+   *
+   * @return int    The appropriate status code.
+   *
    * @since 1.0.0
    */
   public function authorization_status_code() {

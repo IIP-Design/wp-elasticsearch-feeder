@@ -42,7 +42,10 @@ class Settings {
       __( 'WP ES Feeder', 'gpalab-feeder' ),
       'manage_options',
       $this->plugin,
-      array( $this, 'display_plugin_setup_page' )
+      function() {
+        return $this->display_plugin_setup_page();
+      },
+      null
     );
   }
 
@@ -51,7 +54,7 @@ class Settings {
    *
    * @since 1.0.0
    */
-  public function display_plugin_setup_page() {
+  private function display_plugin_setup_page() {
     include_once ES_FEEDER_DIR . 'admin/partials/settings-view.php';
   }
 }

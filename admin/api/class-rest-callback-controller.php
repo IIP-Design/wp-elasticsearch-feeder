@@ -60,8 +60,10 @@ class REST_Callback_Controller extends WP_REST_Controller {
   }
 
   /**
-   * @param $request WP_REST_Request
-   * @return array
+   * Handle data received by the callback endpoint.
+   *
+   * @param WP_REST_Request $request   The request received by the callback endpoint.
+   * @return array                     A response to be sent back.
    *
    * @since 2.0.0
    */
@@ -103,7 +105,10 @@ class REST_Callback_Controller extends WP_REST_Controller {
           $logger->log( "No error found for $post_id, sync_uid: $uid", 'feeder.log' );
         }
         if ( $statuses['SYNC_WHILE_SYNCING'] === $sync_status ) {
-          $resyncs = get_post_meta( $post_id, '_cdp_resync_count', true ) ?: 0;
+
+          $count   = get_post_meta( $post_id, '_cdp_resync_count', true );
+          $resyncs = ! empty( $count ) ? $count : 0;
+
           update_post_meta( $post_id, '_cdp_sync_status', $statuses['RESYNC'] );
           if ( $resyncs < 3 ) {
             $resyncs++;
@@ -121,11 +126,23 @@ class REST_Callback_Controller extends WP_REST_Controller {
           delete_post_meta( $post_id, '_cdp_resync_count' );
         }
       } elseif ( stripos( $data['message'], 'Document not found' ) === 0 ) {
-        $post_status = $wpdb->get_var( "SELECT post_status FROM $wpdb->posts WHERE ID = $post_id" );
-        $index_cdp   = get_post_meta( $post_id, '_iip_index_post_to_cdp_option', true ) ?: 'yes';
+        $post_status = $wpdb->get_var(
+          $wpdb->prepare(
+            "SELECT post_status FROM $wpdb->posts WHERE ID = %d",
+            $post_id
+          )
+        );
+
+        $index     = get_post_meta( $post_id, '_iip_index_post_to_cdp_option', true );
+        $index_cdp = ! empty( $index ) ? $index : 'yes';
+
         if ( 'publish' === $post_status && 'no' !== $index_cdp ) {
-          $resyncs = get_post_meta( $post_id, '_cdp_resync_count', true ) ?: 0;
+
+          $count   = get_post_meta( $post_id, '_cdp_resync_count', true );
+          $resyncs = ! empty( $count ) ? $count : 0;
+
           update_post_meta( $post_id, '_cdp_sync_status', $statuses['RESYNC'] );
+
           if ( $resyncs < 3 ) {
             $resyncs++;
             $logger->log( "Resyncing post: $post_id, resync #$resyncs", 'callback.log' );

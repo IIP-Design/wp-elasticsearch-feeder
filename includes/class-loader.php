@@ -16,7 +16,7 @@ namespace ES_Feeder;
  * run function to execute the list of actions and filters.
  *
  * @package ES_Feeder
- * @subpackage ES_Feeder/Loader
+ * @subpackage ES_Feeder\Loader
  */
 class Loader {
 

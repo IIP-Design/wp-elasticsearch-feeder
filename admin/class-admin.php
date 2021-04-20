@@ -157,6 +157,8 @@ class Admin {
   }
 
   /**
+   * Populate the indexable post type admin screens with the required metaboxes.
+   *
    * @since 2.1.0
    */
   public function add_admin_meta_boxes() {
@@ -296,6 +298,8 @@ class Admin {
   }
 
   /**
+   * Add taxonomy metabox where appropriate.
+   *
    * @since 2.0.0
    */
   public function add_admin_cdp_taxonomy() {
@@ -306,8 +310,10 @@ class Admin {
     if ( $es_post_types ) {
       foreach ( $es_post_types as $key => $value ) {
         if ( $value ) {
-          $taxes = get_object_taxonomies( $key ) ?: array();
-          if ( ! in_array( 'category', $taxes ) ) {
+          $tax_names = get_object_taxonomies( $key );
+          $taxes     = ! empty( $tax_names ) ? $tax_names : array();
+
+          if ( ! in_array( 'category', $taxes, true ) ) {
             array_push( $screens, $key );
           }
         }
@@ -316,12 +322,12 @@ class Admin {
 
     foreach ( $screens as $screen ) {
       add_meta_box(
-          'cdp-taxonomy',
-          'Categories',
-          array( $this, 'cdp_taxonomy_display' ),
-          $screen,
-          'side',
-          'high'
+        'cdp-taxonomy',
+        'Categories',
+        array( $this, 'cdp_taxonomy_display' ),
+        $screen,
+        'side',
+        'high'
       );
     }
   }
@@ -342,6 +348,11 @@ class Admin {
   }
 
   /**
+   * Validate and normalize data stored in the plugin's site-wide option.
+   *
+   * @param array $input   The data to be stored in the plugin's option value.
+   * @return array         The normalized option value.
+   *
    * @since 1.0.0
    */
   public function validate( $input ) {
@@ -378,6 +389,8 @@ class Admin {
   }
 
   /**
+   * Fetch all the available taxonomy terms.
+   *
    * @since 2.0.0
    */
   private function get_taxonomy() {
@@ -392,12 +405,13 @@ class Admin {
 
     if ( $data ) {
       if ( is_object( $data ) && $data->error ) {
-          return array();
+        return array();
       }
+
       if ( is_array( $data ) && array_key_exists( 'error', $data ) && $data['error'] ) {
-          return array();
+        return array();
       } elseif ( is_array( $data ) ) {
-            return $data;
+        return $data;
       }
     }
 
@@ -405,6 +419,8 @@ class Admin {
   }
 
   /**
+   * Register the wp_es_feeder site option for plugin data.
+   *
    * @since 1.0.0
    */
   public function options_update() {
@@ -427,23 +443,40 @@ class Admin {
   public function sync_errors_notice() {
     $sync_helper = new Admin\Helpers\Sync_Helper( $this->plugin );
 
+    // Only show the error message if the user is an admin and has not dismissed the message previously.
     if ( ! current_user_can( 'manage_options' ) || isset( $_COOKIE['cdp-feeder-notice-dismissed'] ) ) {
       return;
     }
 
+    // Get the errors.
     $errors = $sync_helper->check_sync_errors();
 
+    // Set the error message and make translatable.
+    $plural  = 1 !== $errors['errors'] ? __( 'errors', 'gpalab-feeder' ) : __( 'error', 'gpalab-feeder' );
+    $message = sprintf(
+      /* translators: %1$d: number of errors, %2$s: singular or plural error, %3$s: settings page link, %4$s: singular or plural error */
+      __(
+        'WP ES Feeder has encountered %1$d %2$s. Go to the <a href="%3$s">settings page</a> to fix the %4$s.',
+        'gpalab-feeder'
+      ),
+      esc_html( $errors['errors'] ),
+      $plural,
+      admin_url( 'options-general.php?page=wp-es-feeder' ),
+      $plural
+    );
+
+    // If there are errors, add the notification.
     if ( $errors['errors'] ) {
-      $plural = ( 1 != $errors['errors'] ? 's' : '' );?>
+      $plural = ( 1 !== $errors['errors'] ? 's' : '' );?>
       <div class="notice notice-error feeder-notice is-dismissible">
-          <p>WP ES Feeder has encountered <?php echo $errors['errors']; ?> error<?php echo $plural; ?>. Click <a href="<?php echo admin_url( 'options-general.php?page=wp-es-feeder' ); ?>">here</a> to go to the <a href="<?php echo esc_url( admin_url( 'options-general.php?page=wp-es-feeder' ) ); ?>">settings page</a> where you can fix the error<?php echo $plural; ?>.</p>
+        <p><?php echo wp_kses( $message, 'post' ); ?></p>
       </div>
       <script type="text/javascript">
         jQuery(function($) {
           $(document).on('click', '.feeder-notice .notice-dismiss', function() {
             var today = new Date();
             var expire = new Date();
-            expire.setTime(today.getTime() + 3600000*24); // 1 day
+            expire.setTime(today.getTime() + 3600000*24); // 1 day.
             document.cookie = 'cdp-feeder-notice-dismissed=1;expires=' + expire.toGMTString();
           });
         });
@@ -453,34 +486,49 @@ class Admin {
   }
 
   /**
+   * Add custom CDP sync status column to the list indexable posts.
+   *
+   * @param array $defaults  List of default columns.
+   * @return array           List of updated columns.
+   *
    * @since 2.0.0
    */
-  public function columns_head( $defaults ) {
+  public function add_cdp_sync_column( $defaults ) {
     $post_helper = new Admin\Helpers\Post_Helper( $this->plugin );
 
     if ( in_array( get_post_type(), $post_helper->get_allowed_post_types(), true ) ) {
-      $defaults['sync_status'] = 'Publish Status';
+      $defaults['sync_status'] = __( 'Publish Status', 'gpalab-feeder' );
     }
 
     return $defaults;
   }
 
   /**
+   * Populate the content of the CDP sync status column.
+   *
+   * @param string $column_name   Name of the given column.
+   * @param int    $post_id       List of default columns.
+   *
    * @since 2.0.0
    */
-  public function columns_content( $column_name, $post_ID ) {
+  public function populate_custom_column( $column_name, $post_id ) {
     $sync_helper = new Admin\Helpers\Sync_Helper( $this->plugin );
 
     if ( 'sync_status' === $column_name ) {
-      $status = get_post_meta( $post_ID, '_cdp_sync_status', true );
+      $status = get_post_meta( $post_id, '_cdp_sync_status', true );
       $sync_helper->sync_status_indicator( $status, false, true );
     }
   }
 
   /**
+   * Make the CDP sync status custom columns sortable.
+   *
+   * @param array $columns  List of default columns.
+   * @return array          List of updated sortable columns.
+   *
    * @since 2.0.0
    */
-  public function sortable_columns( $columns ) {
+  public function make_sync_column_sortable( $columns ) {
     $columns['sync_status'] = '_cdp_sync_status';
 
     return $columns;

@@ -30,15 +30,14 @@ class Ajax {
   }
 
   /**
-   * Triggered by heartbeat AJAX event, added the sync status indicator HTML
-   * if the data includes es_sync_status which contains a post ID and will be
-   * converted to the sync status indicator HTML.
-   * If the data includes es_sync_status_counts, send back an array of counts
-   * for each status ID.
+   * Triggered by heartbeat AJAX event, added the sync status indicator HTML if the data includes
+   * es_sync_status which contains a post ID and will be converted to the sync status indicator HTML.
    *
-   * @param array $response
-   * @param array $data
-   * @return mixed
+   * If the data includes es_sync_status_counts, send back an array of counts for each status ID.
+   *
+   * @param array $response   The response returned to the server from the heartbeat.
+   * @param array $data       The $_POST data sent.
+   * @return array            The augmented response array.
    *
    * @since 2.0.0
    */
@@ -60,12 +59,12 @@ class Ajax {
     return $response;
   }
 
-      /**
-       * Triggered via AJAX, clears out old sync data and initiates a new sync process.
-       * If sync_errors is present, we will only initiate a sync for posts with a sync error.
-       *
-       * @since 2.0.0
-       */
+  /**
+   * Triggered via AJAX, clears out old sync data and initiates a new sync process.
+   * If sync_errors is present, we will only initiate a sync for posts with a sync error.
+   *
+   * @since 2.0.0
+   */
   public function es_initiate_sync() {
     global $wpdb;
 
@@ -117,14 +116,14 @@ class Ajax {
     exit;
   }
 
-      /**
-       * Grabs the next post in the queue and sends it to the API.
-       * Updates the postmeta indicating that this post has been synced.
-       * Returns a JSON object containing the API response for the current post
-       * as well as stats on the sync queue.
-       *
-       * @since 2.0.0
-       */
+  /**
+   * Grabs the next post in the queue and sends it to the API.
+   * Updates the postmeta indicating that this post has been synced.
+   * Returns a JSON object containing the API response for the current post
+   * as well as stats on the sync queue.
+   *
+   * @since 2.0.0
+   */
   public function es_process_next() {
     global $wpdb;
 
@@ -199,7 +198,11 @@ class Ajax {
   }
 
   /**
+   * Wrapper for Ajax call to send an indexing request.
    *
+   * @param array   $request — Options to be used when sending the AJAX request.
+   * @param string  $callback — The callback url for failed requests.
+   * @param boolean $callback_errors_only — Whether to only use callback for errors(?).
    *
    * @since 1.0.0
    */
@@ -210,7 +213,7 @@ class Ajax {
   }
 
   /**
-   *
+   * Validate the Ajax requests.
    *
    * @since 2.0.0
    */

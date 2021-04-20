@@ -8,8 +8,6 @@
 
 namespace ES_Feeder\Admin\Helpers;
 
-use WPBMap;
-
 /**
  * Registers API helper functions.
  *
@@ -31,6 +29,12 @@ class API_Helper {
   }
 
   /**
+   * Get the display name for a given post type.
+   *
+   * @param string $post_type    The post type for which to retrieve the display name.
+   * @param string $display      The post type labels property to retrieve.
+   * @return string              The requested property value as a lowercase string.
+   *
    * @since 1.0.0
    */
   public function get_post_type_label( $post_type = 'post', $display = 'name' ) {
@@ -120,6 +124,11 @@ class API_Helper {
   }
 
   /**
+   * Retrieve language information of a post by its ID.
+   *
+   * @param int $id   The WordPress post id.
+   * @return string   The
+   *
    * @since 1.0.0
    */
   public function get_language( $id ) {
@@ -130,6 +139,7 @@ class API_Helper {
     if ( $sitepress ) {
       $output           = apply_filters( 'wpml_post_language_details', null, $id );
       $output['locale'] = str_replace( '_', '-', $output['locale'] );
+
       if ( $output['locale'] ) {
         return $language_helper->get_language_by_code( $output['locale'] );
       }
@@ -170,21 +180,23 @@ class API_Helper {
   }
 
   /**
+   * Get the current site name.
+   *
+   * @return string    The hostname of the current site.
+   *
    * @since 2.0.0
    */
   public function get_site() {
     $opt  = get_option( $this->plugin );
     $url  = $opt['es_wpdomain'];
     $args = wp_parse_url( $url );
-    $host = $url;
 
+    // Parse our the host value from the WP Domain.
     if ( array_key_exists( 'host', $args ) ) {
-      $host = $args['host'];
+      return $args['host'];
     } else {
-      $host = str_ireplace( 'https://', '', str_ireplace( 'http://', '', $host ) );
+      return str_ireplace( 'https://', '', str_ireplace( 'http://', '', $url ) );
     }
-
-    return $host;
   }
 
   /**
@@ -202,23 +214,17 @@ class API_Helper {
   }
 
   /**
-   * @since 1.0.0
-   */
-  public function get_related_translated_posts( $id, $post_type ) {
-    $language_helper = new \ES_Feeder\Admin\Helpers\Language_Helper( $this->plugin );
-
-    return $language_helper->get_translations( $id );
-  }
-
-  /**
+   * Retrieve the list of ids, names, and slugs for each category assigned to a given post.
+   *
+   * @param int $id    A WordPress post id.
+   * @return array     A list of category slug values.
+   *
    * @since 1.0.0
    */
   public function get_categories( $id ) {
     $categories = wp_get_post_categories(
       $id,
-      array(
-        'fields' => 'all',
-      )
+      array( 'fields' => 'all' )
     );
 
     $output = array();
@@ -232,14 +238,15 @@ class API_Helper {
         );
       }
     }
+
     return $output;
   }
 
   /**
-   * .
+   * Retrieve the list of categories and tags assigned to a given post.
    *
-   * @param int $id   The unique identifier for a given WordPress post.
-   * @return array
+   * @param int $id    A WordPress post id.
+   * @return array     A taxonomy items.
    *
    * @since 3.0.0
    */
@@ -271,6 +278,11 @@ class API_Helper {
   }
 
   /**
+   * Normalize taxonomy data.
+   *
+   * @param array $terms    List of taxonomy items.
+   * @return array          Normalized list of taxonomy items.
+   *
    * @since 1.0.0
    */
   private function remap_terms( $terms ) {
@@ -287,14 +299,17 @@ class API_Helper {
   }
 
   /**
+   * Retrieve the list of slugs for each category assigned to a given post.
+   *
+   * @param int $id    A WordPress post id.
+   * @return array     A list of category slug values.
+   *
    * @since 1.0.0
    */
   public function get_categories_searchable( $id ) {
     $categories = wp_get_post_categories(
       $id,
-      array(
-        'fields' => 'all',
-      )
+      array( 'fields' => 'all' )
     );
 
     $output = array();
@@ -304,6 +319,7 @@ class API_Helper {
         $output[] = $category->slug;
       }
     }
+
     return $output;
   }
 
@@ -381,11 +397,13 @@ class API_Helper {
    * @since 1.0.0
    */
   public function render_vc_shortcodes( $post_object ) {
+    // Short circuit is Visual Composer is not installed.
     if ( ! class_exists( 'WPBMap' ) ) {
       return apply_filters( 'the_content', $post_object->post_content );
     }
 
-    WPBMap::addAllMappedShortcodes();
+    // Apply the Visual Composer shortcodes.
+    \WPBMap::addAllMappedShortcodes();
 
     $post   = get_post( $post_object->ID );
     $output = apply_filters( 'the_content', $post->post_content );

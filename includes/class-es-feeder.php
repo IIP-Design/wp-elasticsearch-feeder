@@ -126,6 +126,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       $posts    = new ES_Feeder\Admin\Helpers\Post_Helper( $this->get_plugin_name() );
       $settings = new ES_Feeder\Settings( $this->get_plugin_name(), $this->get_version() );
 
+      // Register and enqueue the admin scripts and styles.
       $this->loader->add_action( 'init', $admin, 'register_admin_scripts_styles' );
       $this->loader->add_action( 'admin_enqueue_scripts', $admin, 'enqueue_styles' );
       $this->loader->add_action( 'admin_enqueue_scripts', $admin, 'enqueue_scripts', 10, 1 );
@@ -141,18 +142,18 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       $plugin_basename = plugin_basename( plugin_dir_path( __DIR__ ) . $this->plugin_name . '.php' );
       $this->loader->add_filter( 'plugin_action_links_' . $plugin_basename, $admin, 'add_action_links' );
 
-      // Save/update our plugin options.
+      // Register the wp_es_feeder site option for plugin data.
       $this->loader->add_action( 'admin_init', $admin, 'options_update' );
 
       // Admin notices.
       $this->loader->add_action( 'admin_notices', $admin, 'sync_errors_notice' );
 
       // Add sync status to list tables.
-      $this->loader->add_filter( 'manage_posts_columns', $admin, 'columns_head' );
-      $this->loader->add_action( 'manage_posts_custom_column', $admin, 'columns_content', 10, 2 );
+      $this->loader->add_filter( 'manage_posts_columns', $admin, 'add_cdp_sync_column' );
+      $this->loader->add_action( 'manage_posts_custom_column', $admin, 'populate_custom_column', 10, 2 );
 
       foreach ( $posts->get_allowed_post_types() as $post_type ) {
-        $this->loader->add_filter( 'manage_edit-' . $post_type . '_sortable_columns', $admin, 'sortable_columns' );
+        $this->loader->add_filter( 'manage_edit-' . $post_type . '_sortable_columns', $admin, 'make_sync_column_sortable' );
       }
 
       // Elasticsearch indexing hook actions.

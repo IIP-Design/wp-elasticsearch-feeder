@@ -28,7 +28,9 @@ class Post_Helper {
   }
 
   /**
+   * Remove a given post from the CDP.
    *
+   * @param WP_Post $post   A WordPress post object.
    *
    * @since 1.0.0
    */
@@ -68,7 +70,12 @@ class Post_Helper {
   }
 
     /**
+     * Index a given post to the CDP.
      *
+     * @param WP_Post $post                   The give WordPress post object.
+     * @param boolean $print                  Whether or not to send the response as JSON.
+     * @param boolean $callback_errors_only   Whether to only use callback for errors(?).
+     * @param boolean $check_syncable         Whether or not check for sync-ability before updating.
      *
      * @since 1.0.0
      */
@@ -147,6 +154,10 @@ class Post_Helper {
   }
 
   /**
+   * Get a list of indexable post types.
+   *
+   * @return array    List of post types.
+   *
    * @since 2.0.0
    */
   public function get_allowed_post_types() {
@@ -167,8 +178,8 @@ class Post_Helper {
   /**
    * Construct UUID which is site domain delimited by dashes and not periods, underscore, and post ID.
    *
-   * @param $post
-   * @return string
+   * @param WP_Post $post   A WordPress post object.
+   * @return string         Unique id value.
    *
    * @since 2.0.0
    */
@@ -194,6 +205,11 @@ class Post_Helper {
   }
 
   /**
+   * Route the post updates to the correct post action.
+   *
+   * @param WP_Post $post    A WordPress post object.
+   * @param boolean $print   Whether or not to send the response as JSON.
+   *
    * @since 2.1.0
    */
   public function post_sync_send( $post, $print = true ) {
@@ -203,7 +219,8 @@ class Post_Helper {
         // Check to see if post should be indexed or removed from index.
         $should_index = $_POST['index_post_to_cdp_option'];
       } else {
-        $should_index = get_post_meta( $post->ID, '_iip_index_post_to_cdp_option', true ) ?: 'yes';
+        $index        = get_post_meta( $post->ID, '_iip_index_post_to_cdp_option', true );
+        $should_index = ! empty( $index ) ? $index : 'yes';
       }
 
       if ( isset( $should_index ) && $should_index ) {
@@ -221,8 +238,8 @@ class Post_Helper {
    * Retrieves the singular post type label for use in API end points.
    * Some post types are registered as plural but we want to use singular end point URLs.
    *
-   * @param $post_type
-   * @return string
+   * @param string $post_type    A given WordPress post type.
+   * @return string              The singular label assigned to the given post type.
    *
    * @since 2.0.0
    */
@@ -237,6 +254,11 @@ class Post_Helper {
   }
 
   /**
+   * Generates the a callback endpoint URL.
+   *
+   * @param int $post_id   A given WordPress post id.
+   * @return string        The callback url for failed requests.
+   *
    * @since 2.1.0
    */
   public function create_callback( $post_id = null ) {

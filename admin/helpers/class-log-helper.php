@@ -26,15 +26,21 @@ class Log_Helper {
   }
 
   /**
+   * Append a line to the given log file.
+   *
+   * @param string $str    The text to be added to the log file.
+   * @param string $file   The name of the file to write to.
+   *
    * @since 2.0.0
    */
   public function log( $str, $file = 'feeder.log' ) {
     $path = ES_FEEDER_DIR . $file;
+
     file_put_contents( $path, gmdate( '[m/d/y H:i:s] ' ) . trim( print_r( $str, 1 ) ) . "\r\n\r\n", FILE_APPEND );
   }
 
   /**
-   *
+   * Clear all plugin error logs.
    *
    * @since 2.0.0
    */
@@ -50,6 +56,8 @@ class Log_Helper {
   }
 
   /**
+   * Retrieve the content of the callback log.
+   *
    * @since 2.4.0
    */
   public function reload_log() {
@@ -63,15 +71,16 @@ class Log_Helper {
   }
 
   /**
-   * Slightly modified version of http://www.geekality.net/2011/05/28/php-tail-tackling-large-files/
+   * Fetch the final x lines of a given file. Slightly modified version
+   * of http://www.geekality.net/2011/05/28/php-tail-tackling-large-files/.
    *
    * @author Torleif Berger, Lorenzo Stanco
    * @link http://stackoverflow.com/a/15025877/995958
    * @license http://creativecommons.org/licenses/by/3.0/
    *
-   * @param $filepath
-   * @param $lines
-   * @param $adaptive
+   * @param string  $filepath     The destination of the log file to be read.
+   * @param int     $lines        The number of lines to return.
+   * @param boolean $adaptive     Whether or not to adjust the buffer size as the file grows.
    * @return string
    *
    * @since 2.4.0
@@ -94,7 +103,7 @@ class Log_Helper {
     // Read it and adjust line number if necessary.
     // (Otherwise the result would be wrong if file doesn't end with a blank line).
     if ( fread( $f, 1 ) != "\n" ) {
-      $lines -= 1;
+      --$lines;
     }
 
     // Start reading.
@@ -107,7 +116,8 @@ class Log_Helper {
       // Do the jump (backwards, relative to where we are).
       fseek( $f, -$seek, SEEK_CUR );
       // Read a chunk and prepend it to our output.
-      $output = ( $chunk = fread( $f, $seek ) ) . $output;
+      $chunk  = fread( $f, $seek );
+      $output = ( $chunk ) . $output;
       // Jump back to where we started reading.
       fseek( $f, -mb_strlen( $chunk, '8bit' ), SEEK_CUR );
       // Decrease our line counter.
@@ -121,6 +131,7 @@ class Log_Helper {
     }
     // Close file and return.
     fclose( $f );
+
     return trim( $output );
   }
 }

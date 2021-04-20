@@ -82,7 +82,7 @@ class Sync_Helper {
   }
 
   /**
-   * Gets counts for each sync status
+   * Gets counts for each sync status.
    *
    * @since 2.0.0
    */
@@ -99,9 +99,13 @@ class Sync_Helper {
               LEFT JOIN (SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '_iip_index_post_to_cdp_option') m ON p.ID = m.post_id
               WHERE p.post_type IN ($formats) AND p.post_status = 'publish' AND (m.meta_value IS NULL OR m.meta_value != 'no') GROUP BY IFNULL(ms.meta_value, 0)";
 
-    $query  = $wpdb->prepare( $query, array_keys( $post_types ) );
-    $totals = $wpdb->get_results( $query );
-    $ret    = array();
+    // phpcs:disable WordPress.DB.PreparedSQL.NotPrepared
+    $totals = $wpdb->get_results(
+      $wpdb->prepare( $query, array_keys( $post_types ) )
+    );
+    // phpcs:enable
+
+    $ret = array();
 
     foreach ( $totals as $total ) {
       $ret[ $total->status ] = $total->total;
@@ -111,6 +115,11 @@ class Sync_Helper {
   }
 
   /**
+   * Get a list of indexable posts that are not in the process of being synced.
+   *
+   * @param int|null $limit   The maximum number of posts to return.
+   * @return array            The list of
+   *
    * @since 2.1.0
    */
   public function get_syncable_posts( $limit = null ) {
@@ -118,21 +127,27 @@ class Sync_Helper {
 
     $opts       = get_option( $this->plugin );
     $post_types = $opts['es_post_types'];
-    $formats    = implode( ',', array_fill( 0, count( $post_types ), '%s' ) );
-    $query      = "SELECT p.ID FROM $wpdb->posts p 
-                    LEFT JOIN (SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_status') ms ON p.ID = ms.post_id
-                    LEFT JOIN (SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '_iip_index_post_to_cdp_option') m ON p.ID = m.post_id
-                    WHERE p.post_type IN ($formats) AND p.post_status = 'publish' AND (m.meta_value IS NULL OR m.meta_value != 'no')
-                    AND ms.meta_value IS NULL ORDER BY p.post_date DESC";
+
+    // Add a string placeholder to for each indexable post type.
+    $placeholders = implode( ',', array_fill( 0, count( $post_types ), '%s' ) );
+
+    $query = "SELECT p.ID FROM $wpdb->posts p 
+              LEFT JOIN (SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_status') ms ON p.ID = ms.post_id
+              LEFT JOIN (SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '_iip_index_post_to_cdp_option') m ON p.ID = m.post_id
+              WHERE p.post_type IN ($placeholders) AND p.post_status = 'publish' AND (m.meta_value IS NULL OR m.meta_value != 'no')
+              AND ms.meta_value IS NULL ORDER BY p.post_date DESC";
 
     if ( $limit ) {
       $query .= " LIMIT $limit";
     }
 
-    $query    = $wpdb->prepare( $query, array_keys( $post_types ) );
-    $post_ids = $wpdb->get_col( $query );
+    // phpcs:disable WordPress.DB.PreparedSQL.NotPrepared
+    $post_ids = $wpdb->get_col(
+      $wpdb->prepare( $query, array_keys( $post_types ) )
+    );
+    // phpcs:enable
 
-    return $post_ids ?: array();
+    return ! empty( $post_ids ) ? $post_ids : array();
   }
 
   /**
@@ -140,8 +155,8 @@ class Sync_Helper {
    * of being synced. If it is not syncable, update the sync status to inform the user that
    * they needs to wait until the sync is complete and then resync.
    *
-   * @param $post_id
-   * @return bool
+   * @param int $post_id    A WordPress post ID value.
+   * @return bool           Whether or not the given post is syncable.
    *
    * @since 2.0.0
    */
@@ -165,8 +180,15 @@ class Sync_Helper {
 
     if ( $rows ) {
       if ( $log_helper->log_all ) {
-        $log_helper->log( "Post not syncable so status updated to SYNC_WHILE_SYNCING: $post_id, sync_uid:" . get_post_meta( $post_id, '_cdp_sync_uid', true ) ?: 'none', 'feeder.log' );
+        // Get the sync id.
+        $sync_uid = get_post_meta( $post_id, '_cdp_sync_uid', true );
+
+        $log_helper->log(
+          'Post not syncable so status updated to SYNC_WHILE_SYNCING: $post_id, sync_uid:' . ! empty( $sync_uid ) ? $sync_uid : 'none',
+          'feeder.log'
+        );
       }
+
       return false;
     }
 
@@ -174,6 +196,10 @@ class Sync_Helper {
   }
 
   /**
+   * Get the data on what posts have been been successfully re-synced.
+   *
+   * @return array   The current resync data.
+   *
    * @since 2.1.0
    */
   public function get_resync_totals() {
@@ -191,9 +217,11 @@ class Sync_Helper {
               LEFT JOIN (SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '_iip_index_post_to_cdp_option') m ON p.ID = m.post_id 
               WHERE p.post_type IN ($placeholders) AND p.post_status = 'publish' AND (m.meta_value IS NULL OR m.meta_value != 'no')";
 
+    // phpcs:disable WordPress.DB.PreparedSQL.NotPrepared
     $row = $wpdb->get_row(
       $wpdb->prepare( $query, $ph_values )
     );
+    // phpcs:enable
 
     return array(
       'done'     => $row->total === $row->complete ? 1 : 0,
@@ -237,6 +265,7 @@ class Sync_Helper {
    */
   public function check_sync_errors() {
     global $wpdb;
+
     $result = array(
       'errors' => 0,
       'ids'    => array(),
@@ -248,19 +277,26 @@ class Sync_Helper {
       $this->statuses['SYNC_WHILE_SYNCING'],
     );
 
-    $imploded = implode( ',', $statuses );
+    $ph_values = array_values( $statuses );
 
-    $query = "SELECT p.ID, p.post_type, m.meta_value as sync_status FROM $wpdb->posts p LEFT JOIN $wpdb->postmeta m ON p.ID = m.post_id
-                WHERE m.meta_key = '_cdp_sync_status' AND m.meta_value IN ($imploded)";
-    $rows  = $wpdb->get_results( $query );
+    $rows = $wpdb->get_results(
+      $wpdb->prepare(
+        "SELECT p.ID, p.post_type, m.meta_value as sync_status FROM $wpdb->posts p LEFT JOIN $wpdb->postmeta m ON p.ID = m.post_id WHERE m.meta_key = '_cdp_sync_status' AND m.meta_value IN (%s,%s,%s)",
+        $ph_values
+      )
+    );
 
     foreach ( $rows as $row ) {
       $status = $this->get_sync_status( $row->ID, $row->sync_status );
-      if ( $this->statuses['ERROR'] === $status ) {
+
+      if ( $this->statuses['ERROR'] === (int) $status ) {
+
         $result['errors']++;
+
         if ( ! array_key_exists( $row->post_type, $result ) ) {
           $result[ $row->post_type ] = 0;
         }
+
         $result[ $row->post_type ]++;
         $result['ids'][] = $row->ID;
       }

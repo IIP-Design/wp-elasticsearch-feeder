@@ -58,6 +58,7 @@ class API {
       }
     }
 
+    // Add callback API to handle incomplete or failed syncs.
     $controller = new Admin\API\REST_Callback_Controller( $this->namespace, $this->plugin );
     $controller->register_routes();
   }
@@ -65,8 +66,8 @@ class API {
   /**
    * Create an API endpoint for the provided post type.
    *
-   * If you have a custom post-type, you must follow the class
-   * convention "WP_ES_FEEDER_EXT_{TYPE}_Controller" if you want
+   * If you have a custom post type, you must follow the class
+   * convention "ES_Feeder_REST_{TYPE}_Controller" if you want
    * to customize the output. If no class convention is found,
    * plugin will create default API routes for custom post types.
    *
@@ -89,7 +90,7 @@ class API {
       $controller->register_routes();
 
       return;
-    } elseif ( ! $is_base_type && ! class_exists( 'WP_ES_FEEDER_EXT_' . strtoupper( $type ) . '_Controller' ) ) {
+    } elseif ( ! $is_base_type && ! class_exists( 'ES_Feeder_REST_' . strtoupper( $type ) . '_Controller' ) ) {
       $controller = new Admin\API\REST_Controller( $this->namespace, $this->plugin, $type );
       $controller->register_routes();
 

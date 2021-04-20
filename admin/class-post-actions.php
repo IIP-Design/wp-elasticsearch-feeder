@@ -30,7 +30,10 @@ class Post_Actions {
   }
 
   /**
+   * Update a given post's CDP-related metadata.
    *
+   * @param int     $id      WordPress post id.
+   * @param WP_Post $post    WordPress post object.
    *
    * @since 1.0.0
    */
@@ -84,9 +87,9 @@ class Post_Actions {
    * Only delete posts if the old status was 'publish'.
    * Otherwise, do nothing.
    *
-   * @param $new_status
-   * @param $old_status
-   * @param $id
+   * @param string $new_status   The new post status.
+   * @param string $old_status   Current post status.
+   * @param int    $id           The WordPress post id.
    *
    * @since 1.0.0
    */
@@ -117,7 +120,7 @@ class Post_Actions {
   /**
    * Fire PUT requests containing associated translations after save_post.
    *
-   * @param $id
+   * @param int|WP_Post $id   A WordPress post id or post object.
    *
    * @since 2.1.0
    */
@@ -126,7 +129,6 @@ class Post_Actions {
 
     $language_helper = new Admin\Helpers\Language_Helper( $this->plugin );
     $log_helper      = new Admin\Helpers\Log_Helper();
-    $post_actions    = new Post_Actions( $this->plugin );
     $post_helper     = new Admin\Helpers\Post_Helper( $this->plugin );
     $sync_helper     = new Admin\Helpers\Sync_Helper( $this->plugin );
 
@@ -150,15 +152,25 @@ class Post_Actions {
     }
 
     // Get associated post IDs.
-    $query = "SELECT trid, element_type FROM {$wpdb->prefix}icl_translations WHERE element_id = $post->ID";
-    $vars  = $wpdb->get_row( $query );
+    $vars = $wpdb->get_row(
+      $wpdb->prepare(
+        "SELECT trid, element_type FROM {$wpdb->prefix}icl_translations WHERE element_id = %d",
+        $post->ID
+      )
+    );
 
     if ( ! $vars || ! $vars->trid || ! $vars->element_type ) {
       return;
     }
 
-    $query    = "SELECT element_id FROM {$wpdb->prefix}icl_translations WHERE trid = $vars->trid AND element_type = '$vars->element_type' AND element_id != $post->ID";
-    $post_ids = $wpdb->get_col( $query );
+    $post_ids = $wpdb->get_col(
+      $wpdb->prepare(
+        "SELECT element_id FROM {$wpdb->prefix}icl_translations WHERE trid = %d AND element_type = %s AND element_id != %d",
+        $vars->trid,
+        $vars->element_type,
+        $post->ID
+      )
+    );
 
     if ( $log_helper->log_all ) {
       $log_helper->log( 'Found ' . count( $post_ids ) . " translations for: $post->ID", 'feeder.log' );
@@ -193,7 +205,7 @@ class Post_Actions {
         $log_helper->log( "Sending off translations for: $post_id", 'feeder.log' );
       }
 
-      $response = $post_actions->request( $options, $callback, false );
+      $response = $this->request( $options, $callback, false );
 
       if ( $log_helper->log_all && $response ) {
         $log_helper->log( "IMMEDIATE RESPONSE (PUT):\r\n" . print_r( $response, 1 ), 'callback.log' );
@@ -214,11 +226,15 @@ class Post_Actions {
     }
   }
 
-    /**
-     *
-     *
-     * @since 1.0.0
-     */
+  /**
+   * Send an indexing request.
+   *
+   * @param array   $request                Options to be used when sending the AJAX request.
+   * @param string  $callback               The callback url for failed requests.
+   * @param boolean $callback_errors_only   Whether to only use callback for errors(?).
+   *
+   * @since 1.0.0
+   */
   public function request( $request, $callback = null, $callback_errors_only = false ) {
     $log_helper = new Admin\Helpers\Log_Helper();
 
@@ -227,14 +243,16 @@ class Post_Actions {
     $results     = null;
 
     $headers = array();
+
     if ( $callback ) {
       $headers['callback'] = $callback;
     }
+
     $headers['callback_errors'] = $callback_errors_only ? 1 : 0;
 
     $opts = array(
-    'timeout'     => 30,
-    'http_errors' => false,
+      'timeout'     => 30,
+      'http_errors' => false,
     );
 
     $config = get_option( $this->plugin );
@@ -315,11 +333,16 @@ class Post_Actions {
       return json_decode( $results );
     } else {
       wp_send_json( json_decode( $results ) );
+
       return null;
     }
   }
 
   /**
+   * Check if the domain is properly set when domain mapping is in use.
+   *
+   * @param string $body   A stringified Ajax request body.
+   *
    * @since 2.0.0
    */
   private function is_domain_mapped( $body ) {
