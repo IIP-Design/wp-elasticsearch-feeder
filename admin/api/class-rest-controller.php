@@ -64,7 +64,7 @@ class REST_Controller extends WP_REST_Controller {
               },
             ),
           ),
-          'permission_callback' => array( $this, 'get_items_permissions_check' ),
+          'permission_callback' => '__return_true',
         ),
       )
     );
@@ -84,7 +84,7 @@ class REST_Controller extends WP_REST_Controller {
               },
             ),
           ),
-          'permission_callback' => array( $this, 'get_item_permissions_check' ),
+          'permission_callback' => '__return_true',
         ),
       )
     );
@@ -207,20 +207,20 @@ class REST_Controller extends WP_REST_Controller {
 
     if ( method_exists( $server, 'get_compact_response_links' ) ) {
       $links = call_user_func(
-           array(
-        $server,
-        'get_compact_response_links',
-           ),
-          $response
-          );
+        array(
+          $server,
+          'get_compact_response_links',
+        ),
+        $response
+      );
     } else {
       $links = call_user_func(
-           array(
-        $server,
-        'get_response_links',
-           ),
-          $response
-          );
+        array(
+          $server,
+          'get_response_links',
+        ),
+        $response
+      );
     }
 
     if ( ! empty( $links ) ) {
@@ -254,6 +254,7 @@ class REST_Controller extends WP_REST_Controller {
     if ( 'attachment' === $post->post_type ) {
       $post_data         = wp_prepare_attachment_for_js( $post->ID );
       $post_data['site'] = $api_helper->get_site();
+
       return rest_ensure_response( $post_data );
     }
 
@@ -262,10 +263,8 @@ class REST_Controller extends WP_REST_Controller {
       $post_data['post_id'] = (int) $post->ID;
     }
 
-    $post_data['type'] = $this->type;
-
-    $post_data['site'] = $api_helper->get_site();
-
+    $post_data['type']  = $this->type;
+    $post_data['site']  = $api_helper->get_site();
     $post_data['owner'] = $api_helper->get_owner( $post->ID );
 
     if ( isset( $post->post_date ) ) {
@@ -307,6 +306,7 @@ class REST_Controller extends WP_REST_Controller {
     if ( ! array_key_exists( 'tags', $post_data ) ) {
       $post_data['tags'] = array();
     }
+
     if ( ! array_key_exists( 'categories', $post_data ) ) {
       $post_data['categories'] = array();
     }
@@ -318,20 +318,6 @@ class REST_Controller extends WP_REST_Controller {
     }
 
     return $post_data;
-  }
-
-  /**
-   * @since 1.0.0
-   */
-  public function get_items_permissions_check( $request ) {
-    return true;
-  }
-
-  /**
-   * @since 1.0.0
-   */
-  public function get_item_permissions_check( $request ) {
-    return true;
   }
 
   /**

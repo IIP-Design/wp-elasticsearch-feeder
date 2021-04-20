@@ -53,7 +53,7 @@ class REST_Callback_Controller extends WP_REST_Controller {
               },
             ),
           ),
-          'permission_callback' => array( $this, 'get_items_permissions_check' ),
+          'permission_callback' => '__return_true',
         ),
       )
     );
@@ -182,19 +182,5 @@ class REST_Callback_Controller extends WP_REST_Controller {
     }
 
     return array( 'status' => 'ok' );
-  }
-
-  /**
-   * @since 2.0.0
-   */
-  public function get_items_permissions_check( $request ) {
-    return true;
-  }
-
-  /**
-   * @since 2.0.0
-   */
-  public function get_item_permissions_check( $request ) {
-    return true;
   }
 }
