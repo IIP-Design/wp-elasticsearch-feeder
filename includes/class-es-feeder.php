@@ -123,7 +123,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       $admin     = new ES_Feeder\Admin( $this->get_namespace(), $this->get_plugin_name(), $this->get_version() );
       $ajax      = new ES_Feeder\Ajax( $this->get_namespace(), $this->get_plugin_name(), $this->get_version() );
       $api       = new ES_Feeder\API( $this->get_namespace(), $this->get_plugin_name(), $this->get_version() );
-      $gutenberg = new ES_Feeder\Gutenberg();
+      $gutenberg = new ES_Feeder\Gutenberg( $this->get_plugin_name() );
       $logging   = new ES_Feeder\Admin\Helpers\Log_Helper();
       $posts     = new ES_Feeder\Admin\Helpers\Post_Helper( $this->get_namespace(), $this->get_plugin_name() );
       $settings  = new ES_Feeder\Settings( $this->get_namespace(), $this->get_plugin_name(), $this->get_version() );

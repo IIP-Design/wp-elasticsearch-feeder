@@ -17,6 +17,17 @@ namespace ES_Feeder;
 class Gutenberg {
 
   /**
+   * Initializes the class with the plugin name and version.
+   *
+   * @param string $plugin     The plugin name.
+   *
+   * @since 3.0.0
+   */
+  public function __construct( $plugin ) {
+    $this->plugin = $plugin;
+  }
+
+  /**
    * Adds custom settings fields to the Gutenberg Editor.
    *
    * @since 3.0.0
@@ -39,10 +50,21 @@ class Gutenberg {
    * @since 3.0.0
    */
   public function enqueue_gutenberg_plugin() {
+    // Check if the Gutenberg editor is enabled.
     $is_gutenberg = get_current_screen()->is_block_editor();
 
     if ( $is_gutenberg ) {
-      wp_enqueue_script( 'gpalab-feeder-gutenberg-plugin' );
+      // Get list of indexable post types.
+      $options   = get_option( $this->plugin );
+      $indexable = ! empty( $options['es_post_types'] ) ? $options['es_post_types'] : array();
+
+      // Get current post type.
+      $post_type = get_current_screen()->post_type;
+
+      // If current post type is indexable, enqueue the admin script.
+      if ( array_key_exists( $post_type, $indexable ) ) {
+        wp_enqueue_script( 'gpalab-feeder-gutenberg-plugin' );
+      }
     }
   }
 }
