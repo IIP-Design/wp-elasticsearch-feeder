@@ -73,7 +73,6 @@ function gpalab_es_feeder_uninstall() {
 }
 register_uninstall_hook( __FILE__, 'gpalab_es_feeder_uninstall' );
 
-
 // Load the ES_Feeder class.
 require plugin_dir_path( __FILE__ ) . 'includes/class-es-feeder.php';
 

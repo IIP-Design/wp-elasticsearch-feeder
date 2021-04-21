@@ -105,6 +105,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       require_once ES_FEEDER_DIR . 'admin/api/class-api.php';
       require_once ES_FEEDER_DIR . 'admin/class-admin.php';
       require_once ES_FEEDER_DIR . 'admin/class-ajax.php';
+      require_once ES_FEEDER_DIR . 'admin/class-gutenberg.php';
       require_once ES_FEEDER_DIR . 'admin/class-post-actions.php';
       require_once ES_FEEDER_DIR . 'admin/class-settings.php';
       require_once ES_FEEDER_DIR . 'includes/class-loader.php';
@@ -118,13 +119,14 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
      * @since 1.0.0
      */
     private function define_admin_hooks() {
-      $actions  = new ES_Feeder\Post_Actions( $this->get_namespace(), $this->get_plugin_name() );
-      $admin    = new ES_Feeder\Admin( $this->get_namespace(), $this->get_plugin_name(), $this->get_version() );
-      $ajax     = new ES_Feeder\Ajax( $this->get_namespace(), $this->get_plugin_name(), $this->get_version() );
-      $api      = new ES_Feeder\API( $this->get_namespace(), $this->get_plugin_name(), $this->get_version() );
-      $logging  = new ES_Feeder\Admin\Helpers\Log_Helper();
-      $posts    = new ES_Feeder\Admin\Helpers\Post_Helper( $this->get_namespace(), $this->get_plugin_name() );
-      $settings = new ES_Feeder\Settings( $this->get_namespace(), $this->get_plugin_name(), $this->get_version() );
+      $actions   = new ES_Feeder\Post_Actions( $this->get_namespace(), $this->get_plugin_name() );
+      $admin     = new ES_Feeder\Admin( $this->get_namespace(), $this->get_plugin_name(), $this->get_version() );
+      $ajax      = new ES_Feeder\Ajax( $this->get_namespace(), $this->get_plugin_name(), $this->get_version() );
+      $api       = new ES_Feeder\API( $this->get_namespace(), $this->get_plugin_name(), $this->get_version() );
+      $gutenberg = new ES_Feeder\Gutenberg();
+      $logging   = new ES_Feeder\Admin\Helpers\Log_Helper();
+      $posts     = new ES_Feeder\Admin\Helpers\Post_Helper( $this->get_namespace(), $this->get_plugin_name() );
+      $settings  = new ES_Feeder\Settings( $this->get_namespace(), $this->get_plugin_name(), $this->get_version() );
 
       // Register and enqueue the admin scripts and styles.
       $this->loader->add_action( 'init', $admin, 'register_admin_scripts_styles' );
@@ -137,6 +139,10 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       // Add "Do not index" box to posts and pages.
       $this->loader->add_action( 'add_meta_boxes', $admin, 'add_admin_meta_boxes' );
       $this->loader->add_action( 'add_meta_boxes', $admin, 'add_admin_cdp_taxonomy' );
+
+      // Add Gutenberg-native metaboxes.
+      $this->loader->add_action( 'init', $gutenberg, 'register_gutenberg_plugins' );
+      $this->loader->add_action( 'admin_enqueue_scripts', $gutenberg, 'enqueue_gutenberg_plugin' );
 
       // Add settings link to plugin.
       $plugin_basename = plugin_basename( plugin_dir_path( __DIR__ ) . $this->plugin_name . '.php' );
