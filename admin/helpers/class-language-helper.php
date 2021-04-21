@@ -39,11 +39,12 @@ class Language_Helper {
   /**
    * Initializes the class with the default language object.
    *
+   * @param string $namespace   The namespace to use for the API endpoint.
    * @param string $plugin   The plugin name.
    *
    * @since 3.0.0
    */
-  public function __construct( $plugin ) {
+  public function __construct( $namespace, $plugin ) {
     $this->default_lang = (object) array(
       'language_code'  => 'en',
       'locale'         => 'en-us',
@@ -52,6 +53,7 @@ class Language_Helper {
       'native_name'    => 'English',
     );
     $this->languages    = get_option( 'cdp_languages' );
+    $this->namespace    = $namespace;
     $this->plugin       = $plugin;
   }
 
@@ -125,7 +127,7 @@ class Language_Helper {
    * @since 2.0.0
    */
   public function load_languages() {
-    $post_actions = new \ES_Feeder\Post_Actions( $this->plugin );
+    $post_actions = new \ES_Feeder\Post_Actions( $this->namespace, $this->plugin );
 
     if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
       $this->languages = get_option( 'cdp_languages' );

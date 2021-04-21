@@ -30,7 +30,7 @@ class REST_Controller extends WP_REST_Controller {
    * @since 3.0.0
    */
   public function __construct( $namespace, $plugin, $post_type ) {
-    $api_helper = new \ES_Feeder\Admin\Helpers\API_Helper( $plugin );
+    $api_helper = new \ES_Feeder\Admin\Helpers\API_Helper( $namespace, $plugin );
 
     $this->namespace = $namespace;
     $this->plugin    = $plugin;
@@ -153,7 +153,7 @@ class REST_Controller extends WP_REST_Controller {
    * @since 1.0.0
    */
   public function get_item( $request ) {
-    $api_helper = new \ES_Feeder\Admin\Helpers\API_Helper( $this->plugin );
+    $api_helper = new \ES_Feeder\Admin\Helpers\API_Helper( $this->namespace, $this->plugin );
 
     $id       = (int) $request['id'];
     $response = array();
@@ -178,7 +178,7 @@ class REST_Controller extends WP_REST_Controller {
       $cat_ids    = array();
       foreach ( $categories as $cat ) {
         $args = explode( '<', $cat );
-        if ( ! in_array( $args[0], $cat_ids ) ) {
+        if ( ! in_array( $args[0], $cat_ids, true ) ) {
           $cat_ids[] = $args[0];
         }
       }
@@ -252,8 +252,8 @@ class REST_Controller extends WP_REST_Controller {
    * @since 1.0.0
    */
   public function baseline( $post ) {
-    $api_helper      = new \ES_Feeder\Admin\Helpers\API_Helper( $this->plugin );
-    $language_helper = new \ES_Feeder\Admin\Helpers\Language_Helper( $this->plugin );
+    $api_helper      = new \ES_Feeder\Admin\Helpers\API_Helper( $this->namespace, $this->plugin );
+    $language_helper = new \ES_Feeder\Admin\Helpers\Language_Helper( $this->namespace, $this->plugin );
 
     $post_data = array();
 
@@ -355,7 +355,7 @@ class REST_Controller extends WP_REST_Controller {
    * @since 1.0.0
    */
   private function shouldIndex( $post ) {
-    $api_helper = new \ES_Feeder\Admin\Helpers\API_Helper( $this->plugin );
+    $api_helper = new \ES_Feeder\Admin\Helpers\API_Helper( $this->namespace, $this->plugin );
 
     return $api_helper->get_index_to_cdp( $post->ID );
   }

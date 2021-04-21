@@ -21,14 +21,16 @@ class Settings {
   /**
    * Initializes the class with the plugin name and version.
    *
-   * @param string $plugin     The plugin name.
-   * @param string $version    The plugin version number.
+   * @param string $namespace   The namespace to use for the API endpoint.
+   * @param string $plugin      The plugin name.
+   * @param string $version     The plugin version number.
    *
    * @since 3.0.0
    */
-  public function __construct( $plugin, $version ) {
-    $this->plugin  = $plugin;
-    $this->version = $version;
+  public function __construct( $namespace, $plugin, $version ) {
+    $this->namespace = $namespace;
+    $this->plugin    = $plugin;
+    $this->version   = $version;
   }
 
   /**

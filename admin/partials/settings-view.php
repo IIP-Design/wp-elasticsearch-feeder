@@ -10,7 +10,7 @@
 
   global $wpdb;
 
-  $api_helper  = new ES_Feeder\Admin\Helpers\API_Helper( $this->plugin );
+  $api_helper  = new ES_Feeder\Admin\Helpers\API_Helper( $this->namespace, $this->plugin );
   $log_helper  = new ES_Feeder\Admin\Helpers\Log_Helper();
   $sync_helper = new ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
 ?>

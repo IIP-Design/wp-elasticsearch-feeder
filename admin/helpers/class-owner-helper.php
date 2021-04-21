@@ -19,12 +19,14 @@ class Owner_Helper {
   /**
    * Initializes the class with the plugin name and version.
    *
+   * @param string $namespace   The namespace to use for the API endpoint.
    * @param string $plugin   The plugin name.
    *
    * @since 3.0.0
    */
-  public function __construct( $plugin ) {
-    $this->plugin = $plugin;
+  public function __construct( $namespace, $plugin ) {
+    $this->namespace = $namespace;
+    $this->plugin    = $plugin;
   }
 
   /**
@@ -36,7 +38,7 @@ class Owner_Helper {
    * @since 2.5.0
    */
   public function get_owners() {
-    $post_actions = new \ES_Feeder\Post_Actions( $this->plugin );
+    $post_actions = new \ES_Feeder\Post_Actions( $this->namespace, $this->plugin );
 
     if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
       $owners = get_option( 'cdp_owners' );

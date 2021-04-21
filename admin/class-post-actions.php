@@ -21,12 +21,14 @@ class Post_Actions {
   /**
    * Initializes the class with the plugin name and version.
    *
-   * @param string $plugin   The plugin name.
+   * @param string $namespace   The namespace to use for the API endpoint.
+   * @param string $plugin      The plugin name.
    *
    * @since 3.0.0
    */
-  public function __construct( $plugin ) {
-    $this->plugin = $plugin;
+  public function __construct( $namespace, $plugin ) {
+    $this->namespace = $namespace;
+    $this->plugin    = $plugin;
   }
 
   /**
@@ -38,7 +40,7 @@ class Post_Actions {
    * @since 1.0.0
    */
   public function save_post( $id, $post ) {
-    $post_helper = new Admin\Helpers\Post_Helper( $this->plugin );
+    $post_helper = new Admin\Helpers\Post_Helper( $this->namespace, $this->plugin );
 
     $settings  = get_option( $this->plugin );
     $post_type = $post->post_type;
@@ -94,7 +96,7 @@ class Post_Actions {
    * @since 1.0.0
    */
   public function delete_post( $new_status, $old_status, $id ) {
-    $post_helper = new Admin\Helpers\Post_Helper( $this->plugin );
+    $post_helper = new Admin\Helpers\Post_Helper( $this->namespace, $this->plugin );
 
     if ( $old_status === $new_status || 'publish' !== $old_status ) {
       return;
@@ -127,9 +129,9 @@ class Post_Actions {
   private function translate_post( $id ) {
     global $wpdb;
 
-    $language_helper = new Admin\Helpers\Language_Helper( $this->plugin );
+    $language_helper = new Admin\Helpers\Language_Helper( $this->namespace, $this->plugin );
     $log_helper      = new Admin\Helpers\Log_Helper();
-    $post_helper     = new Admin\Helpers\Post_Helper( $this->plugin );
+    $post_helper     = new Admin\Helpers\Post_Helper( $this->namespace, $this->plugin );
     $sync_helper     = new Admin\Helpers\Sync_Helper( $this->plugin );
 
     $statuses = $sync_helper->statuses;
@@ -144,7 +146,7 @@ class Post_Actions {
       $post = get_post( $id );
     }
 
-    $settings  = get_option( $this->plugin_name );
+    $settings  = get_option( $this->plugin );
     $post_type = $post->post_type;
 
     if ( null === $post || ! array_key_exists( 'es_post_types', $settings ) || ! array_key_exists( $post_type, $settings['es_post_types'] ) || ! $settings['es_post_types'][ $post_type ] ) {
@@ -347,7 +349,7 @@ class Post_Actions {
    */
   private function is_domain_mapped( $body ) {
     // Check if domain is mapped.
-    $opt      = get_option( $this->plugin_name );
+    $opt      = get_option( $this->plugin );
     $protocol = is_ssl() ? 'https://' : 'http://';
     $opt_url  = $opt['es_wpdomain'];
     $opt_url  = str_replace( $protocol, '', $opt_url );

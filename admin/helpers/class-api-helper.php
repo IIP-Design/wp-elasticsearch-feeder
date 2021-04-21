@@ -19,13 +19,14 @@ class API_Helper {
   /**
    * Initializes the class with the plugin name and version.
    *
-   * @param string $plugin   The plugin name.
+   * @param string $namespace   The namespace to use for the API endpoint.
+   * @param string $plugin      The plugin name.
    *
    * @since 3.0.0
    */
-  public function __construct( $plugin ) {
-    $this->plugin     = $plugin;
-    $this->name_space = 'elasticsearch/v1';
+  public function __construct( $namespace, $plugin ) {
+    $this->namespace = $namespace;
+    $this->plugin    = $plugin;
   }
 
   /**
@@ -134,7 +135,7 @@ class API_Helper {
   public function get_language( $id ) {
     global $sitepress;
 
-    $language_helper = new \ES_Feeder\Admin\Helpers\Language_Helper( $this->plugin );
+    $language_helper = new \ES_Feeder\Admin\Helpers\Language_Helper( $this->namespace, $this->plugin );
 
     if ( $sitepress ) {
       $output           = apply_filters( 'wpml_post_language_details', null, $id );

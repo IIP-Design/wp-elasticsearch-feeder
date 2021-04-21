@@ -71,7 +71,7 @@ class REST_Callback_Controller extends WP_REST_Controller {
     global $wpdb;
 
     $logger      = new \ES_Feeder\Admin\Helpers\Log_Helper();
-    $post_helper = new \ES_Feeder\Admin\Helpers\Post_Helper( $this->plugin );
+    $post_helper = new \ES_Feeder\Admin\Helpers\Post_Helper( $this->namespace, $this->plugin );
     $sync_helper = new \ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
     $statuses    = $sync_helper->statuses;
 

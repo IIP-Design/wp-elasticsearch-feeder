@@ -19,12 +19,14 @@ class Post_Helper {
   /**
    * Initializes the class with the plugin name and version.
    *
-   * @param string $plugin   The plugin name.
+   * @param string $namespace   The namespace to use for the API endpoint.
+   * @param string $plugin      The plugin name.
    *
    * @since 3.0.0
    */
-  public function __construct( $plugin ) {
-    $this->plugin = $plugin;
+  public function __construct( $namespace, $plugin ) {
+    $this->namespace = $namespace;
+    $this->plugin    = $plugin;
   }
 
   /**
@@ -35,7 +37,7 @@ class Post_Helper {
    * @since 1.0.0
    */
   public function delete( $post ) {
-    $post_actions = new \ES_Feeder\Post_Actions( $this->plugin );
+    $post_actions = new \ES_Feeder\Post_Actions( $this->namespace, $this->plugin );
     $sync_helper  = new Sync_Helper( $this->plugin );
 
     if ( ! $sync_helper->is_syncable( $post->ID ) ) {
@@ -80,8 +82,8 @@ class Post_Helper {
      * @since 1.0.0
      */
   public function add_or_update( $post, $print = true, $callback_errors_only = false, $check_syncable = true ) {
-    $post_actions = new \ES_Feeder\Post_Actions( $this->plugin );
-    $api_helper   = new API_Helper( $this->plugin );
+    $post_actions = new \ES_Feeder\Post_Actions( $this->namespace, $this->plugin );
+    $api_helper   = new API_Helper( $this->namespace, $this->plugin );
     $log_helper   = new Log_Helper();
     $sync_helper  = new Sync_Helper( $this->plugin );
 

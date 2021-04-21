@@ -19,14 +19,16 @@ class Ajax {
   /**
    * Initializes the class with the plugin name and version.
    *
+   * @param string $namespace   The namespace to use for the API endpoint.
    * @param string $plugin     The plugin name.
    * @param string $version    The plugin version number.
    *
    * @since 3.0.0
    */
-  public function __construct( $plugin, $version ) {
-    $this->plugin  = $plugin;
-    $this->version = $version;
+  public function __construct( $namespace, $plugin, $version ) {
+    $this->namespace = $namespace;
+    $this->plugin    = $plugin;
+    $this->version   = $version;
   }
 
   /**
@@ -127,7 +129,7 @@ class Ajax {
   public function es_process_next() {
     global $wpdb;
 
-    $post_helper = new Admin\Helpers\Post_Helper( $this->plugin );
+    $post_helper = new Admin\Helpers\Post_Helper( $this->namespace, $this->plugin );
     $sync_helper = new Admin\Helpers\Sync_Helper( $this->plugin );
 
     $statuses   = $sync_helper->statuses;
@@ -169,7 +171,13 @@ class Ajax {
         update_post_meta( $post_id, '_cdp_last_sync', gmdate( 'Y-m-d H:i:s' ) );
         $post = get_post( $post_id );
         $resp = $post_helper->add_or_update( $post, false, true, false );
-        $wpdb->update( $wpdb->posts, array( 'post_status' => 'publish' ), array( 'ID' => $post_id ) );
+
+        $wpdb->update(
+          $wpdb->posts,
+          array( 'post_status' => 'publish' ),
+          array( 'ID' => $post_id )
+        );
+
         if ( ! $resp ) {
           $results[] = array(
             'title'   => $post->post_title,
@@ -177,6 +185,7 @@ class Ajax {
             'message' => 'ERROR: Connection failed.',
             'error'   => true,
           );
+
           update_post_meta( $post_id, '_cdp_sync_status', $statuses['ERROR'] );
         } elseif ( ! is_object( $resp ) || 'Sync in progress.' !== $resp->message ) {
           $results[] = array(
@@ -186,9 +195,11 @@ class Ajax {
             'message'  => 'See error response.',
             'error'    => true,
           );
+
           update_post_meta( $post_id, '_cdp_sync_status', $statuses['ERROR'] );
         }
       }
+
       $totals            = $sync_helper->get_resync_totals();
       $totals['done']    = 0;
       $totals['results'] = $results;
@@ -207,7 +218,7 @@ class Ajax {
    * @since 1.0.0
    */
   public function es_request( $request, $callback = null, $callback_errors_only = false ) {
-    $post_actions = new Post_Actions( $this->plugin );
+    $post_actions = new Post_Actions( $this->namespace, $this->plugin );
 
     $post_actions->request( $request, $callback, $callback_errors_only );
   }
@@ -221,8 +232,8 @@ class Ajax {
     set_time_limit( 600 );
     global $wpdb;
 
-    $api_helper   = new Admin\Helpers\API_Helper( $this->plugin );
-    $post_actions = new Post_Actions( $this->plugin );
+    $api_helper   = new Admin\Helpers\API_Helper( $this->namespace, $this->plugin );
+    $post_actions = new Post_Actions( $this->namespace, $this->plugin );
     $sync_helper  = new Admin\Helpers\Sync_Helper( $this->plugin );
 
     $statuses = $sync_helper->statuses;
@@ -231,12 +242,13 @@ class Ajax {
     $result    = null;
     $modifieds = array();
     $stats     = array(
-    'updated'    => 0,
-    'es_missing' => 0,
-    'wp_missing' => 0,
-    'mismatched' => 0,
+      'updated'    => 0,
+      'es_missing' => 0,
+      'wp_missing' => 0,
+      'mismatched' => 0,
     );
-    $request   = array(
+
+    $request = array(
       'url'    => 'search',
       'method' => 'POST',
       'body'   => array(
@@ -248,6 +260,7 @@ class Ajax {
       ),
       'print'  => false,
     );
+
     do {
       $result = $post_actions->request( $request );
       if ( $result && $result->hits && count( $result->hits->hits ) ) {
@@ -267,16 +280,19 @@ class Ajax {
     } while ( $result && $result->hits && count( $result->hits->hits ) );
 
     if ( count( $modifieds ) ) {
-      $opts          = get_option( $this->plugin );
-      $post_types    = $opts['es_post_types'];
-      $formats       = implode( ',', array_fill( 0, count( $post_types ), '%s' ) );
-      $query         = "SELECT p.ID, p.post_modified, ms.meta_value as sync_status 
+      $opts       = get_option( $this->plugin );
+      $post_types = $opts['es_post_types'];
+      $formats    = implode( ',', array_fill( 0, count( $post_types ), '%s' ) );
+      $query      = "SELECT p.ID, p.post_modified, ms.meta_value as sync_status 
                        FROM $wpdb->posts p 
                        LEFT JOIN (SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_status') ms ON p.ID = ms.post_id 
                        LEFT JOIN (SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '_iip_index_post_to_cdp_option') m ON p.ID = m.post_id 
                        WHERE p.post_type IN ($formats) AND p.post_status = 'publish' AND (m.meta_value IS NULL OR m.meta_value != 'no') AND ms.meta_value IS NOT NULL";
-      $query         = $wpdb->prepare( $query, array_keys( $post_types ) );
-      $rows          = $wpdb->get_results( $query );
+
+      $rows = $wpdb->get_results(
+        $wpdb->prepare( $query, array_keys( $post_types ) )
+       );
+
       $update_errors = array();
       $update_synced = array();
 
@@ -309,13 +325,23 @@ class Ajax {
       }
 
       if ( count( $update_synced ) ) {
-        $query = "UPDATE $wpdb->postmeta SET meta_value = '" . $statuses['SYNCED'] . "' WHERE meta_key = '_cdp_sync_status' AND post_id IN (" . implode( ',', $update_synced ) . ')';
-        $wpdb->query( $query );
+        $wpdb->query(
+          $wpdb->prepare(
+            "UPDATE $wpdb->postmeta SET meta_value = %d WHERE meta_key = '_cdp_sync_status' AND post_id IN (%s)",
+            $statuses['SYNCED'],
+            implode( ',', $update_synced )
+          )
+        );
       }
 
       if ( count( $update_errors ) ) {
-        $query = "UPDATE $wpdb->postmeta SET meta_value = '" . $statuses['ERROR'] . "' WHERE meta_key = '_cdp_sync_status' AND post_id IN (" . implode( ',', $update_errors ) . ')';
-        $wpdb->query( $query );
+        $wpdb->query(
+          $wpdb->prepare(
+            "UPDATE $wpdb->postmeta SET meta_value = %d WHERE meta_key = '_cdp_sync_status' AND post_id IN (%s)",
+            $statuses['ERROR'],
+            implode( ',', $update_errors )
+          )
+        );
       }
 
       $stats['wp_missing'] = count( $modifieds );
@@ -325,6 +351,7 @@ class Ajax {
       wp_send_json( $stats );
       exit;
     }
+
     return $stats;
   }
 }

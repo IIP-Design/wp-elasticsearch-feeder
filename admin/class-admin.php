@@ -19,14 +19,16 @@ class Admin {
   /**
    * Initializes the class with the plugin name and version.
    *
+   * @param string $namespace   The namespace to use for the API endpoint.
    * @param string $plugin     The plugin name.
    * @param string $version    The plugin version number.
    *
    * @since 3.0.0
    */
-  public function __construct( $plugin, $version ) {
-    $this->plugin  = $plugin;
-    $this->version = $version;
+  public function __construct( $namespace, $plugin, $version ) {
+    $this->namespace = $namespace;
+    $this->plugin    = $plugin;
+    $this->version   = $version;
   }
 
   /**
@@ -62,7 +64,7 @@ class Admin {
   public function enqueue_styles( $hook ) {
     global $post;
 
-    $post_helper = new Admin\Helpers\Post_Helper( $this->plugin );
+    $post_helper = new Admin\Helpers\Post_Helper( $this->namespace, $this->plugin );
 
     wp_enqueue_style(
       $this->plugin,
@@ -96,7 +98,7 @@ class Admin {
   public function enqueue_scripts( $hook ) {
     global $post;
 
-    $post_helper = new Admin\Helpers\Post_Helper( $this->plugin );
+    $post_helper = new Admin\Helpers\Post_Helper( $this->namespace, $this->plugin );
     $sync_helper = new Admin\Helpers\Sync_Helper( $this->plugin );
 
     $totals = $sync_helper->get_resync_totals();
@@ -245,7 +247,7 @@ class Admin {
    * @since 2.1.0
    */
   public function api_debugger( $post ) {
-    $post_helper = new Admin\Helpers\Post_Helper( $this->plugin );
+    $post_helper = new Admin\Helpers\Post_Helper( $this->namespace, $this->plugin );
 
     $options = get_option( $this->plugin );
     $es_url  = ! empty( $options['es_url'] ) ? $options['es_url'] : null;
@@ -268,7 +270,7 @@ class Admin {
    */
   public function language_dropdown( $post ) {
     // Get list of available languages.
-    $language_helper = new Admin\Helpers\Language_Helper( $this->plugin );
+    $language_helper = new Admin\Helpers\Language_Helper( $this->namespace, $this->plugin );
     $langs           = $language_helper->get_languages(); // Do not remove, used in the partial below.
 
     // Get the current language, falling back to English if not set.
@@ -287,7 +289,7 @@ class Admin {
    */
   public function owner_dropdown( $post ) {
     // Get list of available owners.
-    $owner_helper = new Admin\Helpers\Owner_Helper( $this->plugin );
+    $owner_helper = new Admin\Helpers\Owner_Helper( $this->namespace, $this->plugin );
     $owners       = $owner_helper->get_owners(); // Do not remove, used in the partial below.
 
     $post_owner = get_post_meta( $post->ID, '_iip_owner', true );
@@ -394,7 +396,7 @@ class Admin {
    * @since 2.0.0
    */
   private function get_taxonomy() {
-    $post_actions = new Post_Actions( $this->plugin );
+    $post_actions = new Post_Actions( $this->namespace, $this->plugin );
 
     $args = array(
       'method' => 'GET',
@@ -494,7 +496,7 @@ class Admin {
    * @since 2.0.0
    */
   public function add_cdp_sync_column( $defaults ) {
-    $post_helper = new Admin\Helpers\Post_Helper( $this->plugin );
+    $post_helper = new Admin\Helpers\Post_Helper( $this->namespace, $this->plugin );
 
     if ( in_array( get_post_type(), $post_helper->get_allowed_post_types(), true ) ) {
       $defaults['sync_status'] = __( 'Publish Status', 'gpalab-feeder' );
