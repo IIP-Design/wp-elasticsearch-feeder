@@ -22,9 +22,6 @@ if ( ! defined( 'WPINC' ) ) {
 define( 'ES_FEEDER_DIR', plugin_dir_path( dirname( __FILE__ ) ) . 'wp-elasticsearch-feeder/' );
 define( 'ES_FEEDER_URL', plugin_dir_url( dirname( __FILE__ ) ) . 'wp-elasticsearch-feeder/' );
 
-// Load the ES_Feeder class.
-require plugin_dir_path( __FILE__ ) . 'includes/class-es-feeder.php';
-
 /**
  * Autoload plugin's class to make them available without require statements.
  *
@@ -65,11 +62,29 @@ function feeder_autoloader( $class_name ) {
 spl_autoload_register( 'feeder_autoloader' );
 
 /**
+ * Clean up site when the plugin is deleted.
+ *
+ * @since 3.0.0
+ */
+function gpalab_es_feeder_uninstall() {
+  require_once plugin_dir_path( __FILE__ ) . 'includes/class-uninstall.php';
+
+  ES_Feeder\Uninstall::uninstall();
+}
+register_uninstall_hook( __FILE__, 'gpalab_es_feeder_uninstall' );
+
+
+// Load the ES_Feeder class.
+require plugin_dir_path( __FILE__ ) . 'includes/class-es-feeder.php';
+
+/**
  * Begin execution of the plugin.
  *
  * Since everything within the plugin is registered via hooks,
  * then kicking off the plugin from this point in the file does
  * not affect the page life cycle.
+ *
+ * @since 3.0.0
  */
 function run_gpalab_feeder() {
   $feeder = new ES_Feeder();
