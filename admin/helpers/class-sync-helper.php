@@ -314,7 +314,7 @@ class Sync_Helper {
    *
    * @since 3.0.0
    */
-  private function get_status_code_data( $status_code, $merge_publishes = false ) {
+  public function get_status_code_data( $status_code, $merge_publishes = false ) {
     $color = '';
     $title = '';
 

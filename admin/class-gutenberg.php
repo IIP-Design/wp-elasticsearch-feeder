@@ -78,13 +78,15 @@ class Gutenberg {
   private function localize_gutenberg_plugin() {
     $language_opts = $this->get_language_options();
     $owner_opts    = $this->get_owners_options();
+    $sync_status   = $this->get_status();
 
     wp_localize_script(
       'gpalab-feeder-gutenberg-plugin',
       'gpalabFeederAdmin',
       array(
-        'languages' => $language_opts,
-        'owners'    => $owner_opts,
+        'languages'  => $language_opts,
+        'owners'     => $owner_opts,
+        'syncStatus' => $sync_status,
       )
     );
   }
@@ -127,6 +129,7 @@ class Gutenberg {
     $owners       = $owner_helper->get_owners();
     $sitename     = get_bloginfo( 'name' );
 
+    // Initialize the owners list with at current site name, which serves as the default owner.
     $normalized = array(
       array(
         'value' => $sitename,
@@ -144,5 +147,23 @@ class Gutenberg {
     }
 
     return $normalized;
+  }
+
+  /**
+   * Retrieve the current post's coded publication status.
+   *
+   * @return array   The properties (color, title, & status text) of the current status.
+   *
+   * @since 3.0.0
+   */
+  private function get_status() {
+    global $post;
+
+    $sync_helper = new Admin\Helpers\Sync_Helper( $this->plugin );
+
+    $sync_status = get_post_meta( $post->ID, '_cdp_sync_status', true );
+    $status      = ! empty( $sync_status ) ? $sync_status : 'Never synced';
+
+    return $sync_helper->get_status_code_data( $status, true );
   }
 }

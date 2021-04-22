@@ -1,10 +1,11 @@
 import { PluginDocumentSettingPanel } from '@wordpress/edit-post';
 
 import MetaSelectInput from './MetaSelectInput';
+import StatusIndicator from './StatusIndicator';
 
 import { i18nize } from '../utils/i18n';
 
-const { languages, owners } = window.gpalabFeederAdmin;
+const { languages, owners, syncStatus } = window.gpalabFeederAdmin;
 
 const IndexOptionsPanel = () => (
   <PluginDocumentSettingPanel
@@ -22,6 +23,8 @@ const IndexOptionsPanel = () => (
       metaKey="_iip_owner"
       options={ owners }
     />
+
+    <StatusIndicator color={ syncStatus.color } title={ syncStatus.title } />
   </PluginDocumentSettingPanel>
 );
 
