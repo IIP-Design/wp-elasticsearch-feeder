@@ -7,7 +7,7 @@ import StatusIndicator from './StatusIndicator';
 
 import { i18nize } from '../utils/i18n';
 
-const { languages, owners, syncStatus } = window.gpalabFeederAdmin;
+const { languages, owners, syncStatus, visibleMeta } = window.gpalabFeederAdmin;
 
 const IndexOptionsPanel = () => (
   <PluginDocumentSettingPanel
@@ -25,18 +25,22 @@ const IndexOptionsPanel = () => (
 
     <Spacer />
 
-    <MetaSelectInput
-      fallback="en-us"
-      label={ i18nize( 'Set Language' ) }
-      metaKey="_iip_language"
-      options={ languages }
-    />
+    { visibleMeta?.language && (
+      <MetaSelectInput
+        fallback="en-us"
+        label={ i18nize( 'Set Language' ) }
+        metaKey="_iip_language"
+        options={ languages }
+      />
+    ) }
 
-    <MetaSelectInput
-      label={ i18nize( 'Set Owner' ) }
-      metaKey="_iip_owner"
-      options={ owners }
-    />
+    { visibleMeta?.owner && (
+      <MetaSelectInput
+        label={ i18nize( 'Set Owner' ) }
+        metaKey="_iip_owner"
+        options={ owners }
+      />
+    ) }
 
     <Spacer />
 

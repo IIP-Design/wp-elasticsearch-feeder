@@ -82,15 +82,17 @@ class Gutenberg {
     $language_opts = $this->get_language_options();
     $owner_opts    = $this->get_owners_options();
     $sync_status   = $this->get_status();
+    $visible_meta  = $this->determine_metaboxes();
 
     wp_localize_script(
       'gpalab-feeder-gutenberg-plugin',
       'gpalabFeederAdmin',
       array(
-        'apiVars'    => $api_vars,
-        'languages'  => $language_opts,
-        'owners'     => $owner_opts,
-        'syncStatus' => $sync_status,
+        'apiVars'     => $api_vars,
+        'languages'   => $language_opts,
+        'owners'      => $owner_opts,
+        'syncStatus'  => $sync_status,
+        'visibleMeta' => $visible_meta,
       )
     );
   }
@@ -197,6 +199,23 @@ class Gutenberg {
     return array(
       'endpoint' => $endpoint,
       'token'    => $token,
+    );
+  }
+
+  /**
+   * Determine which of the available metaboxes to display.
+   *
+   * @return array List of metaboxes and whether or not to display each.
+   *
+   * @since 3.0.0
+   */
+  private function determine_metaboxes() {
+    $options = get_option( $this->plugin );
+
+    return array(
+      'debugger' => ( current_user_can( 'manage_options' ) && $options['es_api_data'] ), // Only admins can see the debugger.
+      'language' => $options['es_post_language'],
+      'owner'    => $options['es_post_owner'],
     );
   }
 }
