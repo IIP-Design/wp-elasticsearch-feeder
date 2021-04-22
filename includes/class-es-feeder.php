@@ -129,6 +129,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       $settings  = new ES_Feeder\Settings( $this->get_namespace(), $this->get_plugin_name(), $this->get_version() );
 
       // Register and enqueue the admin scripts and styles.
+      $this->loader->add_action( 'init', $admin, 'register_metakeys' );
       $this->loader->add_action( 'init', $admin, 'register_admin_scripts_styles' );
       $this->loader->add_action( 'admin_enqueue_scripts', $admin, 'enqueue_styles' );
       $this->loader->add_action( 'admin_enqueue_scripts', $admin, 'enqueue_scripts', 10, 1 );

@@ -159,6 +159,31 @@ class Admin {
   }
 
   /**
+   * Register those metavalue keys that need to be made available in the REST API.
+   *
+   * @since 3.0.0
+   */
+  public function register_metakeys() {
+    $options   = get_option( $this->plugin );
+    $indexable = ! empty( $options['es_post_types'] ) ? $options['es_post_types'] : array();
+
+    foreach ( $indexable as $key => $post_type ) {
+      // Language of the selected post.
+      register_post_meta(
+        $key,
+        '_iip_language',
+        array(
+          'auth_callback' => '__return_true',
+          'description'   => 'The given post language code',
+          'show_in_rest'  => true,
+          'single'        => true,
+          'type'          => 'string',
+        )
+      );
+    }
+  }
+
+  /**
    * Populate the indexable post type admin screens with the required metaboxes.
    *
    * @since 2.1.0
