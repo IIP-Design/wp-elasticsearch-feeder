@@ -2,6 +2,7 @@ import { PluginDocumentSettingPanel } from '@wordpress/edit-post';
 
 import MetaSelectInput from './MetaSelectInput';
 import MetaRadioControl from './MetaRadioControl';
+import Spacer from './Spacer';
 import StatusIndicator from './StatusIndicator';
 
 import { i18nize } from '../utils/i18n';
@@ -22,18 +23,22 @@ const IndexOptionsPanel = () => (
       ] }
     />
 
+    <Spacer />
+
     <MetaSelectInput
       fallback="en-us"
-      label={ i18nize( 'Language' ) }
+      label={ i18nize( 'Set Language' ) }
       metaKey="_iip_language"
       options={ languages }
     />
 
     <MetaSelectInput
-      label={ i18nize( 'Owner' ) }
+      label={ i18nize( 'Set Owner' ) }
       metaKey="_iip_owner"
       options={ owners }
     />
+
+    <Spacer />
 
     <StatusIndicator color={ syncStatus.color } title={ syncStatus.title } />
   </PluginDocumentSettingPanel>

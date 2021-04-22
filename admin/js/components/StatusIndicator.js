@@ -6,7 +6,6 @@ const style = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
-  margin: '1rem 0 0',
 };
 
 const StatusIndicator = ( { color, title } ) => (
