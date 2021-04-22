@@ -12,6 +12,9 @@
     "lint:PHP": "./vendor/bin/phpcs"
   },
   "dependencies": {
+    "@wordpress/components": "^13.0.2",
+    "@wordpress/compose": "^3.25.2",
+    "@wordpress/data": "^4.27.2",
     "@wordpress/edit-post": "^3.27.2",
     "@wordpress/i18n": "^3.19.2",
     "@wordpress/plugins": "^2.25.2"
