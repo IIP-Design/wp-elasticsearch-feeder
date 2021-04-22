@@ -76,6 +76,28 @@ class Gutenberg {
    * @since 3.0.0
    */
   private function localize_gutenberg_plugin() {
+    $language_opts = $this->get_language_options();
+    $owner_opts    = $this->get_owners_options();
+
+    wp_localize_script(
+      'gpalab-feeder-gutenberg-plugin',
+      'gpalabFeederAdmin',
+      array(
+        'languages' => $language_opts,
+        'owners'    => $owner_opts,
+      )
+    );
+  }
+
+  /**
+   * Retrieve the available languages normalized to be populate a
+   * dropdown menu with an array of option values and labels.
+   *
+   * @return array   List of value/label pairs for each language.
+   *
+   * @since 3.0.0
+   */
+  private function get_language_options() {
     $language_helper = new Admin\Helpers\Language_Helper( $this->namespace, $this->plugin );
     $languages       = $language_helper->get_languages();
     $normalized      = array();
@@ -89,12 +111,38 @@ class Gutenberg {
       array_push( $normalized, $item );
     }
 
-    wp_localize_script(
-      'gpalab-feeder-gutenberg-plugin',
-      'gpalabFeederAdmin',
+    return $normalized;
+  }
+
+  /**
+   * Retrieve the available post owners normalized to be populate a
+   * dropdown menu with an array of option values and labels.
+   *
+   * @return array   List of value/label pairs for each language.
+   *
+   * @since 3.0.0
+   */
+  private function get_owners_options() {
+    $owner_helper = new Admin\Helpers\Owner_Helper( $this->namespace, $this->plugin );
+    $owners       = $owner_helper->get_owners();
+    $sitename     = get_bloginfo( 'name' );
+
+    $normalized = array(
       array(
-        'languages' => $normalized,
-      )
+        'value' => $sitename,
+        'label' => $sitename,
+      ),
     );
+
+    foreach ( $owners as $own ) {
+      $item = array();
+
+      $item['value'] = $own;
+      $item['label'] = $own;
+
+      array_push( $normalized, $item );
+    }
+
+    return $normalized;
   }
 }

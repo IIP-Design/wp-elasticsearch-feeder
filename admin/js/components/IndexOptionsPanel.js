@@ -4,7 +4,7 @@ import MetaSelectInput from './MetaSelectInput';
 
 import { i18nize } from '../utils/i18n';
 
-const { languages } = window.gpalabFeederAdmin;
+const { languages, owners } = window.gpalabFeederAdmin;
 
 const IndexOptionsPanel = () => (
   <PluginDocumentSettingPanel
@@ -15,6 +15,12 @@ const IndexOptionsPanel = () => (
       label={ i18nize( 'Language' ) }
       metaKey="_iip_language"
       options={ languages }
+    />
+
+    <MetaSelectInput
+      label={ i18nize( 'Owner' ) }
+      metaKey="_iip_owner"
+      options={ owners }
     />
   </PluginDocumentSettingPanel>
 );

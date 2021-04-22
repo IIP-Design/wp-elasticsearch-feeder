@@ -174,7 +174,20 @@ class Admin {
         '_iip_language',
         array(
           'auth_callback' => '__return_true',
-          'description'   => 'The given post language code',
+          'description'   => 'The given post\'s language code',
+          'show_in_rest'  => true,
+          'single'        => true,
+          'type'          => 'string',
+        )
+      );
+
+      // Owner of the selected post.
+      register_post_meta(
+        $key,
+        '_iip_owner',
+        array(
+          'auth_callback' => '__return_true',
+          'description'   => 'The given post\'s owner',
           'show_in_rest'  => true,
           'single'        => true,
           'type'          => 'string',
