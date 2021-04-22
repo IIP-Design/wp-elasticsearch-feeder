@@ -193,6 +193,19 @@ class Admin {
           'type'          => 'string',
         )
       );
+
+      // Whether or not the selected post should be indexed to the CDP.
+      register_post_meta(
+        $key,
+        '_iip_index_post_to_cdp_option',
+        array(
+          'auth_callback' => '__return_true',
+          'description'   => 'Whether or not to index the give post',
+          'show_in_rest'  => true,
+          'single'        => true,
+          'type'          => 'string',
+        )
+      );
     }
   }
 
