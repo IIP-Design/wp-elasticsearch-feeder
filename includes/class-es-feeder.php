@@ -106,6 +106,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       require_once ES_FEEDER_DIR . 'admin/class-admin.php';
       require_once ES_FEEDER_DIR . 'admin/class-ajax.php';
       require_once ES_FEEDER_DIR . 'admin/class-gutenberg.php';
+      require_once ES_FEEDER_DIR . 'admin/class-legacy-metabox.php';
       require_once ES_FEEDER_DIR . 'admin/class-post-actions.php';
       require_once ES_FEEDER_DIR . 'admin/class-settings.php';
       require_once ES_FEEDER_DIR . 'includes/class-loader.php';
@@ -125,6 +126,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       $api       = new ES_Feeder\API( $this->get_namespace(), $this->get_plugin_name(), $this->get_version() );
       $gutenberg = new ES_Feeder\Gutenberg( $this->get_plugin_name() );
       $logging   = new ES_Feeder\Admin\Helpers\Log_Helper();
+      $metaboxes = new ES_Feeder\Legacy_Metabox( $this->get_namespace(), $this->get_plugin_name() );
       $posts     = new ES_Feeder\Admin\Helpers\Post_Helper( $this->get_namespace(), $this->get_plugin_name() );
       $settings  = new ES_Feeder\Settings( $this->get_namespace(), $this->get_plugin_name(), $this->get_version() );
 
@@ -137,9 +139,9 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       // Add plugin settings page.
       $this->loader->add_action( 'admin_menu', $settings, 'add_plugin_admin_menu' );
 
-      // Add "Do not index" box to posts and pages.
-      $this->loader->add_action( 'add_meta_boxes', $admin, 'add_admin_meta_boxes' );
-      $this->loader->add_action( 'add_meta_boxes', $admin, 'add_admin_cdp_taxonomy' );
+      // Add legacy metaboxes to manage CDP settings on sites without Gutenberg.
+      $this->loader->add_action( 'add_meta_boxes', $metaboxes, 'add_admin_metaboxes' );
+      $this->loader->add_action( 'add_meta_boxes', $metaboxes, 'add_admin_taxonomy_metabox' );
 
       // Add Gutenberg-native metaboxes.
       $this->loader->add_action( 'init', $gutenberg, 'register_gutenberg_plugins' );
