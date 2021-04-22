@@ -19,12 +19,14 @@ class Gutenberg {
   /**
    * Initializes the class with the plugin name and version.
    *
-   * @param string $plugin     The plugin name.
+   * @param string $namespace   The namespace to use for the API endpoint.
+   * @param string $plugin      The plugin name.
    *
    * @since 3.0.0
    */
-  public function __construct( $plugin ) {
-    $this->plugin = $plugin;
+  public function __construct( $namespace, $plugin ) {
+    $this->namespace = $namespace;
+    $this->plugin    = $plugin;
   }
 
   /**
@@ -76,6 +78,7 @@ class Gutenberg {
    * @since 3.0.0
    */
   private function localize_gutenberg_plugin() {
+    $api_vars      = $this->get_api_vars();
     $language_opts = $this->get_language_options();
     $owner_opts    = $this->get_owners_options();
     $sync_status   = $this->get_status();
@@ -84,6 +87,7 @@ class Gutenberg {
       'gpalab-feeder-gutenberg-plugin',
       'gpalabFeederAdmin',
       array(
+        'apiVars'    => $api_vars,
         'languages'  => $language_opts,
         'owners'     => $owner_opts,
         'syncStatus' => $sync_status,
@@ -165,5 +169,34 @@ class Gutenberg {
     $status      = ! empty( $sync_status ) ? $sync_status : 'Never synced';
 
     return $sync_helper->get_status_code_data( $status, true );
+  }
+
+  /**
+   * Retrieve the system variables for the Elasticsearch API.
+   *
+   * @return array    The Elasticsearch API endpoint and auth token.
+   *
+   * @since 3.0.0
+   */
+  private function get_api_vars() {
+    global $post;
+
+    $post_helper = new Admin\Helpers\Post_Helper( $this->namespace, $this->plugin );
+
+    $options = get_option( $this->plugin );
+
+    $token    = $options['es_token'];
+    $endpoint = '';
+
+    // Construct the API endpoint.
+    if ( ! empty( $options['es_url'] ) ) {
+      $uuid     = $post_helper->get_uuid( $post );
+      $endpoint = $options['es_url'] . $post_helper->get_post_type_label( $post->post_type ) . '/' . $uuid;
+    }
+
+    return array(
+      'endpoint' => $endpoint,
+      'token'    => $token,
+    );
   }
 }
