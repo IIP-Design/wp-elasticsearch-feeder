@@ -63,8 +63,38 @@ class Gutenberg {
 
       // If current post type is indexable, enqueue the admin script.
       if ( array_key_exists( $post_type, $indexable ) ) {
+        $this->localize_gutenberg_plugin();
+
         wp_enqueue_script( 'gpalab-feeder-gutenberg-plugin' );
       }
     }
+  }
+
+  /**
+   * Pass required PHP values as variables to admin JS.
+   *
+   * @since 3.0.0
+   */
+  private function localize_gutenberg_plugin() {
+    $language_helper = new Admin\Helpers\Language_Helper( $this->namespace, $this->plugin );
+    $languages       = $language_helper->get_languages();
+    $normalized      = array();
+
+    foreach ( $languages as $lang ) {
+      $item = array();
+
+      $item['value'] = $lang->locale;
+      $item['label'] = $lang->display_name;
+
+      array_push( $normalized, $item );
+    }
+
+    wp_localize_script(
+      'gpalab-feeder-gutenberg-plugin',
+      'gpalabFeederAdmin',
+      array(
+        'languages' => $normalized,
+      )
+    );
   }
 }
