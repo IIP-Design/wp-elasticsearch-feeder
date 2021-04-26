@@ -39,7 +39,7 @@ class Admin {
   public function register_admin_scripts_styles() {
     wp_register_script(
       $this->plugin,
-      ES_FEEDER_URL . 'admin/js/wp-es-feeder-admin.js',
+      ES_FEEDER_URL . 'admin/js/gpalab-feeder-settings.js',
       array( 'jquery' ),
       $this->version,
       false
@@ -47,7 +47,7 @@ class Admin {
 
     wp_register_script(
       $this->plugin . '-sync-status',
-      ES_FEEDER_URL . 'admin/js/wp-es-feeder-admin-post.js',
+      ES_FEEDER_URL . 'admin/js/gpalab-feeder-sync-status.js',
       array( 'jquery' ),
       $this->version,
       false
@@ -68,7 +68,7 @@ class Admin {
 
     wp_enqueue_style(
       $this->plugin,
-      ES_FEEDER_URL . 'admin/css/wp-es-feeder-admin.css',
+      ES_FEEDER_URL . 'admin/css/gpalab-feeder-admin.css',
       array(),
       $this->version,
       'all'
@@ -80,7 +80,7 @@ class Admin {
     ) {
       wp_enqueue_style(
         'chosen',
-        ES_FEEDER_URL . 'admin/css/chosen.css',
+        ES_FEEDER_URL . 'admin/css/gpalab-feeder-chosen.css',
         array(),
         $this->version,
         'all'
@@ -124,7 +124,7 @@ class Admin {
     ) {
       wp_enqueue_script(
         'chosen',
-        ES_FEEDER_URL . 'admin/js/chosen.jquery.min.js',
+        ES_FEEDER_URL . 'admin/js/gpalab-feeder-chosen.jquery.min.js',
         array( 'jquery' ),
         $this->version,
         'all'
