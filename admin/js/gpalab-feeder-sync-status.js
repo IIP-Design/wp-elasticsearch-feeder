@@ -1,25 +1,23 @@
-'use strict';
-(function ( $ ) {
-  $( document ).on( 'heartbeat-send', function ( event, data ) {
-    if (es_feeder_sync_status.post_id)
-      data.es_sync_status = es_feeder_sync_status.post_id;
+( function( $ ) {
+  $( document ).on( 'heartbeat-send', ( event, data ) => {
+    if ( gpalabFeederSyncStatus.postId ) data.es_sync_status = gpalabFeederSyncStatus.postId;
   } );
-  $( document ).on( 'heartbeat-tick', function ( event, data ) {
+  $( document ).on( 'heartbeat-tick', ( event, data ) => {
     if ( !data.es_sync_status ) return;
     $( '#cdp_sync_status' ).html( data.es_sync_status );
   } );
 
-  $(document).ready(function() {
-    $('#cdp-terms').chosen({width: '100%'});
+  $( document ).ready( () => {
+    $( '#cdp-terms' ).chosen( { width: '100%' } );
     toggleTaxBox();
-    $('input[name=index_post_to_cdp_option]').change(toggleTaxBox);
-  });
+    $( 'input[name=index_post_to_cdp_option]' ).change( toggleTaxBox );
+  } );
 
   function toggleTaxBox() {
-    if ($('#index_cdp_yes').is(':checked')) {
-      $('#cdp-taxonomy').show();
+    if ( $( '#index_cdp_yes' ).is( ':checked' ) ) {
+      $( '#cdp-taxonomy' ).show();
     } else {
-      $('#cdp-taxonomy').hide();
+      $( '#cdp-taxonomy' ).hide();
     }
   }
-})( jQuery );
+} )( jQuery );
