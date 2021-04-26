@@ -44,7 +44,16 @@ class Log_Helper {
    *
    * @since 2.0.0
    */
-  public function truncate_logs() {
+  public function clear_logs() {
+    // The following rules are handled by the slo_verify_nonce function and hence can be safely ignored.
+    // phpcs:disable WordPress.Security.NonceVerification.Missing
+    // phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+    // phpcs:disable WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+    // phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotValidated
+    $verification = new \ES_Feeder\Admin\Verification();
+    $verification->lab_verify_nonce( $_POST['security'] );
+    // phpcs:enable
+
     $path = ES_FEEDER_DIR . '*.log';
 
     foreach ( glob( $path ) as $log ) {
@@ -61,6 +70,15 @@ class Log_Helper {
    * @since 2.4.0
    */
   public function reload_log() {
+    // The following rules are handled by the slo_verify_nonce function and hence can be safely ignored.
+    // phpcs:disable WordPress.Security.NonceVerification.Missing
+    // phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+    // phpcs:disable WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+    // phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotValidated
+    $verification = new \ES_Feeder\Admin\Verification();
+    $verification->lab_verify_nonce( $_POST['security'] );
+    // phpcs:enable
+
     $path = ES_FEEDER_DIR . 'callback.log';
 
     $log = $this->tail( $path, 100 );

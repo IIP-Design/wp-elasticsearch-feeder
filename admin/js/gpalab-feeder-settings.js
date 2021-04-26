@@ -11,6 +11,8 @@
   let lastHeartbeat = null;
   let lastHeartbeatTimer = null;
 
+  const { nonce, syncTotals } = window.gpalabFeederSettings;
+
   /**
    * Register click listener functions, load sync data from the injected variable, and
    * update sync state if a sync was in progress.
@@ -24,8 +26,6 @@
     $( '#es_resync_control' ).on( 'click', resyncControl );
     $( '#es_validate_sync' ).on( 'click', validateSync );
     $( '#reload_log' ).on( 'click', reloadLog );
-
-    const { syncTotals } = window.gpalabFeederSettings;
 
     sync.total = parseInt( syncTotals.total, 10 );
     sync.complete = parseInt( syncTotals.complete, 10 );
@@ -73,8 +73,8 @@
       type: 'POST',
       dataType: 'JSON',
       data: {
-        _wpnonce: $( '#_wpnonce' ).val(),
-        action: 'es_truncate_logs',
+        action: 'gpalab_feeder_clear_logs',
+        security: nonce,
       },
       success( result ) {
         $( '#log_text' ).empty();
@@ -97,8 +97,8 @@
       type: 'POST',
       dataType: 'JSON',
       data: {
-        _wpnonce: $( '#_wpnonce' ).val(),
-        action: 'es_reload_log',
+        action: 'gpalab_feeder_reload_log',
+        security: nonce,
       },
       success( result ) {
         $( '#log_text' ).text( result );
@@ -131,8 +131,8 @@
       type: 'POST',
       dataType: 'JSON',
       data: {
-        _wpnonce: $( '#_wpnonce' ).val(),
-        action: 'es_validate_sync',
+        action: 'gpalab_feeder_validate',
+        security: nonce,
       },
       success( result ) {
         clearProgress();
@@ -163,12 +163,12 @@
       type: 'POST',
       dataType: 'JSON',
       data: {
-        _wpnonce: $( '#_wpnonce' ).val(),
-        action: 'es_request',
+        action: 'gpalab_feeder_request',
         data: {
           method: 'GET',
           url: $( '#es_url' ).val(),
         },
+        security: nonce,
       },
       success( result ) {
         $( '#es_output' ).text( JSON.stringify( result, null, 2 ) );
@@ -216,8 +216,8 @@
         type: 'POST',
         dataType: 'JSON',
         data: {
-          _wpnonce: $( '#_wpnonce' ).val(),
-          action: 'es_initiate_sync',
+          action: 'gpalab_feeder_sync_init',
+          security: nonce,
           sync_errors: errorsOnly,
         },
         success( result ) {
@@ -260,8 +260,8 @@
       dataType: 'JSON',
       url: window.ajaxurl,
       data: {
-        _wpnonce: $( '#_wpnonce' ).val(),
-        action: 'es_process_next',
+        action: 'gpalab_feeder_next',
+        security: nonce,
       },
       success( result ) {
         handleQueueResult( result );

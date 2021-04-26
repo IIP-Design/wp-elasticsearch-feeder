@@ -67,12 +67,23 @@ class Ajax {
    *
    * @since 2.0.0
    */
-  public function es_initiate_sync() {
+  public function initiate_sync() {
     global $wpdb;
+
+    // The following rules are handled by the slo_verify_nonce function and hence can be safely ignored.
+    // phpcs:disable WordPress.Security.NonceVerification.Missing
+    // phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+    // phpcs:disable WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+    // phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotValidated
+    $verification = new Admin\Verification();
+    $verification->lab_verify_nonce( $_POST['security'] );
+
+    $sync_errors = isset( $_POST['sync_errors'] ) && $_POST['sync_errors'];
+    // phpcs:enable
 
     $sync_helper = new Admin\Helpers\Sync_Helper( $this->plugin );
 
-    if ( isset( $_POST['sync_errors'] ) && $_POST['sync_errors'] ) {
+    if ( $sync_errors ) {
       $errors   = $sync_helper->check_sync_errors();
       $post_ids = $errors['ids'];
 
@@ -126,7 +137,16 @@ class Ajax {
    *
    * @since 2.0.0
    */
-  public function es_process_next() {
+  public function process_next() {
+    // The following rules are handled by the slo_verify_nonce function and hence can be safely ignored.
+    // phpcs:disable WordPress.Security.NonceVerification.Missing
+    // phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+    // phpcs:disable WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+    // phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotValidated
+    $verification = new Admin\Verification();
+    $verification->lab_verify_nonce( $_POST['security'] );
+    // phpcs:enable
+
     global $wpdb;
 
     $post_helper = new Admin\Helpers\Post_Helper( $this->namespace, $this->plugin );
@@ -211,16 +231,23 @@ class Ajax {
   /**
    * Wrapper for Ajax call to send an indexing request.
    *
-   * @param array   $request — Options to be used when sending the AJAX request.
-   * @param string  $callback — The callback url for failed requests.
-   * @param boolean $callback_errors_only — Whether to only use callback for errors(?).
+   * @param array $request — Options to be used when sending the AJAX request.
    *
    * @since 1.0.0
    */
-  public function es_request( $request, $callback = null, $callback_errors_only = false ) {
+  public function es_request( $request ) {
+    // The following rules are handled by the slo_verify_nonce function and hence can be safely ignored.
+    // phpcs:disable WordPress.Security.NonceVerification.Missing
+    // phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+    // phpcs:disable WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+    // phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotValidated
+    $verification = new Admin\Verification();
+    $verification->lab_verify_nonce( $_POST['security'] );
+    // phpcs:enable
+
     $post_actions = new Post_Actions( $this->namespace, $this->plugin );
 
-    $post_actions->request( $request, $callback, $callback_errors_only );
+    $post_actions->request( $request );
   }
 
   /**
@@ -229,6 +256,15 @@ class Ajax {
    * @since 2.0.0
    */
   public function validate_sync() {
+    // The following rules are handled by the slo_verify_nonce function and hence can be safely ignored.
+    // phpcs:disable WordPress.Security.NonceVerification.Missing
+    // phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+    // phpcs:disable WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+    // phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotValidated
+    $verification = new Admin\Verification();
+    $verification->lab_verify_nonce( $_POST['security'] );
+    // phpcs:enable
+
     set_time_limit( 600 );
     global $wpdb;
 
@@ -284,10 +320,10 @@ class Ajax {
       $post_types = $opts['es_post_types'];
       $formats    = implode( ',', array_fill( 0, count( $post_types ), '%s' ) );
       $query      = "SELECT p.ID, p.post_modified, ms.meta_value as sync_status 
-                       FROM $wpdb->posts p 
-                       LEFT JOIN (SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_status') ms ON p.ID = ms.post_id 
-                       LEFT JOIN (SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '_iip_index_post_to_cdp_option') m ON p.ID = m.post_id 
-                       WHERE p.post_type IN ($formats) AND p.post_status = 'publish' AND (m.meta_value IS NULL OR m.meta_value != 'no') AND ms.meta_value IS NOT NULL";
+                     FROM $wpdb->posts p 
+                     LEFT JOIN (SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_status') ms ON p.ID = ms.post_id 
+                     LEFT JOIN (SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '_iip_index_post_to_cdp_option') m ON p.ID = m.post_id 
+                     WHERE p.post_type IN ($formats) AND p.post_status = 'publish' AND (m.meta_value IS NULL OR m.meta_value != 'no') AND ms.meta_value IS NOT NULL";
 
       $rows = $wpdb->get_results(
         $wpdb->prepare( $query, array_keys( $post_types ) )

@@ -182,6 +182,7 @@ class Admin {
       $this->handle_settings,
       'gpalabFeederSettings',
       array(
+        'nonce'      => wp_create_nonce( 'gpalab-feeder-nonce' ),
         'syncTotals' => $sync,
       )
     );
