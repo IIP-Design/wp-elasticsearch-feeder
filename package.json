@@ -9,7 +9,7 @@
     "dev": "wp-scripts start admin/js/gutenberg-plugin.js --output-path=admin/build",
     "lint": "npm run lint:JS && npm run lint:PHP",
     "lint:JS": "eslint --ext .js --quiet ./",
-    "lint:PHP": "./vendor/bin/phpcs"
+    "lint:PHP": "./vendor/bin/phpcs -n"
   },
   "dependencies": {
     "@wordpress/components": "^13.0.2",
