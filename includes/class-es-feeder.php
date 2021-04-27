@@ -173,7 +173,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       $this->loader->add_filter( 'heartbeat_received', $ajax, 'heartbeat', 10, 2 );
       $this->loader->add_action( 'wp_ajax_gpalab_feeder_sync_init', $ajax, 'initiate_sync' );
       $this->loader->add_action( 'wp_ajax_gpalab_feeder_next', $ajax, 'process_next' );
-      $this->loader->add_action( 'wp_ajax_gpalab_feeder_request', $ajax, 'es_request' );
+      $this->loader->add_action( 'wp_ajax_gpalab_feeder_test', $ajax, 'test_connection' );
       $this->loader->add_action( 'wp_ajax_gpalab_feeder_validate', $ajax, 'validate_sync' );
 
       // Logging hooks.

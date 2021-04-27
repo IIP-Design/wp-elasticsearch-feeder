@@ -45,7 +45,7 @@ class Log_Helper {
    * @since 2.0.0
    */
   public function clear_logs() {
-    // The following rules are handled by the slo_verify_nonce function and hence can be safely ignored.
+    // The following rules are handled by the lab_verify_nonce function and hence can be safely ignored.
     // phpcs:disable WordPress.Security.NonceVerification.Missing
     // phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
     // phpcs:disable WordPress.Security.ValidatedSanitizedInput.MissingUnslash
@@ -70,7 +70,7 @@ class Log_Helper {
    * @since 2.4.0
    */
   public function reload_log() {
-    // The following rules are handled by the slo_verify_nonce function and hence can be safely ignored.
+    // The following rules are handled by the lab_verify_nonce function and hence can be safely ignored.
     // phpcs:disable WordPress.Security.NonceVerification.Missing
     // phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
     // phpcs:disable WordPress.Security.ValidatedSanitizedInput.MissingUnslash

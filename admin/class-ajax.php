@@ -70,7 +70,7 @@ class Ajax {
   public function initiate_sync() {
     global $wpdb;
 
-    // The following rules are handled by the slo_verify_nonce function and hence can be safely ignored.
+    // The following rules are handled by the lab_verify_nonce function and hence can be safely ignored.
     // phpcs:disable WordPress.Security.NonceVerification.Missing
     // phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
     // phpcs:disable WordPress.Security.ValidatedSanitizedInput.MissingUnslash
@@ -138,7 +138,7 @@ class Ajax {
    * @since 2.0.0
    */
   public function process_next() {
-    // The following rules are handled by the slo_verify_nonce function and hence can be safely ignored.
+    // The following rules are handled by the lab_verify_nonce function and hence can be safely ignored.
     // phpcs:disable WordPress.Security.NonceVerification.Missing
     // phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
     // phpcs:disable WordPress.Security.ValidatedSanitizedInput.MissingUnslash
@@ -231,12 +231,10 @@ class Ajax {
   /**
    * Wrapper for Ajax call to send an indexing request.
    *
-   * @param array $request — Options to be used when sending the AJAX request.
-   *
    * @since 1.0.0
    */
-  public function es_request( $request ) {
-    // The following rules are handled by the slo_verify_nonce function and hence can be safely ignored.
+  public function test_connection() {
+    // The following rules are handled by the lab_verify_nonce function and hence can be safely ignored.
     // phpcs:disable WordPress.Security.NonceVerification.Missing
     // phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
     // phpcs:disable WordPress.Security.ValidatedSanitizedInput.MissingUnslash
@@ -256,7 +254,7 @@ class Ajax {
    * @since 2.0.0
    */
   public function validate_sync() {
-    // The following rules are handled by the slo_verify_nonce function and hence can be safely ignored.
+    // The following rules are handled by the lab_verify_nonce function and hence can be safely ignored.
     // phpcs:disable WordPress.Security.NonceVerification.Missing
     // phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
     // phpcs:disable WordPress.Security.ValidatedSanitizedInput.MissingUnslash

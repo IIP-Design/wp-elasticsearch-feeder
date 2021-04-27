@@ -163,7 +163,7 @@
       type: 'POST',
       dataType: 'JSON',
       data: {
-        action: 'gpalab_feeder_request',
+        action: 'gpalab_feeder_test',
         data: {
           method: 'GET',
           url: $( '#es_url' ).val(),
