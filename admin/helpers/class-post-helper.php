@@ -215,24 +215,13 @@ class Post_Helper {
    * @since 2.1.0
    */
   public function post_sync_send( $post, $print = true ) {
-    // We only care about modifying published posts.
-    if ( 'publish' === $post->post_status ) {
-      if ( array_key_exists( 'index_post_to_cdp_option', $_POST ) ) {
-        // Check to see if post should be indexed or removed from index.
-        $should_index = $_POST['index_post_to_cdp_option'];
-      } else {
-        $index        = get_post_meta( $post->ID, '_iip_index_post_to_cdp_option', true );
-        $should_index = ! empty( $index ) ? $index : 'yes';
-      }
+    $index_meta   = get_post_meta( $post->ID, '_iip_index_post_to_cdp_option', true );
+    $should_index = ! empty( $index_meta ) ? $index_meta : 'yes';
 
-      if ( isset( $should_index ) && $should_index ) {
-        // Default to indexing - post has to be specifically set to 'no'.
-        if ( 'no' === $should_index ) {
-          $this->delete( $post );
-        } else {
-          $this->add_or_update( $post, $print );
-        }
-      }
+    if ( 'no' === $should_index ) {
+      $this->delete( $post );
+    } else {
+      $this->add_or_update( $post, $print );
     }
   }
 

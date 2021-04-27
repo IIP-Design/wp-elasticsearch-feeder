@@ -8,10 +8,10 @@
 
 ?>
 <label for="index_cdp_yes">
-  <input 
-    type="radio" id="index_cdp_yes" 
-    name="index_post_to_cdp_option" 
-    value="yes" 
+  <input
+    type="radio" id="index_cdp_yes"
+    name="cdp_index_opt"
+    value="yes"
     style="margin-top:-1px; vertical-align:middle;"
     <?php checked( $value, '' ); ?>
     <?php checked( $value, 'yes' ); ?>
@@ -19,11 +19,11 @@
   <?php esc_html_e( 'Yes', 'gpalab-feeder' ); ?>
 </label>
 <label for="index_cdp_no">
-  <input 
-    type="radio" 
-    id="index_cdp_no" 
-    name="index_post_to_cdp_option" 
-    value="no" 
+  <input
+    type="radio"
+    id="index_cdp_no"
+    name="cdp_index_opt"
+    value="no"
     style="margin-top:-1px; margin-left: 10px; vertical-align:middle;"
     <?php checked( $value, 'no' ); ?>
   />

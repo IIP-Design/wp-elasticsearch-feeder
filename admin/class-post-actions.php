@@ -45,27 +45,18 @@ class Post_Actions {
     $settings  = get_option( $this->plugin );
     $post_type = $post->post_type;
 
-    if ( array_key_exists( 'index_post_to_cdp_option', $_POST ) ) {
-      update_post_meta(
-        $id,
-        '_iip_index_post_to_cdp_option',
-        $_POST['index_post_to_cdp_option']
-      );
+    /**
+     * Update the post metadata if post is not using Gutenberg editor.
+     *
+     * Nonce verification occurs within the legacy_meta_update function
+     * so we can safely ignore it here.
+     *
+     * phpcs:disable WordPress.Security.NonceVerification.Missing
+     */
+    if ( isset( $_POST['security'] ) ) {
+      $this->legacy_meta_update( $id, $_POST );
     }
-
-    if ( array_key_exists( 'cdp_language', $_POST ) ) {
-      update_post_meta( $id, '_iip_language', $_POST['cdp_language'] );
-    }
-
-    if ( array_key_exists( 'cdp_owner', $_POST ) ) {
-      update_post_meta( $id, '_iip_owner', $_POST['cdp_owner'] );
-    }
-
-    if ( array_key_exists( 'cdp_terms', $_POST ) ) {
-      update_post_meta( $id, '_iip_taxonomy_terms', $_POST['cdp_terms'] );
-    } elseif ( $_POST && is_array( $_POST ) ) {
-      update_post_meta( $id, '_iip_taxonomy_terms', array() );
-    }
+    // phpcs:enable
 
     // Return early if missing parameters.
     if (
@@ -77,12 +68,53 @@ class Post_Actions {
       return;
     }
 
-    if ( 'publish' !== $post->post_status ) {
-      return;
+    // We only care about modifying published posts.
+    if ( 'publish' === $post->post_status ) {
+      $post_helper->post_sync_send( $post, false );
+      $this->translate_post( $post );
+    }
+  }
+
+  /**
+   * Check the for updates to post's the metadata.
+   *
+   * This will only run when using legacy metaboxes since the
+   * Gutenberg saves metadata in a different fashion.
+   *
+   * @param int   $id          WordPress post id.
+   * @param array $post_data   The post data returned in the $_POST array.
+   *
+   * @since 3.0.0
+   */
+  private function legacy_meta_update( $id, $post_data ) {
+    // Check security nonce before updating metadata.
+    $verification = new \ES_Feeder\Admin\Verification();
+    $verification->lab_verify_nonce( $post_data['security'] );
+
+    if ( array_key_exists( 'cdp_index_opt', $post_data ) ) {
+      $sanitized_index = sanitize_text_field( $post_data['cdp_index_opt'] );
+
+      update_post_meta( $id, '_iip_index_post_to_cdp_option', $sanitized_index );
     }
 
-    $post_helper->post_sync_send( $post, false );
-    $this->translate_post( $post );
+    if ( array_key_exists( 'cdp_language', $post_data ) ) {
+      $sanitized_lang = sanitize_text_field( $post_data['cdp_language'] );
+
+      update_post_meta( $id, '_iip_language', $sanitized_lang );
+    }
+
+    if ( array_key_exists( 'cdp_owner', $post_data ) ) {
+      $sanitized_owner = sanitize_text_field( $post_data['cdp_owner'] );
+
+      update_post_meta( $id, '_iip_owner', $sanitized_owner );
+    }
+
+    if ( array_key_exists( 'cdp_terms', $post_data ) ) {
+      // TODO: sanitize terms array. Need to confirm the array shape before doing this.
+      update_post_meta( $id, '_iip_taxonomy_terms', $post_data['cdp_terms'] );
+    } elseif ( $post_data && is_array( $post_data ) ) {
+      update_post_meta( $id, '_iip_taxonomy_terms', array() );
+    }
   }
 
   /**

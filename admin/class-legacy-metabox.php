@@ -113,6 +113,9 @@ class Legacy_Metabox {
     $value       = get_post_meta( $post->ID, '_iip_index_post_to_cdp_option', true ); // Do not remove, used in the partial below.
     $sync        = ! empty( $sync_status ) ? $sync_status : 'Never synced'; // Do not remove, used in the partial below.
 
+    // Add a nonce field to allow for a security check when saving CDP metadata.
+    wp_nonce_field( 'gpalab-feeder-nonce', 'security' );
+
     include_once ES_FEEDER_DIR . 'admin/partials/index-item-toggle.php';
   }
 

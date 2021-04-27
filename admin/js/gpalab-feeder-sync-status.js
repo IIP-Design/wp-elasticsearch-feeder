@@ -1,4 +1,6 @@
 ( function( $ ) {
+  const { gpalabFeederSyncStatus } = window;
+
   $( document ).on( 'heartbeat-send', ( event, data ) => {
     if ( gpalabFeederSyncStatus.postId ) data.es_sync_status = gpalabFeederSyncStatus.postId;
   } );
@@ -10,7 +12,7 @@
   $( document ).ready( () => {
     $( '#cdp-terms' ).chosen( { width: '100%' } );
     toggleTaxBox();
-    $( 'input[name=index_post_to_cdp_option]' ).change( toggleTaxBox );
+    $( 'input[name=cdp_index_opt]' ).change( toggleTaxBox );
   } );
 
   function toggleTaxBox() {
