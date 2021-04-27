@@ -229,7 +229,7 @@ class Ajax {
   }
 
   /**
-   * Wrapper for Ajax call to send an indexing request.
+   * Forward the Ajax call to the CDP API.
    *
    * @since 1.0.0
    */
@@ -241,11 +241,15 @@ class Ajax {
     // phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotValidated
     $verification = new Admin\Verification();
     $verification->lab_verify_nonce( $_POST['security'] );
+
+    // Sanitize the API data pulled off of the settings page form.
+    $request = $verification->sanitize_test_connect_data( $_POST['data'] );
     // phpcs:enable
 
     $post_actions = new Post_Actions( $this->namespace, $this->plugin );
 
-    $post_actions->request( $request );
+    // Forward request to the CDP API.
+    $post_actions->request( $request, null, false, false );
   }
 
   /**

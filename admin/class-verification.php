@@ -47,4 +47,27 @@ class Verification {
       );
     }
   }
+
+  /**
+   * Sanitize the API data provided in settings page before sending a CDP API request.
+   *
+   * @param array $data   The request data pulled off of $_POST['data'].
+   *
+   * @since 3.0.0
+   */
+  public function sanitize_test_connect_data( $data ) {
+    $unslashed = isset( $data ) ? wp_unslash( $data ) : array();
+
+    $sanitized = array();
+
+    if ( ! empty( $unslashed['method'] ) ) {
+      $sanitized['method'] = sanitize_text_field( $unslashed['method'] );
+    }
+
+    if ( ! empty( $unslashed['url'] ) ) {
+      $sanitized['url'] = sanitize_text_field( $unslashed['url'] );
+    }
+
+    return $sanitized;
+  }
 }

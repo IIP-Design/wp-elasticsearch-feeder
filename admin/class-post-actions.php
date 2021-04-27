@@ -273,15 +273,15 @@ class Post_Actions {
    * @param array   $request                Options to be used when sending the AJAX request.
    * @param string  $callback               The callback url for failed requests.
    * @param boolean $callback_errors_only   Whether to only use callback for errors(?).
+   * @param boolean $is_internal            Whether or not the origin is an AJAX request.
    *
    * @since 1.0.0
    */
-  public function request( $request, $callback = null, $callback_errors_only = false ) {
+  public function request( $request, $callback = null, $callback_errors_only = false, $is_internal = true ) {
     $log_helper = new Admin\Helpers\Log_Helper();
 
-    $is_internal = false;
-    $error       = false;
-    $results     = null;
+    $error   = false;
+    $results = null;
 
     $headers = array();
 
@@ -303,10 +303,7 @@ class Post_Actions {
       $headers['Authorization'] = 'Bearer ' . $token;
     }
 
-    if ( ! $request ) {
-      $request = $_POST['data'];
-    } else {
-      $is_internal      = true;
+    if ( $is_internal ) {
       $opts['base_uri'] = trim( $config['es_url'], '/' ) . '/';
     }
 
