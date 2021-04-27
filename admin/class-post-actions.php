@@ -40,10 +40,25 @@ class Post_Actions {
    * @since 1.0.0
    */
   public function save_post( $id, $post ) {
-    $post_helper = new Admin\Helpers\Post_Helper( $this->namespace, $this->plugin );
+    // Only proceed on intentional save/update action.
+    $is_autosave = wp_is_post_autosave( $id );
+    $is_revision = wp_is_post_revision( $id );
 
-    $settings  = get_option( $this->plugin );
-    $post_type = $post->post_type;
+    if ( $is_autosave || $is_revision ) {
+      return;
+    }
+
+    // Return early if missing parameters.
+    $settings = get_option( $this->plugin );
+
+    if (
+      null === $post
+      || ! array_key_exists( 'es_post_types', $settings )
+      || ! array_key_exists( $post->post_type, $settings['es_post_types'] )
+      || ! $settings['es_post_types'][ $post->post_type ]
+    ) {
+      return;
+    }
 
     /**
      * Update the post metadata if post is not using Gutenberg editor.
@@ -58,18 +73,10 @@ class Post_Actions {
     }
     // phpcs:enable
 
-    // Return early if missing parameters.
-    if (
-      null === $post
-      || ! array_key_exists( 'es_post_types', $settings )
-      || ! array_key_exists( $post_type, $settings['es_post_types'] )
-      || ! $settings['es_post_types'][ $post_type ]
-    ) {
-      return;
-    }
-
     // We only care about modifying published posts.
     if ( 'publish' === $post->post_status ) {
+      $post_helper = new Admin\Helpers\Post_Helper( $this->namespace, $this->plugin );
+
       $post_helper->post_sync_send( $post, false );
       $this->translate_post( $post );
     }
