@@ -74,7 +74,7 @@
     ?>
 
     <div id="poststuff">
-      <div id="post-body" class="metabox-holder columns-2">
+      <div id="post-body" class="metabox-holder columns-1">
         <div id="post-body-content">
           <div class="meta-box-sortables ui-sortable">
             <div class="postbox">
@@ -282,8 +282,8 @@
                 </button>
               </div>
 
-              <div class="inside index-spinner"></div>
-              <div class="inside progress-wrapper"></div>
+              <div class="inside index-spinner" id="index-spinner"></div>
+              <div class="inside progress-wrapper" id="progress-wrapper"></div>
 
               <hr/>
 
@@ -293,7 +293,10 @@
               </h3>
 
               <div class="inside" style="margin-right: 10px;">
-                <pre id="es_output" style="min-width: 100%; display: block;background-color:#eaeaea;padding:5px;overflow: scroll;"></pre>
+                <pre
+                  id="gpalab-feeder-output"
+                  style="background-color: #eaeaea; display: block; min-height: 2rem; min-width: 100%; overflow: scroll; padding: 5px; "
+                ></pre>
               </div>
             </div>
 
