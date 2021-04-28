@@ -18,14 +18,12 @@
    * update sync state if a sync was in progress.
    */
   $( window ).load( () => {
-    $( '#gpalab-feeder-clear-logs' ).on( 'click', truncateLogs );
     $( '#gpalab-feeder-test-connection' ).on( 'click', testConnection );
     $( '#gpalab-feeder-query-index' ).on( 'click', queryIndex );
     $( '#gpalab-feeder-resync' ).on( 'click', resyncStart( 0 ) );
     $( '#gpalab-feeder-resync-errors' ).on( 'click', resyncStart( 1 ) );
     $( '#gpalab-feeder-resync-control' ).on( 'click', resyncControl );
     $( '#gpalab-feeder-validate-sync' ).on( 'click', validateSync );
-    $( '#gpalab-feeder-reload-gpalab-feeder-log' ).on( 'click', reloadLog );
 
     sync.total = parseInt( syncTotals.total, 10 );
     sync.complete = parseInt( syncTotals.complete, 10 );
@@ -65,49 +63,6 @@
       lastHeartbeat += 1;
       $( '#last-heartbeat' ).html( `${lastHeartbeat}s ago (usually every 15s)` );
     }, 1000 );
-  }
-
-  function truncateLogs() {
-    $.ajax( {
-      url: window.ajaxurl,
-      type: 'POST',
-      dataType: 'JSON',
-      data: {
-        action: 'gpalab_feeder_clear_logs',
-        security: nonce,
-      },
-      success( result ) {
-        $( '#log_text' ).empty();
-        alert( 'Logs truncated.' );
-      },
-      error( result ) {
-        console.error( result );
-        alert( 'Communication error while truncating logs.' );
-      },
-    } );
-  }
-
-  /**
-   * Loads the last 100 lines of callback.log
-   */
-  function reloadLog() {
-    $( '#log_text' ).empty();
-    $.ajax( {
-      url: window.ajaxurl,
-      type: 'POST',
-      dataType: 'JSON',
-      data: {
-        action: 'gpalab_feeder_reload_log',
-        security: nonce,
-      },
-      success( result ) {
-        $( '#log_text' ).text( result );
-      },
-      error( result ) {
-        console.error( result );
-        alert( 'Communication error while reloading log.' );
-      },
-    } );
   }
 
   function validateSync() {

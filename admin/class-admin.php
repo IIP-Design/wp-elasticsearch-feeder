@@ -40,6 +40,16 @@ class Admin {
    * @since 3.0.0
    */
   public function register_admin_scripts_styles() {
+    $script_asset = require ES_FEEDER_DIR . 'admin/build/gpalab-feeder-settings.asset.php';
+
+    wp_register_script(
+      $this->handle_settings . '2',
+      ES_FEEDER_URL . 'admin/build/gpalab-feeder-settings.js',
+      $script_asset['dependencies'],
+      $script_asset['version'],
+      true
+    );
+
     wp_register_script(
       $this->handle_settings,
       ES_FEEDER_URL . 'admin/js/gpalab-feeder-settings.js',
@@ -115,6 +125,7 @@ class Admin {
       $this->localize_settings_script();
 
       wp_enqueue_script( $this->handle_settings );
+      wp_enqueue_script( $this->handle_settings . '2' );
     }
 
     // Check whether the current screen is the edit screen for an indexable post.

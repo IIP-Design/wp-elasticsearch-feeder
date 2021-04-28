@@ -316,7 +316,7 @@
                   >
                     <?php esc_html_e( 'Reload Log', 'gpalab-feeder' ); ?>
                   </button>
-                  <textarea rows="20" id="log_text" readonly style="width: 100%; overflow-y: scroll;">
+                  <textarea rows="20" id="log-text" readonly style="width: 100%; overflow-y: scroll;">
                     <?php echo esc_textarea( $log ); ?>
                   </textarea>
               </div>
