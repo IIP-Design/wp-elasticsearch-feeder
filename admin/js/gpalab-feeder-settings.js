@@ -19,7 +19,6 @@
    */
   $( window ).load( () => {
     $( '#gpalab-feeder-test-connection' ).on( 'click', testConnection );
-    $( '#gpalab-feeder-query-index' ).on( 'click', queryIndex );
     $( '#gpalab-feeder-resync' ).on( 'click', resyncStart( 0 ) );
     $( '#gpalab-feeder-resync-errors' ).on( 'click', resyncStart( 1 ) );
     $( '#gpalab-feeder-resync-control' ).on( 'click', resyncControl );
@@ -132,13 +131,6 @@
         $( '#es_output' ).text( JSON.stringify( result, null, 2 ) );
       },
     } ).always( enableManage );
-  }
-
-  /**
-   * Execute an arbitrary query against the API.
-   */
-  function queryIndex() {
-    // TODO: Add query handler to house a query test of some kind.
   }
 
   /**

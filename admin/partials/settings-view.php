@@ -77,7 +77,7 @@
       <div id="post-body" class="metabox-holder columns-2">
         <div id="post-body-content">
           <div class="meta-box-sortables ui-sortable">
-            <div class="postbox">						
+            <div class="postbox">
               <h3><?php esc_html_e( 'Indexed URL', 'gpalab-feeder' ); ?></h3>
               <div class="inside">
                 <select id="es_wpdomain" name="<?php echo esc_html( $this->plugin ); ?>[es_wpdomain]">
@@ -173,10 +173,10 @@
               <div class="inside">
                 <label for="es_post_language" >
                   <input
-                    id="es_post_language" 
+                    id="es_post_language"
                     name="<?php echo esc_html( $this->plugin ); ?>[es_post_language]" 
-                    type="checkbox" 
-                    value="1" 
+                    type="checkbox"
+                    value="1"
                     <?php echo $es_post_language ? 'checked' : ''; ?>
                   />
                     <?php esc_html_e( 'Add language dropdown to the Post (default) content type.', 'gpalab-feeder' ); ?>
@@ -190,7 +190,7 @@
                     id="es_post_owner" 
                     name="<?php echo esc_html( $this->plugin ); ?>[es_post_owner]" 
                     type="checkbox"
-                    value="1" 
+                    value="1"
                     <?php echo $es_post_owner ? 'checked' : ''; ?>
                   />
                   <?php esc_html_e( 'Add owner dropdown to the Post (default) content type.', 'gpalab-feeder' ); ?>
@@ -229,34 +229,36 @@
               <h3><?php esc_html_e( 'Manage', 'gpalab-feeder' ); ?></h3>
               <div class="inside manage-btns">
                 <button
-                  class="button-secondary" 
+                  class="button-secondary"
                   id="gpalab-feeder-test-connection"
                   name="gpalab-feeder-test-connection"
-                  type="button" 
+                  type="button"
                 >
                   <?php esc_html_e( 'Test Connection', 'gpalab-feeder' ); ?>
                 </button>
-                <button 
+                <button
                   class="button-secondary"
                   id="gpalab-feeder-query-index"
                   name="gpalab-feeder-query-index"
-                  type="button" 
+                  style="display:none"
+                  type="button"
                 >
+                  <!-- Hidden since the button does not do anything. -->
                   <?php esc_html_e( 'Query Index', 'gpalab-feeder' ); ?>
                 </button>
-                <button 
+                <button
                   class="button-secondary"
                   id="gpalab-feeder-resync-errors"
                   name="gpalab-feeder-resync-errors"
-                  type="button" 
+                  type="button"
                 >
                   <?php esc_html_e( 'Fix Errors', 'gpalab-feeder' ); ?>
                 </button>
-                <button 
+                <button
                   class="button-secondary"
                   id="gpalab-feeder-validate-sync"
                   name="gpalab-feeder-validate-sync"
-                  type="button" 
+                  type="button"
                 >
                   <?php esc_html_e( 'Validate Statuses', 'gpalab-feeder' ); ?>
                 </button>
