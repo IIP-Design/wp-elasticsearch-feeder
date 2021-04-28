@@ -1,4 +1,4 @@
-import { clearLogs, reloadLog } from './log';
+import { clearLogs, reloadLog } from '../ajax/log';
 
 /**
  * Adds event listeners required to run the settings page tabbed container.

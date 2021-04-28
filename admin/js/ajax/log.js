@@ -1,12 +1,5 @@
-import { i18nize } from './i18n';
-import { sendAjax } from './ajax';
-
-/**
- * Retrieve the security nonce used to authenticate AJAX requests.
- *
- * @returns {string} The localized nonce.
- */
-const getNonce = () => window?.gpalabFeederSettings?.nonce;
+import { i18nize } from '../utils/i18n';
+import { getNonce, sendAjax } from './helpers';
 
 /**
  * Clear the text of the log textarea.
