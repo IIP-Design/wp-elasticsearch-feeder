@@ -230,40 +230,40 @@
               <div class="inside manage-btns">
                 <button
                   class="button-secondary" 
-                  id="es_test_connection"
-                  name="es_test_connection"
+                  id="gpalab-feeder-test-connection"
+                  name="gpalab-feeder-test-connection"
                   type="button" 
                 >
                   <?php esc_html_e( 'Test Connection', 'gpalab-feeder' ); ?>
                 </button>
                 <button 
                   class="button-secondary"
-                  id="es_query_index"
-                  name="es_query_index"
+                  id="gpalab-feeder-query-index"
+                  name="gpalab-feeder-query-index"
                   type="button" 
                 >
                   <?php esc_html_e( 'Query Index', 'gpalab-feeder' ); ?>
                 </button>
                 <button 
                   class="button-secondary"
-                  id="es_resync_errors"
-                  name="es_resync_errors"
+                  id="gpalab-feeder-resync-errors"
+                  name="gpalab-feeder-resync-errors"
                   type="button" 
                 >
                   <?php esc_html_e( 'Fix Errors', 'gpalab-feeder' ); ?>
                 </button>
                 <button 
                   class="button-secondary"
-                  id="es_validate_sync"
-                  name="es_validate_sync"
+                  id="gpalab-feeder-validate-sync"
+                  name="gpalab-feeder-validate-sync"
                   type="button" 
                 >
                   <?php esc_html_e( 'Validate Statuses', 'gpalab-feeder' ); ?>
                 </button>
                 <button
                   class="button-primary"
-                  id="es_resync_control"
-                  name="es_resync_control"
+                  id="gpalab-feeder-resync-control"
+                  name="gpalab-feeder-resync-control"
                   style="display: none;"
                   type="button"
                 >
@@ -271,11 +271,11 @@
                 </button>
                 <button
                   class="button-secondary button-danger"
-                  id="es_resync"
-                  name="es_reindex"
+                  id="gpalab-feeder-resync"
+                  name="gpalab-feeder-resync"
                   style="float: right;"
                   type="button"
-                  >
+                >
                   <?php esc_html_e( 'Resync All Data', 'gpalab-feeder' ); ?>
                 </button>
               </div>
@@ -298,7 +298,7 @@
             <div class="postbox">
               <h3><?php esc_html_e( 'Log', 'gpalab-feeder' ); ?></h3>
               <div class="inside manage-btns">
-                <button class="button-secondary" id="truncate_logs" type="button" >
+                <button class="button-secondary" id="gpalab-feeder-clear-logs" type="button" >
                   <?php esc_html_e( 'Clear Log', 'gpalab-feeder' ); ?>
                 </button>
                 <a class="button-secondary" href="<?php echo esc_url( ES_FEEDER_URL . 'callback.log' ); ?>">
@@ -309,8 +309,8 @@
                   <p style="float: left;"><?php esc_html_e( 'Last 100 Lines', 'gpalab-feeder' ); ?></p>
                   <button
                     class="button-primary"
-                    id="reload_log"
-                    name="reload_log"
+                    id="gpalab-feeder-reload-log"
+                    name="gpalab-feeder-reload-log"
                     style="float: right;"
                     type="button"
                   >

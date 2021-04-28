@@ -18,14 +18,14 @@
    * update sync state if a sync was in progress.
    */
   $( window ).load( () => {
-    $( '#truncate_logs' ).on( 'click', truncateLogs );
-    $( '#es_test_connection' ).on( 'click', testConnection );
-    $( '#es_query_index' ).on( 'click', queryIndex );
-    $( '#es_resync' ).on( 'click', resyncStart( 0 ) );
-    $( '#es_resync_errors' ).on( 'click', resyncStart( 1 ) );
-    $( '#es_resync_control' ).on( 'click', resyncControl );
-    $( '#es_validate_sync' ).on( 'click', validateSync );
-    $( '#reload_log' ).on( 'click', reloadLog );
+    $( '#gpalab-feeder-clear-logs' ).on( 'click', truncateLogs );
+    $( '#gpalab-feeder-test-connection' ).on( 'click', testConnection );
+    $( '#gpalab-feeder-query-index' ).on( 'click', queryIndex );
+    $( '#gpalab-feeder-resync' ).on( 'click', resyncStart( 0 ) );
+    $( '#gpalab-feeder-resync-errors' ).on( 'click', resyncStart( 1 ) );
+    $( '#gpalab-feeder-resync-control' ).on( 'click', resyncControl );
+    $( '#gpalab-feeder-validate-sync' ).on( 'click', validateSync );
+    $( '#gpalab-feeder-reload-gpalab-feeder-log' ).on( 'click', reloadLog );
 
     sync.total = parseInt( syncTotals.total, 10 );
     sync.complete = parseInt( syncTotals.complete, 10 );
@@ -236,13 +236,13 @@
    */
   function resyncControl() {
     if ( sync.paused ) {
-      $( '#es_resync_control' ).html( 'Pause Sync' );
+      $( '#gpalab-feeder-resync-control' ).html( 'Pause Sync' );
       sync.paused = false;
       $( '#progress-bar' ).removeClass( 'paused' );
       $( '.spinner-text' ).html( 'Processing... Leaving this page will pause the resync.' );
       processQueue();
     } else {
-      $( '#es_resync_control' ).html( 'Resume Sync' );
+      $( '#gpalab-feeder-resync-control' ).html( 'Resume Sync' );
       $( '#progress-bar' ).addClass( 'paused' );
       $( '.spinner-text' ).html( 'Paused.' );
       sync.paused = true;
@@ -320,7 +320,7 @@
     $( '.progress-wrapper' ).html(
       `<div id="progress-bar" ${sync.paused ? 'class="paused"' : ''}><span></span></div>`,
     );
-    $( '#es_resync_control' )
+    $( '#gpalab-feeder-resync-control' )
       .html( sync.paused ? 'Resume Sync' : 'Pause Sync' )
       .show();
     $( '#es_output' ).empty();
@@ -349,7 +349,7 @@
     sync.post = null;
     $( '.index-spinner' ).empty();
     $( '.progress-wrapper' ).empty();
-    $( '#es_resync_control' ).hide();
+    $( '#gpalab-feeder-resync-control' ).hide();
   }
 
   /**
