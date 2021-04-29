@@ -46,12 +46,12 @@ class Ajax {
   public function heartbeat( $response, $data ) {
     $sync_helper = new Admin\Helpers\Sync_Helper( $this->plugin );
 
-    if ( ! empty( $data['es_sync_status'] ) ) {
-      $post_id = $data['es_sync_status'];
-      $status  = $sync_helper->get_sync_status( $post_id );
-      ob_start();
-      $sync_helper->sync_status_indicator( $status );
-      $response['es_sync_status'] = ob_get_clean();
+    if ( ! empty( $data['gpalab_feeder_sync_status'] ) ) {
+      $post_id     = $data['gpalab_feeder_sync_status'];
+      $status      = $sync_helper->get_sync_status( $post_id );
+      $status_data = $sync_helper->get_status_code_data( $status, true );
+
+      $response['gpalab_feeder_sync_status'] = $status_data;
     }
 
     if ( ! empty( $data['gpalab_feeder_count'] ) ) {

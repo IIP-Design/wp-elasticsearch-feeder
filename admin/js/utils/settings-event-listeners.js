@@ -1,5 +1,5 @@
 import { clearLogs, reloadLog } from '../ajax/log';
-import { initStatuses, onTick, resetHeartbeatTimer } from '../ajax/heartbeat';
+import { onTickSettings, requestStatuses, resetHeartbeatTimer } from '../ajax/heartbeat';
 
 /**
  * Adds event listeners required to run the settings page tabbed container.
@@ -26,8 +26,8 @@ export const settingsEventListeners = () => {
   reloadBtn.addEventListener( 'click', reloadLog );
 
   // Heartbeat events.
-  jQuery( document ).on( 'heartbeat-send', initStatuses );
-  jQuery( document ).on( 'heartbeat-tick', onTick );
+  jQuery( document ).on( 'heartbeat-send', requestStatuses );
+  jQuery( document ).on( 'heartbeat-tick', onTickSettings );
 
   // Initialize the heartbeat timer.
   resetHeartbeatTimer();

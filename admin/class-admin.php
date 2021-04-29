@@ -27,7 +27,7 @@ class Admin {
    */
   public function __construct( $namespace, $plugin, $version ) {
     $this->handle_settings = $plugin . '-settings';
-    $this->handle_sync     = $plugin . '-sync-status';
+    $this->handle_post     = $plugin . '-post-status';
     $this->namespace       = $namespace;
     $this->plugin          = $plugin;
     $this->version         = $version;
@@ -39,13 +39,13 @@ class Admin {
    * @since 3.0.0
    */
   public function register_admin_scripts_styles() {
-    $script_asset = require ES_FEEDER_DIR . 'admin/build/gpalab-feeder-settings.asset.php';
+    $settings_script_asset = require ES_FEEDER_DIR . 'admin/build/gpalab-feeder-settings.asset.php';
 
     wp_register_script(
       $this->handle_settings . '2',
       ES_FEEDER_URL . 'admin/build/gpalab-feeder-settings.js',
-      $script_asset['dependencies'],
-      $script_asset['version'],
+      $settings_script_asset['dependencies'],
+      $settings_script_asset['version'],
       true
     );
 
@@ -57,11 +57,13 @@ class Admin {
       false
     );
 
+    $post_script_asset = require ES_FEEDER_DIR . 'admin/build/gpalab-feeder-settings.asset.php';
+
     wp_register_script(
-      $this->handle_sync,
-      ES_FEEDER_URL . 'admin/js/gpalab-feeder-sync-status.js',
-      array( 'jquery' ),
-      $this->version,
+      $this->handle_post,
+      ES_FEEDER_URL . 'admin/build/gpalab-feeder-post-status.js',
+      $post_script_asset['dependencies'],
+      $post_script_asset['version'],
       false
     );
   }
@@ -114,14 +116,14 @@ class Admin {
     // Only enqueue post-specific admin scripts on edit page of allowed post types.
     if ( $indexable_post_screen ) {
       wp_localize_script(
-        $this->handle_sync,
+        $this->handle_post,
         'gpalabFeederSyncStatus',
         array(
           'postId' => $post ? $post->ID : null,
         )
       );
 
-      wp_enqueue_script( $this->handle_sync );
+      wp_enqueue_script( $this->handle_post );
     }
   }
 
