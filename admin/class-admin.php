@@ -26,9 +26,12 @@ class Admin {
    * @since 3.0.0
    */
   public function __construct( $namespace, $plugin, $version ) {
-    $this->namespace = $namespace;
-    $this->plugin    = $plugin;
-    $this->version   = $version;
+    $this->handle_settings = $plugin . '-settings';
+    $this->handle_chosen   = $plugin . '-chosen';
+    $this->handle_sync     = $plugin . '-sync-status';
+    $this->namespace       = $namespace;
+    $this->plugin          = $plugin;
+    $this->version         = $version;
   }
 
   /**
@@ -38,16 +41,24 @@ class Admin {
    */
   public function register_admin_scripts_styles() {
     wp_register_script(
-      $this->plugin,
-      ES_FEEDER_URL . 'admin/js/wp-es-feeder-admin.js',
+      $this->handle_settings,
+      ES_FEEDER_URL . 'admin/js/gpalab-feeder-settings.js',
       array( 'jquery' ),
       $this->version,
       false
     );
 
     wp_register_script(
-      $this->plugin . '-sync-status',
-      ES_FEEDER_URL . 'admin/js/wp-es-feeder-admin-post.js',
+      $this->handle_sync,
+      ES_FEEDER_URL . 'admin/js/gpalab-feeder-sync-status.js',
+      array( 'jquery' ),
+      $this->version,
+      false
+    );
+
+    wp_register_script(
+      $this->handle_chosen,
+      ES_FEEDER_URL . 'admin/js/gpalab-feeder-chosen.jquery.min.js',
       array( 'jquery' ),
       $this->version,
       false
@@ -62,25 +73,25 @@ class Admin {
    * @since 1.0.0
    */
   public function enqueue_styles( $hook ) {
-    global $post;
+    // Check whether the current screen is the edit screen for an indexable post.
+    $indexable_edit_screen = $this->is_indexable_edit_screen( $hook );
 
-    $post_helper = new Admin\Helpers\Post_Helper( $this->namespace, $this->plugin );
-
-    wp_enqueue_style(
-      $this->plugin,
-      ES_FEEDER_URL . 'admin/css/wp-es-feeder-admin.css',
-      array(),
-      $this->version,
-      'all'
-    );
-
-    if (
-      ( 'post.php' === $hook || 'post-new.php' === $hook )
-      && in_array( $post->post_type, $post_helper->get_allowed_post_types(), true )
-    ) {
+    // Enqueue settings styles on settings page and allowed post type edit screens.
+    if ( 'settings_page_wp-es-feeder' === $hook || $indexable_edit_screen ) {
       wp_enqueue_style(
-        'chosen',
-        ES_FEEDER_URL . 'admin/css/chosen.css',
+        $this->handle_settings,
+        ES_FEEDER_URL . 'admin/css/gpalab-feeder-admin.css',
+        array(),
+        $this->version,
+        'all'
+      );
+    }
+
+    // Only enqueue post-specific admin styles on edit page of allowed post types.
+    if ( $indexable_edit_screen ) {
+      wp_enqueue_style(
+        $this->handle_chosen,
+        ES_FEEDER_URL . 'admin/css/gpalab-feeder-chosen.css',
         array(),
         $this->version,
         'all'
@@ -98,48 +109,83 @@ class Admin {
   public function enqueue_scripts( $hook ) {
     global $post;
 
+    // Only enqueue settings scripts on settings page.
+    if ( 'settings_page_wp-es-feeder' === $hook ) {
+      $this->localize_settings_script();
+
+      wp_enqueue_script( $this->handle_settings );
+    }
+
+    // Check whether the current screen is the edit screen for an indexable post.
+    $indexable_edit_screen = $this->is_indexable_edit_screen( $hook );
+
+    // Only enqueue post-specific admin scripts on edit page of allowed post types.
+    if ( $indexable_edit_screen ) {
+      wp_localize_script(
+        $this->handle_sync,
+        'gpalabFeederSyncStatus',
+        array(
+          'postId' => $post ? $post->ID : null,
+        )
+      );
+
+      wp_enqueue_script( $this->handle_sync );
+      wp_enqueue_script( $this->handle_chosen );
+    }
+  }
+
+  /**
+   * Check whether the current screen is the edit screen for an indexable post.
+   *
+   * @param string $hook   The current admin page.
+   * @return boolean       Whether or not the current screen is an indexable post.
+   *
+   * @since 3.0.0
+   */
+  private function is_indexable_edit_screen( $hook ) {
+    global $post;
+
     $post_helper = new Admin\Helpers\Post_Helper( $this->namespace, $this->plugin );
+
+    $is_post      = 'post.php' === $hook || 'post-new.php' === $hook;
+    $is_indexable = $post ? in_array( $post->post_type, $post_helper->get_allowed_post_types(), true ) : false;
+
+    return $is_post && $is_indexable;
+  }
+
+  /**
+   * Localize the settings page with sync data.
+   *
+   * @since 3.0.0
+   */
+  private function localize_settings_script() {
     $sync_helper = new Admin\Helpers\Sync_Helper( $this->plugin );
 
-    $totals = $sync_helper->get_resync_totals();
-    $sync   = array(
+    // Initialize sync status array with fallback values.
+    $sync = array(
       'complete' => 0,
       'total'    => 0,
       'paused'   => false,
       'post'     => null,
     );
 
+    $totals = $sync_helper->get_resync_totals();
+
+    // Update the sync status witch current values.
     if ( ! $totals['done'] ) {
       $sync['complete'] = $totals['complete'];
       $sync['total']    = $totals['total'];
       $sync['paused']   = true;
     }
 
-    wp_localize_script( $this->plugin, 'es_feeder_sync', $sync );
-    wp_enqueue_script( $this->plugin );
-
-    if (
-      ( 'post.php' === $hook || 'post-new.php' === $hook )
-      && in_array( $post->post_type, $post_helper->get_allowed_post_types(), true )
-    ) {
-      wp_enqueue_script(
-        'chosen',
-        ES_FEEDER_URL . 'admin/js/chosen.jquery.min.js',
-        array( 'jquery' ),
-        $this->version,
-        'all'
-      );
-
-      $handle = $this->plugin . '-sync-status';
-
-      wp_localize_script(
-        $handle,
-        'es_feeder_sync_status',
-        array( 'post_id' => $post ? $post->ID : null )
-      );
-
-      wp_enqueue_script( $handle );
-    }
+    wp_localize_script(
+      $this->handle_settings,
+      'gpalabFeederSettings',
+      array(
+        'nonce'      => wp_create_nonce( 'gpalab-feeder-nonce' ),
+        'syncTotals' => $sync,
+      )
+    );
   }
 
   /**
@@ -159,7 +205,7 @@ class Admin {
   }
 
   /**
-   * Register those metavalue keys that need to be made available in the REST API.
+   * Register those meta value keys that need to be made available in the REST API.
    *
    * @since 3.0.0
    */

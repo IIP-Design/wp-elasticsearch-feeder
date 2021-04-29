@@ -171,14 +171,14 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
 
       // Ajax hooks.
       $this->loader->add_filter( 'heartbeat_received', $ajax, 'heartbeat', 10, 2 );
-      $this->loader->add_action( 'wp_ajax_es_initiate_sync', $ajax, 'es_initiate_sync' );
-      $this->loader->add_action( 'wp_ajax_es_process_next', $ajax, 'es_process_next' );
-      $this->loader->add_action( 'wp_ajax_es_request', $ajax, 'es_request' );
-      $this->loader->add_action( 'wp_ajax_es_validate_sync', $ajax, 'validate_sync' );
+      $this->loader->add_action( 'wp_ajax_gpalab_feeder_sync_init', $ajax, 'initiate_sync' );
+      $this->loader->add_action( 'wp_ajax_gpalab_feeder_next', $ajax, 'process_next' );
+      $this->loader->add_action( 'wp_ajax_gpalab_feeder_test', $ajax, 'test_connection' );
+      $this->loader->add_action( 'wp_ajax_gpalab_feeder_validate', $ajax, 'validate_sync' );
 
       // Logging hooks.
-      $this->loader->add_action( 'wp_ajax_es_reload_log', $logging, 'reload_log' );
-      $this->loader->add_action( 'wp_ajax_es_truncate_logs', $logging, 'truncate_logs' );
+      $this->loader->add_action( 'wp_ajax_gpalab_feeder_reload_log', $logging, 'reload_log' );
+      $this->loader->add_action( 'wp_ajax_gpalab_feeder_clear_logs', $logging, 'clear_logs' );
 
       // API hooks.
       $this->loader->add_action( 'rest_api_init', $api, 'register_elasticsearch_rest_routes' );

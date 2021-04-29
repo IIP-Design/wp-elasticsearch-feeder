@@ -8,8 +8,10 @@
     results: null,
   };
 
-  let last_heartbeat = null;
-  let last_heartbeat_timer = null;
+  let lastHeartbeat = null;
+  let lastHeartbeatTimer = null;
+
+  const { nonce, syncTotals } = window.gpalabFeederSettings;
 
   /**
    * Register click listener functions, load sync data from the injected variable, and
@@ -25,10 +27,9 @@
     $( '#es_validate_sync' ).on( 'click', validateSync );
     $( '#reload_log' ).on( 'click', reloadLog );
 
-    // console.log(es_feeder_sync);
-    sync.total = parseInt( es_feeder_sync.total );
-    sync.complete = parseInt( es_feeder_sync.complete );
-    sync.paused = es_feeder_sync.paused === '1';
+    sync.total = parseInt( syncTotals.total, 10 );
+    sync.complete = parseInt( syncTotals.complete, 10 );
+    sync.paused = syncTotals.paused === '1';
     if ( sync.paused ) {
       createProgress();
       updateProgress();
@@ -57,23 +58,23 @@
   } );
 
   function resetHeartbeatTimer() {
-    if ( last_heartbeat_timer ) clearInterval( last_heartbeat_timer );
-    last_heartbeat = 0;
-    $( '#last-heartbeat' ).html( `${last_heartbeat}s ago (usually every 15s)` );
-    last_heartbeat_timer = setInterval( () => {
-      last_heartbeat++;
-      $( '#last-heartbeat' ).html( `${last_heartbeat}s ago (usually every 15s)` );
+    if ( lastHeartbeatTimer ) clearInterval( lastHeartbeatTimer );
+    lastHeartbeat = 0;
+    $( '#last-heartbeat' ).html( `${lastHeartbeat}s ago (usually every 15s)` );
+    lastHeartbeatTimer = setInterval( () => {
+      lastHeartbeat += 1;
+      $( '#last-heartbeat' ).html( `${lastHeartbeat}s ago (usually every 15s)` );
     }, 1000 );
   }
 
   function truncateLogs() {
     $.ajax( {
-      url: ajaxurl,
+      url: window.ajaxurl,
       type: 'POST',
       dataType: 'JSON',
       data: {
-        _wpnonce: $( '#_wpnonce' ).val(),
-        action: 'es_truncate_logs',
+        action: 'gpalab_feeder_clear_logs',
+        security: nonce,
       },
       success( result ) {
         $( '#log_text' ).empty();
@@ -92,12 +93,12 @@
   function reloadLog() {
     $( '#log_text' ).empty();
     $.ajax( {
-      url: ajaxurl,
+      url: window.ajaxurl,
       type: 'POST',
       dataType: 'JSON',
       data: {
-        _wpnonce: $( '#_wpnonce' ).val(),
-        action: 'es_reload_log',
+        action: 'gpalab_feeder_reload_log',
+        security: nonce,
       },
       success( result ) {
         $( '#log_text' ).text( result );
@@ -126,12 +127,12 @@
     disableManage();
     $.ajax( {
       timeout: 120000,
-      url: ajaxurl,
+      url: window.ajaxurl,
       type: 'POST',
       dataType: 'JSON',
       data: {
-        _wpnonce: $( '#_wpnonce' ).val(),
-        action: 'es_validate_sync',
+        action: 'gpalab_feeder_validate',
+        security: nonce,
       },
       success( result ) {
         clearProgress();
@@ -158,16 +159,16 @@
     $( '#es_output' ).text( '' );
     disableManage();
     $.ajax( {
-      url: ajaxurl,
+      url: window.ajaxurl,
       type: 'POST',
       dataType: 'JSON',
       data: {
-        _wpnonce: $( '#_wpnonce' ).val(),
-        action: 'es_request',
+        action: 'gpalab_feeder_test',
         data: {
           method: 'GET',
           url: $( '#es_url' ).val(),
         },
+        security: nonce,
       },
       success( result ) {
         $( '#es_output' ).text( JSON.stringify( result, null, 2 ) );
@@ -211,12 +212,12 @@
       disableManage();
       $.ajax( {
         timeout: 120000,
-        url: ajaxurl,
+        url: window.ajaxurl,
         type: 'POST',
         dataType: 'JSON',
         data: {
-          _wpnonce: $( '#_wpnonce' ).val(),
-          action: 'es_initiate_sync',
+          action: 'gpalab_feeder_sync_init',
+          security: nonce,
           sync_errors: errorsOnly,
         },
         success( result ) {
@@ -257,10 +258,10 @@
     $.ajax( {
       type: 'POST',
       dataType: 'JSON',
-      url: ajaxurl,
+      url: window.ajaxurl,
       data: {
-        _wpnonce: $( '#_wpnonce' ).val(),
-        action: 'es_process_next',
+        action: 'gpalab_feeder_next',
+        security: nonce,
       },
       success( result ) {
         handleQueueResult( result );
