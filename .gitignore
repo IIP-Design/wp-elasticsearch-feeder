@@ -1,3 +1,6 @@
+# Build Artifacts
+*.js.map
+
 # Dependencies
 node_modules/
 vendor/
