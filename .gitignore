@@ -1,6 +1,10 @@
-.DS_Store
-composer.lock
+# Dependencies
+node_modules/
 vendor/
-callback.log
-es_request.log
-feeder.log
+
+# Error Logs
+*.log
+
+# Local files
+.DS_Store
+.vscode/

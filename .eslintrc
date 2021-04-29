@@ -1,0 +1,5 @@
+
+{
+  "extends": ["@gpa-lab/eslint-config"],
+  "ignorePatterns": [ "admin/js/chosen.jquery.min.js", "node_modules/", "vendor/" ]
+}
