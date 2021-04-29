@@ -27,7 +27,6 @@ class Admin {
    */
   public function __construct( $namespace, $plugin, $version ) {
     $this->handle_settings = $plugin . '-settings';
-    $this->handle_chosen   = $plugin . '-chosen';
     $this->handle_sync     = $plugin . '-sync-status';
     $this->namespace       = $namespace;
     $this->plugin          = $plugin;
@@ -65,14 +64,6 @@ class Admin {
       $this->version,
       false
     );
-
-    wp_register_script(
-      $this->handle_chosen,
-      ES_FEEDER_URL . 'admin/js/gpalab-feeder-chosen.jquery.min.js',
-      array( 'jquery' ),
-      $this->version,
-      false
-    );
   }
 
   /**
@@ -92,17 +83,6 @@ class Admin {
       wp_enqueue_style(
         $this->handle_settings,
         ES_FEEDER_URL . 'admin/css/gpalab-feeder-admin.css',
-        array(),
-        $this->version,
-        'all'
-      );
-    }
-
-    // Only enqueue post-specific admin styles on edit page of allowed post types.
-    if ( $indexable_post_screen ) {
-      wp_enqueue_style(
-        $this->handle_chosen,
-        ES_FEEDER_URL . 'admin/css/gpalab-feeder-chosen.css',
         array(),
         $this->version,
         'all'
@@ -142,7 +122,6 @@ class Admin {
       );
 
       wp_enqueue_script( $this->handle_sync );
-      wp_enqueue_script( $this->handle_chosen );
     }
   }
 
