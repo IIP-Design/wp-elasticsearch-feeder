@@ -1,9 +1,29 @@
 import { ready } from './utils/document-ready';
-import { settingsEventListeners } from './utils/settings-event-listeners';
+import { addEventListeners } from './event-listeners/settings-page';
 
 /**
- * Set up the page event listeners once the page is loaded.
+ * Set up the event listeners required by the settings page once the page is loaded.
  */
 ready( () => {
-  settingsEventListeners();
+  const syncStatus = () => {
+    const sync = {
+      complete: 0,
+      total: 0,
+      paused: false,
+      post: null,
+      results: null,
+    };
+
+    const updateSync = ( key, val ) => {
+      sync[key] = val;
+    };
+
+    return {
+      isPaused: () => sync.paused,
+      update: ( key, val ) => updateSync( key, val ),
+      value: () => sync,
+    };
+  };
+
+  addEventListeners( syncStatus );
 } );
