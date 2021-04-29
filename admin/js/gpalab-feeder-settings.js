@@ -8,9 +8,6 @@
     results: null,
   };
 
-  let lastHeartbeat = null;
-  let lastHeartbeatTimer = null;
-
   const { nonce, syncTotals } = window.gpalabFeederSettings;
 
   /**
@@ -31,27 +28,6 @@
       createProgress();
       updateProgress();
     }
-
-    $( document ).on( 'heartbeat-send', ( event, data ) => {
-      data.es_sync_status_counts = 1;
-    } );
-    $( document ).on( 'heartbeat-tick', ( event, data ) => {
-      resetHeartbeatTimer();
-      if ( !data.es_sync_status_counts ) return;
-      $( '.status-count' ).each( ( i, status ) => {
-        const $status = $( status );
-        const id = $status.attr( 'data-status-id' );
-        const newCount = data.es_sync_status_counts[id] || 0;
-
-        if ( $status.html() !== `${newCount}` ) {
-          $status.fadeOut( 'slow', () => {
-            $status.html( newCount );
-            $status.fadeIn( 'slow' );
-          } );
-        }
-      } );
-    } );
-    resetHeartbeatTimer();
   } );
 
   function resetHeartbeatTimer() {
@@ -229,7 +205,7 @@
     console.log( result );
     if ( result.error || result.done ) {
       clearProgress();
-      if ( result.error && result.message ) $( '#es_output' ).html( result.message );
+      if ( result.error && result.message ) $( '#gpalab-feeder-output' ).html( result.message );
       reloadLog();
     } else {
       sync.complete = result.complete;
@@ -247,7 +223,7 @@
       updateProgress();
       processQueue();
     }
-    if ( result.results ) $( '#es_output' ).html(
+    if ( result.results ) $( '#gpalab-feeder-output' ).html(
       result.results.length > 0 ? JSON.stringify( result.results, null, 2 ) : 'No errors.',
     );
     else if ( result.response ) $( '#es_output' ).prepend( `${JSON.stringify( result, null, 2 )}\r\n\r\n` );

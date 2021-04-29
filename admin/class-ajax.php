@@ -35,7 +35,7 @@ class Ajax {
    * Triggered by heartbeat AJAX event, added the sync status indicator HTML if the data includes
    * es_sync_status which contains a post ID and will be converted to the sync status indicator HTML.
    *
-   * If the data includes es_sync_status_counts, send back an array of counts for each status ID.
+   * If the data includes gpalab_feeder_count, send back an array of counts for each status ID.
    *
    * @param array $response   The response returned to the server from the heartbeat.
    * @param array $data       The $_POST data sent.
@@ -54,8 +54,8 @@ class Ajax {
       $response['es_sync_status'] = ob_get_clean();
     }
 
-    if ( ! empty( $data['es_sync_status_counts'] ) ) {
-      $response['es_sync_status_counts'] = $sync_helper->get_sync_status_counts();
+    if ( ! empty( $data['gpalab_feeder_count'] ) ) {
+      $response['gpalab_feeder_count'] = $sync_helper->get_sync_status_counts();
     }
 
     return $response;
