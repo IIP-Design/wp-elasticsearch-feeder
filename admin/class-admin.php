@@ -42,22 +42,14 @@ class Admin {
     $settings_script_asset = require ES_FEEDER_DIR . 'admin/build/gpalab-feeder-settings.asset.php';
 
     wp_register_script(
-      $this->handle_settings . '2',
+      $this->handle_settings,
       ES_FEEDER_URL . 'admin/build/gpalab-feeder-settings.js',
       $settings_script_asset['dependencies'],
       $settings_script_asset['version'],
       true
     );
 
-    wp_register_script(
-      $this->handle_settings,
-      ES_FEEDER_URL . 'admin/js/gpalab-feeder-settings.js',
-      array( 'jquery' ),
-      $this->version,
-      false
-    );
-
-    $post_script_asset = require ES_FEEDER_DIR . 'admin/build/gpalab-feeder-settings.asset.php';
+    $post_script_asset = require ES_FEEDER_DIR . 'admin/build/gpalab-feeder-post-status.asset.php';
 
     wp_register_script(
       $this->handle_post,
@@ -77,7 +69,6 @@ class Admin {
    */
   public function enqueue_styles( $hook ) {
     // Check whether the current screen is the edit screen for an indexable post.
-    $indexable_post_screen = $this->is_indexable_screen( $hook, 'post' );
     $indexable_all_screens = $this->is_indexable_screen( $hook, 'all' );
 
     // Enqueue settings styles on settings page and allowed post type edit screens.
@@ -107,7 +98,6 @@ class Admin {
       $this->localize_settings_script();
 
       wp_enqueue_script( $this->handle_settings );
-      wp_enqueue_script( $this->handle_settings . '2' );
     }
 
     // Check whether the current screen is the edit screen for an indexable post.
