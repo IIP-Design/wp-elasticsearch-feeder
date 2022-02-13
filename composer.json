@@ -1,7 +1,7 @@
 {
   "name": "iip-design/wp-elasticsearch-feeder",
   "type": "wordpress-plugin",
-  "description" : "WordPress plugin to syncs site content to an Elasticsearch index",
+  "description": "WordPress plugin to syncs site content to an Elasticsearch index",
   "license": "GPL-2.0-or-later",
   "authors": [
     {
@@ -30,13 +30,14 @@
     }
   ],
   "require": {
-    "composer/installers": "^v1.10.0",
-    "guzzlehttp/guzzle": "^7.3.0"
+    "composer/installers": "v2.0.1",
+    "guzzlehttp/guzzle": "^7.4.1"
   },
   "require-dev": {
     "wp-coding-standards/wpcs": "^2.3.0",
-    "squizlabs/php_codesniffer": "^3.6.0",
-    "phpcompatibility/phpcompatibility-wp": "^2.1.1",
+    "squizlabs/php_codesniffer": "^3.6.2",
+    "phpcompatibility/php-compatibility": "*",
+    "phpcompatibility/phpcompatibility-wp": "^2.1.3",
     "dealerdirect/phpcodesniffer-composer-installer": "^v0.7.1"
   },
   "minimum-stability": "stable"
