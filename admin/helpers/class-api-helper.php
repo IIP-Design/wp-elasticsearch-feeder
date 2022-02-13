@@ -144,6 +144,13 @@ class API_Helper {
       if ( $output['locale'] ) {
         return $language_helper->get_language_by_code( $output['locale'] );
       }
+    } elseif ( function_exists( 'pll_get_post_language' ) ) {
+      $unformatted_locale = pll_get_post_language( $id, 'locale' );
+      $locale = strtolower( str_replace( '_', '-', $unformatted_locale ) );
+
+      if ( $locale ) {
+        return $language_helper->get_language_by_code( $locale );
+      }
     } elseif ( get_post_type( $id ) === 'post' ) {
       $options       = get_option( $this->plugin );
       $use_post_lang = array_key_exists( 'es_post_language', $options ) && $options['es_post_language'] ? 1 : 0;

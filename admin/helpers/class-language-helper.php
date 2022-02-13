@@ -178,17 +178,70 @@ class Language_Helper {
   }
 
   /**
-   * Get the translated versions for a given post.
+   * Converts the list of translations from the format used
+   * by the given translation plugin to a common format.
    *
-   * @param int $post_id   A given WordPress post id.
-   * @return array         A list of a posts translations.
+   * @param array  $results  The translations mappings.
+   * @param int    $post_id  The post in question.
+   * @param string $plugin   The translation plugin in use.
+   * @return array           A list of a posts translations.
    *
-   * @since 2.0.0
+   * @since 3.0.0
    */
-  public function get_translations( $post_id ) {
+  public function normalize_translations( $results, $post_id, $plugin ) {
+    // Initialize list of translations with empty array.
+    $translations = array();
+
+    foreach ( $results as $key => $result ) {
+      // Get the required properties from the translation mappings.
+      $code = 'WPML' === $plugin ? $result->language_code : $key;
+      $id   = 'WPML' === $plugin ? $result->element_id : $result;
+
+      // Polylang includes the provided post_id along with all translations.
+      // Therefore we must omit it during the loop.
+      if ( 'Polylang' === $plugin && $result === $post_id ) {
+        continue;
+      }
+
+      $lang = $this->get_language_by_code( $code );
+
+      if ( ! $lang ) {
+        continue;
+      }
+
+      $status = get_post_status( $id );
+
+      if ( 'publish' !== $status ) {
+        continue;
+      }
+
+      $sync = get_post_meta( $id, '_iip_index_post_to_cdp_option', true );
+
+      if ( 'no' === $sync ) {
+        continue;
+      }
+
+      $translations[] = array(
+        'post_id'  => $id,
+        'language' => $lang,
+      );
+    }
+
+    return $translations;
+  }
+
+  /**
+   * Get the translated version of a given post when using WPML.
+   *
+   * @param int $post_id    The ID of the post in question.
+   * @return array          A list of a posts translations.
+   *
+   * @since 3.0.0
+   */
+  public function get_wpml_translations( $post_id ) {
     global $wpdb;
 
-    // Short circuit if WPML is not installed.
+    // Short circuit if required WPML function isn't present.
     if ( ! function_exists( 'icl_object_id' ) ) {
       return array();
     }
@@ -213,34 +266,53 @@ class Language_Helper {
       )
     );
 
-    // Initialize list of translations with empty array.
-    $translations = array();
-
-    foreach ( $results as $result ) {
-      $lang = $this->get_language_by_code( $result->language_code );
-
-      if ( ! $lang ) {
-        continue;
-      }
-
-      $status = get_post_status( $result->element_id );
-
-      if ( 'publish' !== $status ) {
-        continue;
-      }
-
-      $sync = get_post_meta( $result->element_id, '_iip_index_post_to_cdp_option', true );
-
-      if ( 'no' === $sync ) {
-        continue;
-      }
-
-      $translations[] = array(
-        'post_id'  => $result->element_id,
-        'language' => $lang,
-      );
-    }
+    $translations = $this->normalize_translations( $results, $post_id, 'WPML' );
 
     return $translations;
+  }
+
+  /**
+   * Get the translated version of a given post when using Polylang.
+   *
+   * @param int $post_id    The post in question.
+   * @return array          A list of a posts translations.
+   *
+   * @since 3.0.0
+   */
+  public function get_polylang_translations( $post_id ) {
+    // Short circuit if required Polylang functions isn't present.
+    if ( ! function_exists( 'pll_get_post_translations' ) ) {
+      return array();
+    }
+
+    $results = pll_get_post_translations( $post_id );
+
+    $translations = $this->normalize_translations( $results, $post_id, 'Polylang' );
+
+    return $translations;
+  }
+
+  /**
+   * Get the translated versions for a given post.
+   *
+   * @param int $post_id   A given WordPress post id.
+   * @return array         A list of a posts translations.
+   *
+   * @since 2.0.0
+   */
+  public function get_translations( $post_id ) {
+    if ( is_plugin_active( 'polylang/polylang.php' ) ) {
+
+      // Get translations if Polylang is installed.
+      return $this->get_polylang_translations( $post_id );
+
+    } elseif ( is_plugin_active( 'sitepress-multilingual-cms/sitepress.php' ) ) {
+
+      // Get translations if WPML is installed.
+      return $this->get_wpml_translations( $post_id );
+
+    } else {
+      return array();
+    }
   }
 }
