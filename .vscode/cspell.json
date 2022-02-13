@@ -1,0 +1,21 @@
+{
+  "dictionaryDefinitions": [
+    {
+      "name": "Post Meta",
+      "path": "../.config/dictionaries/postmeta.txt"
+    },
+    {
+      "name": "WordPress",
+      "path": "../.config/dictionaries/wordpress.txt"
+    },
+    {
+      "name": "WP Plugins",
+      "path": "../.config/dictionaries/plugins.txt"
+    }
+  ],
+  "dictionaries": [
+    "Post Meta",
+    "WordPress",
+    "WP Plugins"
+  ]
+}

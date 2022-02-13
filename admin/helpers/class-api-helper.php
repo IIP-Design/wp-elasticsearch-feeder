@@ -146,7 +146,7 @@ class API_Helper {
       }
     } elseif ( function_exists( 'pll_get_post_language' ) ) {
       $unformatted_locale = pll_get_post_language( $id, 'locale' );
-      $locale = strtolower( str_replace( '_', '-', $unformatted_locale ) );
+      $locale             = strtolower( str_replace( '_', '-', $unformatted_locale ) );
 
       if ( $locale ) {
         return $language_helper->get_language_by_code( $locale );

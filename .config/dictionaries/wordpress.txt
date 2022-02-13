@@ -1,0 +1,6 @@
+# WordPress phrases that set off the spell checker.
+bloginfo
+metaboxes
+postmeta
+unslash
+wpdb

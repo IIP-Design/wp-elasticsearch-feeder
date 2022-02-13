@@ -1,0 +1,4 @@
+# Metadata names that set off the spell checker.
+es_reindex
+es_wpdomain
+wp_kses
