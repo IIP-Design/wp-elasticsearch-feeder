@@ -238,14 +238,6 @@
                 </button>
                 <button 
                   class="button-secondary"
-                  id="es_query_index"
-                  name="es_query_index"
-                  type="button" 
-                >
-                  <?php esc_html_e( 'Query Index', 'gpalab-feeder' ); ?>
-                </button>
-                <button 
-                  class="button-secondary"
                   id="es_resync_errors"
                   name="es_resync_errors"
                   type="button" 

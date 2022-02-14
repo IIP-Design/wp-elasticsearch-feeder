@@ -134,12 +134,6 @@ import { ready } from './utils/document-ready';
 //     } ).always( enableManage );
 //   }
 
-//   /**
-//    * Execute an arbitrary query against the API.
-//    */
-//   function queryIndex() {
-//     // TODO: Add query handler to house a query test of some kind.
-//   }
 
 //   /**
 //    * TODO: Initiate a new sync by deleting ALL of this site's posts from ES
@@ -329,6 +323,7 @@ const truncateLogs = async () => {
 
   const logText = document.getElementById( 'log_text' );
 
+  // Prepare the API request body.
   const formData = new FormData();
 
   formData.append( 'action', 'gpalab_feeder_clear_logs' );
@@ -349,7 +344,7 @@ const truncateLogs = async () => {
 };
 
 /**
- * Send a basic request to the provided URL and print the response in the output container.
+ * Send a simple request to the CDP API to confirm that the connection is live.
  */
 const testConnection = async () => {
   const { feederNonce } = window.gpalabFeederSettings;
@@ -359,8 +354,10 @@ const testConnection = async () => {
 
   output.innerHTML = '';
 
+  // Disable buttons for the duration of the request.
   disableManageButtons( true );
 
+  // Prepare the API request body.
   const formData = new FormData();
 
   formData.append( 'action', 'gpalab_feeder_test' );
@@ -376,10 +373,13 @@ const testConnection = async () => {
 
     const result = await response.json();
 
+    // Display test response in results output.
     addText( JSON.stringify( result, null, 2 ), output );
   } catch ( err ) {
+    // Display error message in results output.
     addText( JSON.stringify( err, null, 2 ), output );
   } finally {
+    // Re-enable all buttons.
     disableManageButtons( false );
   }
 };
@@ -390,7 +390,6 @@ const testConnection = async () => {
 const initializeEventListener = () => {
   const trimLogs = document.getElementById( 'truncate_logs' );
   const connection = document.getElementById( 'es_test_connection' );
-  const queryIndex = document.getElementById( 'es_query_index' );
   const resync = document.getElementById( 'es_resync' );
   const resyncErrors = document.getElementById( 'es_resync_errors' );
   const resyncControl = document.getElementById( 'es_resync_control' );
@@ -399,7 +398,6 @@ const initializeEventListener = () => {
 
   trimLogs.addEventListener( 'click', truncateLogs );
   connection.addEventListener( 'click', testConnection );
-  queryIndex.addEventListener( 'click', queryIndex );
   resync.addEventListener( 'click', () => resync( 0 ) );
   resyncErrors.addEventListener( 'click', () => resync( 1 ) );
   resyncControl.addEventListener( 'click', resyncControl );
