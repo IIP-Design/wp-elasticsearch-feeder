@@ -114,7 +114,7 @@
                   id="es_token"
                   name="<?php echo esc_html( $this->plugin . '[es_token]' ); ?>"
                   placeholder="api token"
-                  type="text"
+                  type="password"
                   value="<?php echo esc_html( ( ! empty( $es_token ) ? $es_token : '' ) ); ?>"
                 />
               </div>
