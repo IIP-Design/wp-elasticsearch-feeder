@@ -74,12 +74,13 @@
     ?>
 
     <div id="poststuff">
+      <div class="gpalab-growl" id="gpalab-growl"></div>
       <div id="post-body" class="metabox-holder columns-2">
         <div id="post-body-content">
           <div class="meta-box-sortables ui-sortable">
-            <div class="postbox">						
+            <div class="postbox">
               <h3><?php esc_html_e( 'Indexed URL', 'gpalab-feeder' ); ?></h3>
-              <div class="inside">
+              <div class="inside gpalab-domain-select">
                 <select id="es_wpdomain" name="<?php echo esc_html( $this->plugin ); ?>[es_wpdomain]">
                   <?php
                   $option_elements = array(
@@ -204,12 +205,12 @@
 
             <div class="postbox">
               <h3><?php esc_html_e( 'Live Status', 'gpalab-feeder' ); ?></h3>
-              <strong style="margin: 0; padding: 4px 12px">
+              <strong class="gpalab-last-update">
                 <?php esc_html_e( 'Last update', 'gpalab-feeder' ) . ':'; ?>
                 <span id="last-heartbeat"></span>
               </strong>
               <div class="inside live-status-wrapper">
-                <table>
+                <table class="gpalab-status-table">
                     <?php for ( $i = 1; $i <= 5; $i++ ) : ?>
                     <tr>
                       <td><?php $sync_helper->sync_status_indicator( $i, true, false ); ?></td>
@@ -282,8 +283,8 @@
                 <span style="font-weight: normal;">(<?php esc_html_e( 'descending order', 'gpalab-feeder' ); ?>)</span>
               </h3>
 
-              <div class="inside" style="margin-right: 10px;">
-                <pre id="es_output" style="min-width: 100%; display: block;background-color:#eaeaea;padding:5px;overflow: scroll;"></pre>
+              <div class="inside">
+                <pre class="gpalab-output" id="es_output"></pre>
               </div>
             </div>
 
@@ -297,20 +298,21 @@
                   <?php esc_html_e( 'Download Log', 'gpalab-feeder' ); ?>
                 </a>
               </div>
-              <div class="inside log-wrapper">
-                  <p style="float: left;"><?php esc_html_e( 'Last 100 Lines', 'gpalab-feeder' ); ?></p>
+              <div class="inside gpalab-log-wrapper">
+                <div  class="gpalab-log-wrapper-top">
+                  <p><?php esc_html_e( 'Last 100 Lines', 'gpalab-feeder' ); ?></p>
                   <button
                     class="button-primary"
                     id="reload_log"
                     name="reload_log"
-                    style="float: right;"
                     type="button"
                   >
                     <?php esc_html_e( 'Reload Log', 'gpalab-feeder' ); ?>
                   </button>
-                  <textarea rows="20" id="log_text" readonly style="width: 100%; overflow-y: scroll;">
-                    <?php echo esc_textarea( $log ); ?>
-                  </textarea>
+                </div>
+                <textarea class="gpalab-output" rows="20" id="log_text" readonly>
+                  <?php echo esc_textarea( $log ); ?>
+                </textarea>
               </div>
             </div>
 

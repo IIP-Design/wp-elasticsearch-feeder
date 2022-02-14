@@ -1,4 +1,4 @@
-import { addText, clearText } from './utils/manipulate-dom';
+import { addText, clearText, showGrowl } from './utils/manipulate-dom';
 import { ready } from './utils/document-ready';
 
 // ( function( $ ) {
@@ -330,11 +330,15 @@ const truncateLogs = async () => {
       body: formData,
     } );
 
-    logText.innerHTML = '';
-    alert( 'Logs truncated.' );
+    // Clear out any existing text in the log output section.
+    clearText( logText );
+    showGrowl( 'Logs truncated.' );
   } catch ( err ) {
     console.error( err );
-    alert( 'Communication error while truncating logs.' );
+    showGrowl( 'Communication error while truncating logs.' );
+  } finally {
+    // Re-enable all buttons.
+    disableManageButtons( false );
   }
 };
 

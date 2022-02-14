@@ -27,3 +27,26 @@ const makeVisible = ( node, visible, alt = 'block' ) => {
   node.style.display = visible ? alt : 'none';
 };
 
+/**
+ * Shows the provided message in a growl notification.
+ * @param {string} msg The message that should be displayed in the growl notification.
+ */
+export const showGrowl = msg => {
+  const growl = document.getElementById( 'gpalab-growl' );
+
+  // Abort if the required growl container is missing
+  // or a notification message is not provided.
+  if ( !growl || !msg ) {
+    return;
+  }
+
+  // Show the growl.
+  addText( msg, growl );
+  makeVisible( growl, true );
+
+  // Clear and hide the growl.
+  setTimeout( () => {
+    makeVisible( growl, false );
+    clearText( growl );
+  }, 1500 );
+};

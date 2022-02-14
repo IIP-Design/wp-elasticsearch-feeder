@@ -11,6 +11,27 @@
   margin-top: 0.5rem;
 }
 
+.gpalab-last-update {
+  margin: 0;
+  padding: 0.25rem 1rem;
+}
+
+.gpalab-status-table {
+  margin: 0 1rem;
+}
+
+.gpalab-log-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.gpalab-log-wrapper-top {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin: 0.5rem 0;
+}
+
 .gpalab-growl {
   background: #e33637;
   border-radius: 5px;
@@ -22,4 +43,14 @@
   position: fixed;
   top: 6rem;
   z-index: 1;
+}
+
+.gpalab-output {
+  background-color: #eaeaea;
+  border: 1px solid #c3c4c7;
+  border-radius: 4px;
+  max-width: 100%;
+  min-height: 3rem;
+  overflow: auto;
+  padding: 1rem;
 }
