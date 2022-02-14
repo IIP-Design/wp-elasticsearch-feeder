@@ -50,6 +50,13 @@ class Admin {
       false
     );
 
+    wp_register_style(
+      $this->handle_settings . '-css',
+      ES_FEEDER_URL . 'admin/css/gpalab-feeder-settings.css',
+      array(),
+      $this->version
+    );
+
     wp_register_script(
       $this->handle_sync,
       ES_FEEDER_URL . 'admin/js/gpalab-feeder-sync-status.js',
@@ -80,6 +87,8 @@ class Admin {
 
     // Enqueue settings styles on settings page and allowed post type edit screens.
     if ( 'settings_page_wp-es-feeder' === $hook || $indexable_edit_screen ) {
+      wp_enqueue_style( $this->handle_settings . '-css' );
+
       wp_enqueue_style(
         $this->handle_settings,
         ES_FEEDER_URL . 'admin/css/gpalab-feeder-admin.css',

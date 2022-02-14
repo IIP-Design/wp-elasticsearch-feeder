@@ -1,0 +1,25 @@
+.gpalab-domain-select {
+  display: flex;
+  flex-direction: column;
+}
+
+.gpalab-domain-select > select {
+  width: 25em;
+}
+
+.gpalab-domain-select > span {
+  margin-top: 0.5rem;
+}
+
+.gpalab-growl {
+  background: #e33637;
+  border-radius: 5px;
+  color: white;
+  display: none;
+  font-weight: bold;
+  left: 50%;
+  padding: 1rem 1.5rem;
+  position: fixed;
+  top: 6rem;
+  z-index: 1;
+}
