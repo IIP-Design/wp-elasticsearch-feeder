@@ -53,7 +53,8 @@ class Owner_Helper {
       'method' => 'GET',
       'url'    => 'owner',
     );
-    $data   = $post_actions->request( $args );
+
+    $data = $post_actions->request( $args );
 
     if ( $data && count( $data ) && ! is_string( $data )
       && ( ! is_array( $data ) || ! array_key_exists( 'error', $data ) || ! $data['error'] )

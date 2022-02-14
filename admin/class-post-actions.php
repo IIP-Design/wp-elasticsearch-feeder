@@ -280,33 +280,36 @@ class Post_Actions {
   public function request( $request, $callback = null, $callback_errors_only = false, $is_internal = true ) {
     $log_helper = new Admin\Helpers\Log_Helper();
 
+    // Get the plugin configurations.
+    $config = get_option( $this->plugin );
+
+    // Initialize response.
     $error   = false;
     $results = null;
 
-    $headers = array();
+    // Set headers.
+    $headers                    = array();
+    $headers['callback_errors'] = $callback_errors_only ? 1 : 0;
 
     if ( $callback ) {
       $headers['callback'] = $callback;
     }
 
-    $headers['callback_errors'] = $callback_errors_only ? 1 : 0;
+    if ( ! empty( $config['es_token'] ) ) {
+      $headers['Authorization'] = 'Bearer ' . $config['es_token'];
+    }
 
+    // Set request headers.
     $opts = array(
       'timeout'     => 30,
       'http_errors' => false,
     );
 
-    $config = get_option( $this->plugin );
-
-    $token = $config['es_token'];
-    if ( ! empty( $token ) ) {
-      $headers['Authorization'] = 'Bearer ' . $token;
-    }
-
     if ( $is_internal ) {
       $opts['base_uri'] = trim( $config['es_url'], '/' ) . '/';
     }
 
+    // Initialize the Guzzle client, which is used to send HTTP requests.
     $client = new GuzzleHttp\Client( $opts );
 
     try {
@@ -320,7 +323,7 @@ class Post_Actions {
           $headers['Content-Type'] = 'application/json';
         }
 
-        $body = $this->is_domain_mapped( $body );
+        $body = $this->map_domain( $body );
 
         $response = $client->request(
           $request['method'],
@@ -334,8 +337,8 @@ class Post_Actions {
         $response = $client->request( $request['method'], $request['url'], array( 'headers' => $headers ) );
       }
 
-      $body    = $response->getBody();
-      $results = $body->getContents();
+      $response = $response->getBody()->getContents();
+
     } catch ( GuzzleHttp\Exception\ConnectException $e ) {
       $error = $e->getMessage();
     } catch ( GuzzleHttp\Exception\RequestException $e ) {
@@ -368,9 +371,9 @@ class Post_Actions {
         return null;
       }
     } elseif ( $is_internal || ( isset( $request['print'] ) && ! $request['print'] ) ) {
-      return json_decode( $results );
+      return json_decode( $response );
     } else {
-      wp_send_json( json_decode( $results ) );
+      wp_send_json( json_decode( $response ) );
 
       return null;
     }
@@ -383,17 +386,20 @@ class Post_Actions {
    *
    * @since 2.0.0
    */
-  private function is_domain_mapped( $body ) {
-    // Check if domain is mapped.
-    $opt      = get_option( $this->plugin );
-    $protocol = is_ssl() ? 'https://' : 'http://';
-    $opt_url  = $opt['es_wpdomain'];
-    $opt_url  = str_replace( $protocol, '', $opt_url );
-    $site_url = site_url();
-    $site_url = str_replace( $protocol, '', $site_url );
+  private function map_domain( $body ) {
+    // Get the plugin configurations.
+    $config     = get_option( $this->plugin );
+    $set_domain = $config['es_wpdomain'];
+    $site_url   = site_url();
+    $protocol   = is_ssl() ? 'https://' : 'http://';
 
-    if ( $opt_url !== $site_url ) {
-      $body = str_replace( $site_url, $opt_url, $body );
+    // Normalize URLs for comparison.
+    $normal_set_url  = str_replace( $protocol, '', $set_domain );
+    $normal_site_url = str_replace( $protocol, '', $site_url );
+
+    // If the set domain doesn't match the site URL, update in the body.
+    if ( $normal_set_url !== $normal_site_url ) {
+      $body = str_replace( $normal_site_url, $normal_set_url, $body );
     }
 
     return $body;

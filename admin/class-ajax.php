@@ -243,7 +243,7 @@ class Ajax {
     $verification->lab_verify_nonce( $_POST['security'] );
 
     // Sanitize the API data pulled off of the settings page form.
-    $request = $verification->sanitize_test_connect_data( $_POST['data'] );
+    $request = $verification->sanitize_test_connect_data( $_POST );
     // phpcs:enable
 
     $post_actions = new Post_Actions( $this->namespace, $this->plugin );
