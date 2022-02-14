@@ -1,3 +1,4 @@
+import { addText, clearText } from './utils/manipulate-dom';
 import { ready } from './utils/document-ready';
 
 // ( function( $ ) {
@@ -20,9 +21,6 @@ import { ready } from './utils/document-ready';
 //    * update sync state if a sync was in progress.
 //    */
 //   $( window ).load( () => {
-//     $( '#truncate_logs' ).on( 'click', truncateLogs );
-//     $( '#es_test_connection' ).on( 'click', testConnection );
-//     $( '#es_query_index' ).on( 'click', queryIndex );
 //     $( '#es_resync' ).on( 'click', resyncStart( 0 ) );
 //     $( '#es_resync_errors' ).on( 'click', resyncStart( 1 ) );
 //     $( '#es_resync_control' ).on( 'click', resyncControl );
@@ -304,7 +302,7 @@ import { ready } from './utils/document-ready';
 
 /**
  * Disable/enable the manage buttons.
- * @param {Boolean} disable Whether the buttons should be disabled or not.
+ * @param {boolean} disable Whether the buttons should be disabled or not.
  */
 const disableManageButtons = disable => {
   const btns = document.querySelectorAll( '.inside.manage-btns button' );
@@ -312,16 +310,13 @@ const disableManageButtons = disable => {
   btns.forEach( btn => { btn.disabled = disable; } );
 };
 
-const addText = ( text, node ) => {
-  const toAdd = document.createTextNode( text );
-
-  node.appendChild( toAdd );
-};
-
 const truncateLogs = async () => {
   const { feederNonce } = window.gpalabFeederSettings;
 
   const logText = document.getElementById( 'log_text' );
+
+  // Disable buttons for the duration of the request.
+  disableManageButtons( true );
 
   // Prepare the API request body.
   const formData = new FormData();
@@ -352,7 +347,8 @@ const testConnection = async () => {
   const output = document.getElementById( 'es_output' );
   const url = document.getElementById( 'es_url' );
 
-  output.innerHTML = '';
+  // Clear out any existing text in the response output section.
+  clearText( output );
 
   // Disable buttons for the duration of the request.
   disableManageButtons( true );
