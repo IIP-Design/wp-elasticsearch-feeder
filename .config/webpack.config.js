@@ -3,8 +3,12 @@ const path = require( 'path' );
 
 module.exports = {
   ...defaultConfig,
+  entry: {
+    gutenberg: './admin/js/gutenberg-plugin.js',
+    settings: './admin/js/settings.js',
+  },
   output: {
     filename: 'gpalab-feeder-[name].js',
-    path: path.resolve( process.cwd(), 'build' ),
+    path: path.resolve( process.cwd(), 'admin/build' ),
   },
 };
