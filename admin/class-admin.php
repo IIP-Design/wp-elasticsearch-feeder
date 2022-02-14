@@ -40,11 +40,13 @@ class Admin {
    * @since 3.0.0
    */
   public function register_admin_scripts_styles() {
+    $settings_asset = require ES_FEEDER_DIR . 'admin/build/gpalab-feeder-settings.asset.php';
+
     wp_register_script(
       $this->handle_settings,
-      ES_FEEDER_URL . 'admin/js/gpalab-feeder-settings.js',
-      array( 'jquery' ),
-      $this->version,
+      ES_FEEDER_URL . 'admin/build/gpalab-feeder-settings.js',
+      $settings_asset['dependencies'],
+      $settings_asset['version'],
       false
     );
 

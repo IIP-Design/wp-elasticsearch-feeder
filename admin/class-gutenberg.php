@@ -35,11 +35,11 @@ class Gutenberg {
    * @since 3.0.0
    */
   public function register_gutenberg_plugins() {
-    $script_asset = require ES_FEEDER_DIR . 'admin/build/gpalab-feeder-gutenberg-plugin.asset.php';
+    $script_asset = require ES_FEEDER_DIR . 'admin/build/gpalab-feeder-gutenberg.asset.php';
 
     wp_register_script(
       'gpalab-feeder-gutenberg-plugin',
-      ES_FEEDER_URL . 'admin/build/gpalab-feeder-gutenberg-plugin.js',
+      ES_FEEDER_URL . 'admin/build/gpalab-feeder-gutenberg.js',
       $script_asset['dependencies'],
       $script_asset['version'],
       true
