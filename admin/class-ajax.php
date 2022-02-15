@@ -268,44 +268,125 @@ class Ajax {
     // phpcs:enable
 
     set_time_limit( 600 );
-    global $wpdb;
 
-    $api_helper   = new Admin\Helpers\API_Helper( $this->namespace, $this->plugin );
-    $post_actions = new Post_Actions( $this->namespace, $this->plugin );
-    $sync_helper  = new Admin\Helpers\Sync_Helper( $this->plugin );
+    // The the sync status helper.
+    $sync_helper = new Admin\Helpers\Sync_Helper( $this->plugin );
+    $statuses    = $sync_helper->statuses;
 
-    $statuses = $sync_helper->statuses;
-
-    $size      = 500;
-    $result    = null;
-    $modifieds = array();
-    $stats     = array(
-      'updated'    => 0,
-      'es_missing' => 0,
-      'wp_missing' => 0,
-      'mismatched' => 0,
+    // Initialize the relevant variables.
+    $stats = array(
+      'up_to_date'      => 0,
+      'mismatched_date' => 0,
+      'missing_from_es' => 0,
+      'missing_from_wp' => 0,
     );
 
+    // Get the posts that have been indexed to the API.
+    $indexed_posts = $this->get_indexed_posts();
+
+    if ( count( $indexed_posts ) ) {
+      // Get the posts that should be indexed.
+      $indexable_posts = $this->get_indexable_posts();
+
+      // Iterate through the indexable posts updating their status.
+      foreach ( $indexable_posts as $indexable ) {
+        $id = $indexable->ID;
+
+        // Check if post has been indexed.
+        if ( array_key_exists( $id, $indexed_posts ) ) {
+
+          // Compare the dates on the indexed version and the current version.
+          if ( mysql2date( 'c', $indexable->post_modified ) === $indexed_posts[ $id ] ) {
+            // If dates match but the post not set to 'synced' add to the update synced array.
+            if ( $statuses['SYNCED'] !== $indexable->sync_status ) {
+              update_post_meta( $id, '_cdp_sync_status', $statuses['SYNCED'] );
+            }
+
+            // Increment the number of posts that are up to date.
+            $stats['up_to_date']++;
+          } else {
+            // If the dates don't match, increment the count of mismatched posts.
+            $stats['mismatched_date']++;
+
+            // If the post is not already in a state of error,
+            // update it's sync status to error.
+            if ( $statuses['ERROR'] !== $indexable->sync_status ) {
+              update_post_meta( $id, '_cdp_sync_status', $statuses['ERROR'] );
+            }
+          }
+
+          // Remove from array the array that is being processed.
+          unset( $indexed_posts[ $id ] );
+        } else {
+          // If the post has not been indexed, increment the count
+          // of posts missing from Elasticsearch.
+          $stats['missing_from_es']++;
+
+          // If the post is not already in a state of error,
+          // update it's sync status to not synced.
+          if ( $statuses['ERROR'] !== $indexable->sync_status ) {
+            update_post_meta( $id, '_cdp_sync_status', $statuses['NOT_SYNCED'] );
+          }
+        }
+      }
+
+      // Any posts remaining in in the indexed_posts array are present in the
+      // Elasticsearch index but cannot be found in the WordPress database.
+      $stats['missing_from_wp'] = count( $indexed_posts );
+    }
+
+    if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
+      wp_send_json( $stats );
+      exit;
+    }
+
+    return $stats;
+  }
+
+  /**
+   * Retrieve a list of posts that have been indexed into the CDP
+   * along with the date on which they were last modified.
+   *
+   * @return array The list of posts that are present in the API.
+   * @since 3.0.0
+   */
+  private function get_indexed_posts() {
+    // Load helper functions.
+    $api_helper   = new Admin\Helpers\API_Helper( $this->namespace, $this->plugin );
+    $post_actions = new Post_Actions( $this->namespace, $this->plugin );
+
+    // Initialize the relevant variables.
+    $query_size    = 500;
+    $result        = null;
+    $indexed_posts = array();
+
+    // Build the Elasticsearch query.
     $request = array(
       'url'    => 'search',
       'method' => 'POST',
       'body'   => array(
-        'query'   => 'site:' . $api_helper->get_site(),
-        'include' => array( 'post_id', 'modified' ),
-        'size'    => $size,
-        'from'    => 0,
-        'scroll'  => '60s',
+        'query'  => 'site:' . $api_helper->get_site(),
+        'source' => array( 'post_id', 'modified' ),
+        'size'   => $query_size,
+        'from'   => 0,
+        'scroll' => '60s',
       ),
       'print'  => false,
-    );
+	);
 
+    // Query the API and use the results to fill the indexed_posts array with a
+    // list of all posts and the date they were last modified in the API.
+    // Continues querying in batches of 500 until there are no more results.
     do {
       $result = $post_actions->request( $request );
+
       if ( $result && $result->hits && count( $result->hits->hits ) ) {
         foreach ( $result->hits->hits as $hit ) {
-          $modifieds[ $hit->_source->post_id ] = $hit->_source->modified;
+          $indexed_posts[ $hit->_source->post_id ] = $hit->_source->modified;
         }
       }
+
+      // Get next set of posts.
       $request = array(
         'url'    => 'search/scroll',
         'method' => 'POST',
@@ -315,81 +396,45 @@ class Ajax {
         ),
         'print'  => false,
       );
-    } while ( $result && $result->hits && count( $result->hits->hits ) );
+    } while ( $result && $result->hits && $result->hits->hits );
 
-    if ( count( $modifieds ) ) {
-      $opts       = get_option( $this->plugin );
-      $post_types = $opts['es_post_types'];
-      $formats    = implode( ',', array_fill( 0, count( $post_types ), '%s' ) );
-      $query      = "SELECT p.ID, p.post_modified, ms.meta_value as sync_status 
-                     FROM $wpdb->posts p 
-                     LEFT JOIN (SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_status') ms ON p.ID = ms.post_id 
-                     LEFT JOIN (SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '_iip_index_post_to_cdp_option') m ON p.ID = m.post_id 
-                     WHERE p.post_type IN ($formats) AND p.post_status = 'publish' AND (m.meta_value IS NULL OR m.meta_value != 'no') AND ms.meta_value IS NOT NULL";
+    return $indexed_posts;
+  }
 
-      $rows = $wpdb->get_results(
-        $wpdb->prepare( $query, array_keys( $post_types ) )
-       );
+  /**
+   * Retrieve a list of posts that should be index to the CDP
+   * along with their current indexed status.
+   * TODO: Add query caching.
+   *
+   * @return array The list of posts that should be indexed.
+   * @since 3.0.0
+   */
+  private function get_indexable_posts() {
+    global $wpdb;
 
-      $update_errors = array();
-      $update_synced = array();
+    // Get the post types that should be indexed.
+    $config     = get_option( $this->plugin );
+    $post_types = $config['es_post_types'];
 
-      foreach ( $rows as $row ) {
-        if ( array_key_exists( $row->ID, $modifieds ) ) {
+    // Generate a string placeholder for each indexable post type.
+    $placeholders = implode( ',', array_fill( 0, count( $post_types ), '%s' ) );
 
-          if ( mysql2date( 'c', $row->post_modified ) === $modifieds[ $row->ID ] ) {
-            if ( $statuses['SYNCED'] != $row->sync_status ) {
-              $update_synced[] = $row->ID;
-              $stats['updated']++;
-            }
-          } else {
-            $stats['mismatched']++;
+    // Get the posts all the posts that are published and set to be indexed
+    // along with their current index status.
+    // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery
+    $indexable_posts = $wpdb->get_results(
+    // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+    // phpcs:disable WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+    $wpdb->prepare(
+      "SELECT p.ID, p.post_modified, ms.meta_value as sync_status FROM $wpdb->posts p 
+          LEFT JOIN (SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_status') ms ON p.ID = ms.post_id 
+          LEFT JOIN (SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '_iip_index_post_to_cdp_option') m ON p.ID = m.post_id
+          WHERE p.post_type IN ($placeholders) AND p.post_status = 'publish' AND (m.meta_value IS NULL OR m.meta_value != 'no') AND ms.meta_value IS NOT NULL",
+      array_keys( $post_types )
+    )
+    );
+    // phpcs:enable
 
-            if ( $statuses['ERROR'] != $row->sync_status ) {
-              $update_errors[] = $row->ID;
-              $stats['updated']++;
-            }
-          }
-
-          unset( $modifieds[ $row->ID ] );
-        } else {
-          $stats['es_missing']++;
-
-          if ( $statuses['ERROR'] != $row->sync_status ) {
-            $update_errors[] = $row->ID;
-            $stats['updated']++;
-          }
-        }
-      }
-
-      if ( count( $update_synced ) ) {
-        $wpdb->query(
-          $wpdb->prepare(
-            "UPDATE $wpdb->postmeta SET meta_value = %d WHERE meta_key = '_cdp_sync_status' AND post_id IN (%s)",
-            $statuses['SYNCED'],
-            implode( ',', $update_synced )
-          )
-        );
-      }
-
-      if ( count( $update_errors ) ) {
-        $wpdb->query(
-          $wpdb->prepare(
-            "UPDATE $wpdb->postmeta SET meta_value = %d WHERE meta_key = '_cdp_sync_status' AND post_id IN (%s)",
-            $statuses['ERROR'],
-            implode( ',', $update_errors )
-          )
-        );
-      }
-
-      $stats['wp_missing'] = count( $modifieds );
-    }
-
-    if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
-      wp_send_json( $stats );
-      exit;
-    }
-
-    return $stats;
+    return $indexable_posts;
   }
 }

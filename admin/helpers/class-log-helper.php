@@ -41,6 +41,7 @@ class Log_Helper {
 
   /**
    * Clear all plugin error logs.
+   * TODO: Check this function's operations.
    *
    * @since 2.0.0
    */
