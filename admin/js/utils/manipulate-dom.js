@@ -23,7 +23,7 @@ export const clearText = node => {
  * @param {boolean} visible Whether or not the element should be visible.
  * @param {string} alt The value to be used as the inverse of display none. Defaults to block.
  */
-const makeVisible = ( node, visible, alt = 'block' ) => {
+export const makeVisible = ( node, visible, alt = 'block' ) => {
   node.style.display = visible ? alt : 'none';
 };
 

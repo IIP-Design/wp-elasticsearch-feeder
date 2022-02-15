@@ -1,3 +1,4 @@
+/* Configuration Section */
 .gpalab-domain-select {
   display: flex;
   flex-direction: column;
@@ -11,6 +12,7 @@
   margin-top: 0.5rem;
 }
 
+/* Live Status Section */
 .gpalab-last-update {
   margin: 0;
   padding: 0.25rem 1rem;
@@ -20,6 +22,27 @@
   margin: 0 1rem;
 }
 
+/* Spinner and progress bar */
+.gpalab-index-spinner {
+  height: 28px;
+  display: none;
+  opacity: 0.7;
+  position: relative;
+}
+
+.gpalab-spinner-animation {
+  float: none;
+  width: auto;
+  height: auto;
+  padding: 5px 0 5px 30px;
+  background-position: 0;
+}
+
+.gpalab-progress-bar {
+  display: none;
+}
+
+/* Log Section */
 .gpalab-log-wrapper {
   display: flex;
   flex-direction: column;
@@ -32,6 +55,7 @@
   margin: 0.5rem 0;
 }
 
+/* Growl Notification */
 .gpalab-growl {
   background: #e33637;
   border-radius: 5px;
@@ -45,6 +69,7 @@
   z-index: 1;
 }
 
+/* Shared Styles */
 .gpalab-output {
   background-color: #eaeaea;
   border: 1px solid #c3c4c7;
