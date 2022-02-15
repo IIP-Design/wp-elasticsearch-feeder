@@ -1,16 +1,8 @@
 import { addText, clearText, showGrowl } from './utils/manipulate-dom';
+import { clearProgress, showProgress } from './utils/progress-bar';
 import { ready } from './utils/document-ready';
 
 // ( function( $ ) {
-//   // sync object contains data related to the current (if any) resync
-//   let sync = {
-//     total: 0,
-//     complete: 0,
-//     post: null,
-//     paused: false,
-//     results: null,
-//   };
-
 //   let lastHeartbeat = null;
 //   let lastHeartbeatTimer = null;
 
@@ -24,16 +16,7 @@ import { ready } from './utils/document-ready';
 //     $( '#es_resync' ).on( 'click', resyncStart( 0 ) );
 //     $( '#es_resync_errors' ).on( 'click', resyncStart( 1 ) );
 //     $( '#es_resync_control' ).on( 'click', resyncControl );
-//     $( '#es_validate_sync' ).on( 'click', validateSync );
 //     $( '#reload_log' ).on( 'click', reloadLog );
-
-//     sync.total = parseInt( syncTotals.total, 10 );
-//     sync.complete = parseInt( syncTotals.complete, 10 );
-//     sync.paused = syncTotals.paused === '1';
-//     if ( sync.paused ) {
-//       createProgress();
-//       updateProgress();
-//     }
 
 //     $( document ).on( 'heartbeat-send', ( event, data ) => {
 //       data.es_sync_status_counts = 1;
@@ -89,49 +72,6 @@ import { ready } from './utils/document-ready';
 //       },
 //     } );
 //   }
-
-//   function validateSync() {
-//     let unpause = false;
-
-//     if ( !sync.paused ) {
-//       unpause = true;
-//       resyncControl();
-//     }
-//     clearProgress();
-//     $( '#es_output' ).text( '' );
-//     let html = '<div class="spinner is-active spinner-animation">';
-
-//     html += '<span class="spinner-text">Validating...</span>';
-//     html += '</div>';
-//     $( '.index-spinner' ).html( html );
-//     disableManage();
-//     $.ajax( {
-//       timeout: 120000,
-//       url: window.ajaxurl,
-//       type: 'POST',
-//       dataType: 'JSON',
-//       data: {
-//         action: 'gpalab_feeder_validate',
-//         security: nonce,
-//       },
-//       success( result ) {
-//         clearProgress();
-//         createProgress();
-//         $( '#es_output' ).text( JSON.stringify( result, null, 2 ) );
-//         if ( unpause ) resyncControl();
-//         else updateProgress();
-//       },
-//       error( result ) {
-//         console.error( result );
-//         clearProgress();
-//         createProgress();
-//         $( '#es_output' ).text( JSON.stringify( result, null, 2 ) );
-//         if ( unpause ) resyncControl();
-//         else updateProgress();
-//       },
-//     } ).always( enableManage );
-//   }
-
 
 //   /**
 //    * TODO: Initiate a new sync by deleting ALL of this site's posts from ES
@@ -254,26 +194,6 @@ import { ready } from './utils/document-ready';
 //   }
 
 //   /**
-//    * Add relevant markup for the progress bar and state UI/UX.
-//    */
-//   function createProgress() {
-//     let html = '<div class="spinner is-active spinner-animation">';
-
-//     html += `<span class="spinner-text">${
-//       sync.paused ? 'Paused.' : 'Processing... Leaving this page will pause the resync.'
-//     }</span> <span class="count"></span> <span class="current-post"></span>`;
-//     html += '</div>';
-//     $( '.index-spinner' ).html( html );
-//     $( '.progress-wrapper' ).html(
-//       `<div id="progress-bar" ${sync.paused ? 'class="paused"' : ''}><span></span></div>`,
-//     );
-//     $( '#es_resync_control' )
-//       .html( sync.paused ? 'Resume Sync' : 'Pause Sync' )
-//       .show();
-//     $( '#es_output' ).empty();
-//   }
-
-//   /**
 //    * Update the pgoress bar and state UI using the local sync variable.
 //    */
 //   function updateProgress() {
@@ -287,17 +207,6 @@ import { ready } from './utils/document-ready';
 //         : '',
 //     );
 //   }
-
-//   /**
-//    * Remove progress bar and state UI.
-//    */
-//   function clearProgress() {
-//     sync.results = null;
-//     sync.post = null;
-//     $( '.index-spinner' ).empty();
-//     $( '.progress-wrapper' ).empty();
-//     $( '#es_resync_control' ).hide();
-//   }
 // } )( jQuery );
 
 /**
@@ -310,7 +219,10 @@ const disableManageButtons = disable => {
   btns.forEach( btn => { btn.disabled = disable; } );
 };
 
-const truncateLogs = async () => {
+/**
+ * Clears the log output on the settings page.
+ */
+const clearLog = async () => {
   const { feederNonce } = window.gpalabFeederSettings;
 
   const logText = document.getElementById( 'log_text' );
@@ -384,30 +296,112 @@ const testConnection = async () => {
   }
 };
 
+const validateSync = async sync => {
+  const { feederNonce } = window.gpalabFeederSettings;
+
+  const output = document.getElementById( 'es_output' );
+
+  // let unpause = false;
+
+  // if ( !sync.paused ) {
+  //   unpause = true;
+  //   resyncControl();
+  // }
+  // clearProgress();
+
+  // Clear out any existing text in the response output section.
+  clearText( output );
+
+  showProgress( sync.paused );
+
+  // Disable buttons for the duration of the request.
+  disableManageButtons( true );
+
+  // Prepare the API request body.
+  const formData = new FormData();
+
+  formData.append( 'action', 'gpalab_feeder_validate' );
+  formData.append( 'security', feederNonce );
+
+  try {
+    // timeout: 120000,
+
+    const response = await fetch( window.ajaxurl, {
+      method: 'POST',
+      body: formData,
+    } );
+
+    const result = await response.json();
+
+    clearProgress( sync );
+
+    // Display test response in results output.
+    addText( JSON.stringify( result, null, 2 ), output );
+
+    // if ( unpause ) resyncControl();
+    // else updateProgress();
+  } catch ( err ) {
+    clearProgress( sync );
+    // createProgress();
+
+    // Display error message in results output.
+    addText( JSON.stringify( err, null, 2 ), output );
+
+    // if ( unpause ) resyncControl();
+    // else updateProgress();
+  } finally {
+    // Re-enable all buttons.
+    disableManageButtons( false );
+  }
+};
+
 /**
  * Initialize all event listeners for the settings page.
  */
-const initializeEventListener = () => {
-  const trimLogs = document.getElementById( 'truncate_logs' );
-  const connection = document.getElementById( 'es_test_connection' );
+const initializeEventListener = sync => {
+  const clearLogBtn = document.getElementById( 'clear-logs' );
+  const testConnectionBtn = document.getElementById( 'test-connection' );
   const resync = document.getElementById( 'es_resync' );
   const resyncErrors = document.getElementById( 'es_resync_errors' );
   const resyncControl = document.getElementById( 'es_resync_control' );
-  const validateSync = document.getElementById( 'es_validate_sync' );
+  const validateSyncBtn = document.getElementById( 'validate-sync' );
   const reloadLog = document.getElementById( 'reload_log' );
 
-  trimLogs.addEventListener( 'click', truncateLogs );
-  connection.addEventListener( 'click', testConnection );
+  clearLogBtn.addEventListener( 'click', clearLog );
+  testConnectionBtn.addEventListener( 'click', testConnection );
   resync.addEventListener( 'click', () => resync( 0 ) );
   resyncErrors.addEventListener( 'click', () => resync( 1 ) );
   resyncControl.addEventListener( 'click', resyncControl );
-  validateSync.addEventListener( 'click', validateSync );
+  validateSyncBtn.addEventListener( 'click', () => validateSync( sync ) );
   reloadLog.addEventListener( 'click', reloadLog );
+};
+
+const initializeSync = sync => {
+  const { syncTotals } = window.gpalabFeederSettings;
+
+  sync.total = parseInt( syncTotals.total, 10 );
+  sync.complete = parseInt( syncTotals.complete, 10 );
+  sync.paused = syncTotals.paused;
+
+  if ( sync.paused ) {
+    clearProgress( sync );
+    showProgress( sync.paused );
+  }
 };
 
 /**
  * Set up the page event listeners once the page is loaded.
  */
 ready( () => {
-  initializeEventListener();
+  // Sync object contains data related to the current (if any) resync.
+  const sync = {
+    total: 0,
+    complete: 0,
+    post: null,
+    paused: false,
+    results: null,
+  };
+
+  initializeSync( sync );
+  initializeEventListener( sync );
 } );

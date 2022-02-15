@@ -75,7 +75,7 @@
 
     <div id="poststuff">
       <div class="gpalab-growl" id="gpalab-growl"></div>
-      <div id="post-body" class="metabox-holder columns-2">
+      <div id="post-body" class="metabox-holder columns-1">
         <div id="post-body-content">
           <div class="meta-box-sortables ui-sortable">
             <div class="postbox">
@@ -231,8 +231,8 @@
               <div class="inside manage-btns">
                 <button
                   class="button-secondary" 
-                  id="es_test_connection"
-                  name="es_test_connection"
+                  id="test-connection"
+                  name="test-connection"
                   type="button" 
                 >
                   <?php esc_html_e( 'Test Connection', 'gpalab-feeder' ); ?>
@@ -245,10 +245,10 @@
                 >
                   <?php esc_html_e( 'Fix Errors', 'gpalab-feeder' ); ?>
                 </button>
-                <button 
+                <button
                   class="button-secondary"
-                  id="es_validate_sync"
-                  name="es_validate_sync"
+                  id="validate-sync"
+                  name="validate-sync"
                   type="button" 
                 >
                   <?php esc_html_e( 'Validate Statuses', 'gpalab-feeder' ); ?>
@@ -273,8 +273,17 @@
                 </button>
               </div>
 
-              <div class="inside index-spinner"></div>
-              <div class="inside progress-wrapper"></div>
+              <div class="inside gpalab-index-spinner" id="index-spinner">
+                <div class="spinner is-active gpalab-spinner-animation">
+                  <span id="index-spinner-text">Validating...</span>
+                </div>
+              </div>
+
+              <div class="inside progress-wrapper">
+                <div class="gpalab-progress-bar" id="progress-bar">
+                  <span></span>
+                </div>
+              </div>
 
               <hr/>
 
@@ -291,7 +300,7 @@
             <div class="postbox">
               <h3><?php esc_html_e( 'Log', 'gpalab-feeder' ); ?></h3>
               <div class="inside manage-btns">
-                <button class="button-secondary" id="truncate_logs" type="button" >
+                <button class="button-secondary" id="clear-logs" type="button" >
                   <?php esc_html_e( 'Clear Log', 'gpalab-feeder' ); ?>
                 </button>
                 <a class="button-secondary" href="<?php echo esc_url( ES_FEEDER_URL . 'callback.log' ); ?>">
