@@ -404,9 +404,9 @@ class Ajax {
   /**
    * Retrieve a list of posts that should be index to the CDP
    * along with their current indexed status.
-   * TODO: Add query caching.
    *
    * @return array The list of posts that should be indexed.
+   *
    * @since 3.0.0
    */
   private function get_indexable_posts() {
@@ -414,26 +414,35 @@ class Ajax {
 
     // Get the post types that should be indexed.
     $config     = get_option( $this->plugin );
-    $post_types = $config['es_post_types'];
+    $post_types = ! empty( $config['es_post_types'] ) ? $config['es_post_types'] : array();
 
     // Generate a string placeholder for each indexable post type.
     $placeholders = implode( ',', array_fill( 0, count( $post_types ), '%s' ) );
 
-    // Get the posts all the posts that are published and set to be indexed
-    // along with their current index status.
-    // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery
-    $indexable_posts = $wpdb->get_results(
-    // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-    // phpcs:disable WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
-    $wpdb->prepare(
-      "SELECT p.ID, p.post_modified, ms.meta_value as sync_status FROM $wpdb->posts p 
-          LEFT JOIN (SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_status') ms ON p.ID = ms.post_id 
-          LEFT JOIN (SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '_iip_index_post_to_cdp_option') m ON p.ID = m.post_id
-          WHERE p.post_type IN ($placeholders) AND p.post_status = 'publish' AND (m.meta_value IS NULL OR m.meta_value != 'no') AND ms.meta_value IS NOT NULL",
-      array_keys( $post_types )
-    )
-    );
-    // phpcs:enable
+    // Retrieve the list of indexable posts from cache.
+    $cache_key       = 'indexable_posts';
+    $indexable_posts = wp_cache_get( $cache_key, 'gpalab_feeder' );
+
+    // Get the current sync status for all posts that
+    // are published and set to be indexed into the CDP.
+    if ( false === $indexable_posts ) {
+      // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery
+      $indexable_posts = $wpdb->get_results(
+        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+        // phpcs:disable WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+        $wpdb->prepare(
+          "SELECT p.ID, p.post_modified, ms.meta_value as sync_status FROM $wpdb->posts p 
+            LEFT JOIN (SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_status') ms ON p.ID = ms.post_id 
+            LEFT JOIN (SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '_iip_index_post_to_cdp_option') m ON p.ID = m.post_id
+            WHERE p.post_type IN ($placeholders) AND p.post_status = 'publish' AND (m.meta_value IS NULL OR m.meta_value != 'no') AND ms.meta_value IS NOT NULL",
+          array_keys( $post_types )
+        )
+      );
+      // phpcs:enable
+
+      // Cache the results of the query.
+      wp_cache_set( $cache_key, $indexable_posts, 'gpalab_feeder' );
+    }
 
     return $indexable_posts;
   }

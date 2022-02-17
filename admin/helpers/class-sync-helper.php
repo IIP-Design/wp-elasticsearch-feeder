@@ -84,34 +84,50 @@ class Sync_Helper {
   /**
    * Gets counts for each sync status.
    *
+   * @return array The count posts matching each sync status.
+   *
    * @since 2.0.0
    */
   public function get_sync_status_counts() {
     global $wpdb;
 
-    $opts       = get_option( $this->plugin );
-    $post_types = ! empty( $opts['es_post_types'] ) ? $opts['es_post_types'] : array();
-    $formats    = implode( ',', array_fill( 0, count( $post_types ), '%s' ) );
+    // Get the list of indexable post types.
+    $config     = get_option( $this->plugin );
+    $post_types = ! empty( $config['es_post_types'] ) ? $config['es_post_types'] : array();
 
-    $query = "SELECT IFNULL(ms.meta_value, 0) as status, COUNT(IFNULL(ms.meta_value, 0)) as total 
-              FROM $wpdb->posts p 
-              LEFT JOIN (SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_status') ms ON p.ID = ms.post_id
-              LEFT JOIN (SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '_iip_index_post_to_cdp_option') m ON p.ID = m.post_id
-              WHERE p.post_type IN ($formats) AND p.post_status = 'publish' AND (m.meta_value IS NULL OR m.meta_value != 'no') GROUP BY IFNULL(ms.meta_value, 0)";
+    // Generate a string placeholder for each indexable post type.
+    $placeholders = implode( ',', array_fill( 0, count( $post_types ), '%s' ) );
 
-    // phpcs:disable WordPress.DB.PreparedSQL.NotPrepared
-    $totals = $wpdb->get_results(
-      $wpdb->prepare( $query, array_keys( $post_types ) )
-    );
-    // phpcs:enable
+    // Retrieve the list of indexable posts from cache.
+    $cache_key    = 'sync_totals';
+    $_sync_totals = wp_cache_get( $cache_key, 'gpalab_feeder' );
 
-    $ret = array();
+    if ( false === $_sync_totals ) {
+      // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery
+      $_sync_totals = $wpdb->get_results(
+        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+        // phpcs:disable WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+        $wpdb->prepare(
+          "SELECT IFNULL(ms.meta_value, 0) as status, COUNT(IFNULL(ms.meta_value, 0)) as total FROM $wpdb->posts p
+          LEFT JOIN (SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_status') ms ON p.ID = ms.post_id
+          LEFT JOIN (SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '_iip_index_post_to_cdp_option') m ON p.ID = m.post_id
+          WHERE p.post_type IN ($placeholders) AND p.post_status = 'publish' AND (m.meta_value IS NULL OR m.meta_value != 'no') GROUP BY IFNULL(ms.meta_value, 0)",
+          array_keys( $post_types )
+        )
+      );
+      // phpcs:enable
 
-    foreach ( $totals as $total ) {
-      $ret[ $total->status ] = $total->total;
+      // Cache the results of the query.
+      wp_cache_set( $cache_key, $_sync_totals, 'gpalab_feeder' );
     }
 
-    return $ret;
+    $sync_count = array();
+
+    foreach ( $_sync_totals as $total ) {
+      $sync_count [ $total->status ] = $total->total;
+    }
+
+    return $sync_count;
   }
 
   /**
@@ -125,8 +141,8 @@ class Sync_Helper {
   public function get_syncable_posts( $limit = null ) {
     global $wpdb;
 
-    $opts       = get_option( $this->plugin );
-    $post_types = $opts['es_post_types'];
+    $config     = get_option( $this->plugin );
+    $post_types = ! empty( $config['es_post_types'] ) ? $config['es_post_types'] : array();
 
     // Add a string placeholder to for each indexable post type.
     $placeholders = implode( ',', array_fill( 0, count( $post_types ), '%s' ) );
