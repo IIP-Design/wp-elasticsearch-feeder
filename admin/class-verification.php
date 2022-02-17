@@ -51,7 +51,8 @@ class Verification {
   /**
    * Sanitize the API data provided in settings page before sending a CDP API request.
    *
-   * @param array $data   The request data pulled off of $_POST['data'].
+   * @param array $data   The request data pulled off of $_POST.
+   * @return array        The sanitized data.
    *
    * @since 3.0.0
    */
@@ -69,5 +70,24 @@ class Verification {
     }
 
     return $sanitized;
+  }
+
+  /**
+   * Sanitize the API data provided in settings page before initializing a sync.
+   *
+   * @param array $data   The request data pulled off of $_POST.
+   * @return array        The sanitized data.
+   *
+   * @since 3.0.0
+   */
+  public function sanitize_init_sync_data( $data ) {
+    $unslashed   = isset( $data ) ? wp_unslash( $data ) : array();
+    $sync_errors = false;
+
+    if ( ! empty( $unslashed['sync_errors'] ) ) {
+      $sync_errors = rest_sanitize_boolean( $unslashed['sync_errors'] );
+    }
+
+    return $sync_errors;
   }
 }

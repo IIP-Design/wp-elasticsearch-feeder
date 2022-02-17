@@ -78,9 +78,11 @@ class Ajax {
     $verification = new Admin\Verification();
     $verification->lab_verify_nonce( $_POST['security'] );
 
-    $sync_errors = isset( $_POST['sync_errors'] ) && $_POST['sync_errors'];
+    // Sanitize the API data pulled off of the settings page form.
+    $sync_errors = $verification->sanitize_init_sync_data( $_POST );
     // phpcs:enable
 
+    // Load the sync status helper.
     $sync_helper = new Admin\Helpers\Sync_Helper( $this->plugin );
 
     if ( $sync_errors ) {
@@ -152,12 +154,15 @@ class Ajax {
     $post_helper = new Admin\Helpers\Post_Helper( $this->namespace, $this->plugin );
     $sync_helper = new Admin\Helpers\Sync_Helper( $this->plugin );
 
+    // Load the sync status helper.
     $statuses   = $sync_helper->statuses;
     $sync_limit = $sync_helper->sync_limit;
 
     while ( get_option( $this->plugin . '_syncable_posts' ) !== false );
     update_option( $this->plugin . '_syncable_posts', 1, false );
     set_time_limit( 120 );
+
+    // Get ids of posts that can be indexed to the CDP.
     $post_ids = $sync_helper->get_syncable_posts( $sync_limit );
 
     if ( ! count( $post_ids ) ) {
@@ -269,7 +274,7 @@ class Ajax {
 
     set_time_limit( 600 );
 
-    // The the sync status helper.
+    // Load the sync status helper.
     $sync_helper = new Admin\Helpers\Sync_Helper( $this->plugin );
     $statuses    = $sync_helper->statuses;
 
@@ -432,9 +437,9 @@ class Ajax {
         // phpcs:disable WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
         $wpdb->prepare(
           "SELECT p.ID, p.post_modified, ms.meta_value as sync_status FROM $wpdb->posts p 
-            LEFT JOIN (SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_status') ms ON p.ID = ms.post_id 
-            LEFT JOIN (SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '_iip_index_post_to_cdp_option') m ON p.ID = m.post_id
-            WHERE p.post_type IN ($placeholders) AND p.post_status = 'publish' AND (m.meta_value IS NULL OR m.meta_value != 'no') AND ms.meta_value IS NOT NULL",
+           LEFT JOIN (SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_status') ms ON p.ID = ms.post_id
+           LEFT JOIN (SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '_iip_index_post_to_cdp_option') m ON p.ID = m.post_id
+           WHERE p.post_type IN ($placeholders) AND p.post_status = 'publish' AND (m.meta_value IS NULL OR m.meta_value != 'no') AND ms.meta_value IS NOT NULL",
           array_keys( $post_types )
         )
       );
