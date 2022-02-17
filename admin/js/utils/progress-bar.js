@@ -1,16 +1,32 @@
 import { addText, clearText, makeVisible } from './manipulate-dom';
 
 /**
+ * Hides/shows the spinner element.
+ * @param {boolean} show Whether or not the spinner should be visible.
+ * @param {string} msg An optional value to change the spinner text.
+ */
+export const showSpinner = ( show, msg ) => {
+  const spinner = document.getElementById( 'index-spinner' );
+
+  if ( msg ) {
+    const spinnerText = document.getElementById( 'index-spinner-text' );
+
+    clearText( spinnerText );
+    addText( msg, spinnerText );
+  }
+
+  makeVisible( spinner, show );
+};
+
+/**
  * Remove progress bar and state UI.
  */
 export const clearProgress = sync => {
-  // Hide the spinner element.
-  const spinner = document.getElementById( 'index-spinner' );
-
   sync.results = null;
   sync.post = null;
 
-  makeVisible( spinner, false );
+  // Hide the spinner element.
+  showSpinner( false );
 
   // Hide the progress bar.
   const progress = document.getElementById( 'progress-bar' );
@@ -25,14 +41,9 @@ export const clearProgress = sync => {
    */
 export const showProgress = paused => {
   // Show the spinner element.
-  const spinner = document.getElementById( 'index-spinner' );
-  const spinnerText = document.getElementById( 'index-spinner-text' );
-
   const spinnerMsg = paused ? 'Paused.' : 'Processing... Leaving this page will pause the resync.';
 
-  makeVisible( spinner, true );
-  clearText( spinnerText );
-  addText( spinnerMsg, spinnerText );
+  showSpinner( true, spinnerMsg );
 
   // Show the progress bar.
   const progress = document.getElementById( 'progress-bar' );
