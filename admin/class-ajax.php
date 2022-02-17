@@ -90,28 +90,33 @@ class Ajax {
       $post_ids = $errors['ids'];
 
       if ( count( $post_ids ) ) {
-        $wpdb->query( "DELETE FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_status' AND post_id IN (" . implode( ',', $post_ids ) . ')' );
+        foreach ( $post_ids as $id ) {
+          delete_post_meta( $id, '_cdp_sync_status' );
+        }
       } else {
         echo wp_json_encode(
           array(
             'error'   => true,
-            'message' => 'No posts found.',
+            'message' => 'No posts found to be in error.',
           )
         );
+
         exit;
       }
+
       $results = $sync_helper->get_resync_totals();
 
       wp_send_json( $results );
     } else {
       $wpdb->delete( $wpdb->postmeta, array( 'meta_key' => '_cdp_sync_status' ) );
+
       $post_ids = $sync_helper->get_syncable_posts();
 
       if ( ! count( $post_ids ) ) {
         echo wp_json_encode(
           array(
             'error'   => true,
-            'message' => 'No posts found.',
+            'message' => 'No posts found to be in error.',
           )
         );
 
@@ -172,7 +177,7 @@ class Ajax {
 
       wp_send_json(
         array(
-          'done'     => 1,
+          'done'     => true,
           'total'    => $results['total'],
           'complete' => $results['complete'],
         )
@@ -181,27 +186,15 @@ class Ajax {
       exit;
     } else {
       $results = array();
-      $vals    = array();
-      $query   = "INSERT INTO $wpdb->postmeta (post_id, meta_key, meta_value) VALUES";
 
-      foreach ( $post_ids as $post_id ) {
-        $vals[] = "($post_id, '_cdp_sync_status', '1')";
-      }
-
-      $query .= implode( ',', $vals );
-      $wpdb->query( $query );
       delete_option( $this->plugin . '_syncable_posts' );
 
-      foreach ( $post_ids as $post_id ) {
-        update_post_meta( $post_id, '_cdp_last_sync', gmdate( 'Y-m-d H:i:s' ) );
-        $post = get_post( $post_id );
-        $resp = $post_helper->add_or_update( $post, false, true, false );
+      foreach ( $post_ids as $id ) {
+        update_post_meta( $id, '_cdp_sync_status', '1' );
+        update_post_meta( $id, '_cdp_last_sync', gmdate( 'Y-m-d H:i:s' ) );
 
-        $wpdb->update(
-          $wpdb->posts,
-          array( 'post_status' => 'publish' ),
-          array( 'ID' => $post_id )
-        );
+        $post = get_post( $id );
+        $resp = $post_helper->add_or_update( $post, false, true, false );
 
         if ( ! $resp ) {
           $results[] = array(
@@ -211,7 +204,7 @@ class Ajax {
             'error'   => true,
           );
 
-          update_post_meta( $post_id, '_cdp_sync_status', $statuses['ERROR'] );
+          update_post_meta( $id, '_cdp_sync_status', $statuses['ERROR'] );
         } elseif ( ! is_object( $resp ) || 'Sync in progress.' !== $resp->message ) {
           $results[] = array(
             'title'    => $post->post_title,
@@ -221,13 +214,14 @@ class Ajax {
             'error'    => true,
           );
 
-          update_post_meta( $post_id, '_cdp_sync_status', $statuses['ERROR'] );
+          update_post_meta( $id, '_cdp_sync_status', $statuses['ERROR'] );
         }
       }
 
       $totals            = $sync_helper->get_resync_totals();
-      $totals['done']    = 0;
+      $totals['done']    = false;
       $totals['results'] = $results;
+
       wp_send_json( $totals );
     }
     exit;
