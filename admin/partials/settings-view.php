@@ -239,8 +239,8 @@
                 </button>
                 <button 
                   class="button-secondary"
-                  id="es_resync_errors"
-                  name="es_resync_errors"
+                  id="fix-errors"
+                  name="fix-errors"
                   type="button" 
                 >
                   <?php esc_html_e( 'Fix Errors', 'gpalab-feeder' ); ?>
@@ -264,8 +264,8 @@
                 </button>
                 <button
                   class="button-secondary button-danger"
-                  id="es_resync"
-                  name="es_reindex"
+                  id="resync"
+                  name="resync"
                   style="float: right;"
                   type="button"
                   >
@@ -312,14 +312,14 @@
                   <p><?php esc_html_e( 'Last 100 Lines', 'gpalab-feeder' ); ?></p>
                   <button
                     class="button-primary"
-                    id="reload_log"
-                    name="reload_log"
+                    id="reload-log"
+                    name="reload-log"
                     type="button"
                   >
                     <?php esc_html_e( 'Reload Log', 'gpalab-feeder' ); ?>
                   </button>
                 </div>
-                <textarea class="gpalab-output" rows="20" id="log_text" readonly>
+                <textarea class="gpalab-output" rows="20" id="log-text" readonly>
                   <?php echo esc_textarea( $log ); ?>
                 </textarea>
               </div>
