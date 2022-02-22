@@ -1,5 +1,22 @@
-
 {
-  "extends": ["@gpa-lab/eslint-config", "@gpa-lab/eslint-config/react"],
-  "ignorePatterns": [ "admin/build/", "admin/js/chosen.jquery.min.js", "node_modules/", "vendor/" ]
+  "extends": [
+    "@gpa-lab/eslint-config",
+    "@gpa-lab/eslint-config/react"
+  ],
+  "ignorePatterns": [
+    "admin/build/",
+    "admin/js/chosen.jquery.min.js",
+    "node_modules/",
+    "vendor/"
+  ],
+  "rules": {
+    "node/no-extraneous-import": [
+      "error",
+      {
+        "allowModules": [
+          "react"
+        ]
+      }
+    ]
+  }
 }
