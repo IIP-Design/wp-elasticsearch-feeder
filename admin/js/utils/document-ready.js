@@ -3,7 +3,7 @@
  *
  * @param {function} callback The function to be run when the DOM is loaded.
  */
- export const ready = callback => {
+export const ready = callback => {
   if ( document.readyState !== 'loading' ) {
     return callback();
   }

@@ -20,6 +20,16 @@ export const clearText = node => {
 };
 
 /**
+ * Disable/enable the manage buttons.
+ * @param {boolean} disable Whether the buttons should be disabled or not.
+ */
+export const disableManageButtons = disable => {
+  const btns = document.querySelectorAll( '.inside.manage-btns button' );
+
+  btns.forEach( btn => { btn.disabled = disable; } );
+};
+
+/**
  * Toggles the display property of an element.
  * @param {Object} node The DOM node to clear.
  * @param {boolean} visible Whether or not the element should be visible.

@@ -1,4 +1,5 @@
 import { addText, clearText, makeVisible } from './manipulate-dom';
+import { i18nize } from './i18n';
 
 /**
  * Hides/shows the spinner element.
@@ -41,7 +42,7 @@ export const clearProgress = sync => {
    */
 export const showProgress = paused => {
   // Show the spinner element.
-  const spinnerMsg = paused ? 'Paused.' : 'Processing... Leaving this page will pause the resync.';
+  const spinnerMsg = paused ? i18nize( 'Paused.' ) : i18nize( 'Processing... Leaving this page will pause the resync.' );
 
   showSpinner( true, spinnerMsg );
 
