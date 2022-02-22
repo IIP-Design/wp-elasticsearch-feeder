@@ -83,10 +83,11 @@ class Admin {
    */
   public function enqueue_styles( $hook ) {
     // Check whether the current screen is the edit screen for an indexable post.
-    $indexable_edit_screen = $this->is_indexable_edit_screen( $hook );
+    $indexable_post_screen = $this->is_indexable_screen( $hook, 'post' );
+    $indexable_all_screens = $this->is_indexable_screen( $hook, 'all' );
 
     // Enqueue settings styles on settings page and allowed post type edit screens.
-    if ( 'settings_page_wp-es-feeder' === $hook || $indexable_edit_screen ) {
+    if ( 'settings_page_wp-es-feeder' === $hook || $indexable_all_screens ) {
       wp_enqueue_style( $this->handle_settings . '-css' );
 
       wp_enqueue_style(
@@ -99,7 +100,7 @@ class Admin {
     }
 
     // Only enqueue post-specific admin styles on edit page of allowed post types.
-    if ( $indexable_edit_screen ) {
+    if ( $indexable_post_screen ) {
       wp_enqueue_style(
         $this->handle_chosen,
         ES_FEEDER_URL . 'admin/css/gpalab-feeder-chosen.css',
@@ -128,10 +129,10 @@ class Admin {
     }
 
     // Check whether the current screen is the edit screen for an indexable post.
-    $indexable_edit_screen = $this->is_indexable_edit_screen( $hook );
+    $indexable_post_screen = $this->is_indexable_screen( $hook, 'post' );
 
     // Only enqueue post-specific admin scripts on edit page of allowed post types.
-    if ( $indexable_edit_screen ) {
+    if ( $indexable_post_screen ) {
       wp_localize_script(
         $this->handle_sync,
         'gpalabFeederSyncStatus',
@@ -149,19 +150,47 @@ class Admin {
    * Check whether the current screen is the edit screen for an indexable post.
    *
    * @param string $hook   The current admin page.
+   * @param string $type   Which hook types should be accepted, accepts the values edit, post, and all.
    * @return boolean       Whether or not the current screen is an indexable post.
    *
    * @since 3.0.0
    */
-  private function is_indexable_edit_screen( $hook ) {
-    global $post;
+  private function is_indexable_screen( $hook, $type ) {
+    // Check that the hook matches the provided type.
+    switch ( $type ) {
+      case 'all':
+        $hook_matches = 'edit.php' === $hook || 'post.php' === $hook || 'post-new.php' === $hook;
+          break;
+      case 'edit':
+        $hook_matches = 'edit.php' === $hook;
+          break;
+      case 'post':
+        $hook_matches = 'post.php' === $hook || 'post-new.php' === $hook;
+          break;
+      default:
+        $hook_matches = false;
+    }
 
+    // Check whether the current post type is indexable.
+    $is_indexable = $this->is_indexable( get_post_type() );
+
+    return $hook_matches && $is_indexable;
+  }
+
+  /**
+   * Check whether the provided post type is indexable to the CDP or not.
+   *
+   * @param string $post_type   A post type name.
+   * @return boolean            Whether or not the post type is indexable.
+   *
+   * @since 3.0.0
+   */
+  private function is_indexable( $post_type ) {
     $post_helper = new Admin\Helpers\Post_Helper( $this->namespace, $this->plugin );
 
-    $is_post      = 'post.php' === $hook || 'post-new.php' === $hook;
-    $is_indexable = $post ? in_array( $post->post_type, $post_helper->get_allowed_post_types(), true ) : false;
+    $indexable = ! empty( $post_type ) ? in_array( $post_type, $post_helper->get_allowed_post_types(), true ) : false;
 
-    return $is_post && $is_indexable;
+    return $indexable;
   }
 
   /**
