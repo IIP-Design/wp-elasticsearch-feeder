@@ -1,12 +1,12 @@
 import { clearLog, reloadLog } from '../ajax/log';
-import { initStatuses, onTick, resetHeartbeatTimer } from '../ajax/heartbeat';
+import { onTickPost, onTickSettings, requestStatus, requestStatuses, resetHeartbeatTimer } from '../ajax/heartbeat';
 import { resync, validateSync } from '../ajax/sync';
 import { testConnection } from '../ajax/test-connection';
 
 /**
  * Initialize all event listeners for the settings page.
  */
-export const initializeEventListener = sync => {
+export const initSettingsEventListeners = sync => {
   const clearLogBtn = document.getElementById( 'gpalab-feeder-clear-logs' );
   const testConnectionBtn = document.getElementById( 'gpalab-feeder-test-connection' );
   const resyncBtn = document.getElementById( 'gpalab-feeder-resync' );
@@ -24,9 +24,18 @@ export const initializeEventListener = sync => {
   reloadLogBtn.addEventListener( 'click', reloadLog );
 
   // Heartbeat events.
-  jQuery( document ).on( 'heartbeat-send', initStatuses );
-  jQuery( document ).on( 'heartbeat-tick', onTick );
+  jQuery( document ).on( 'heartbeat-send', requestStatuses );
+  jQuery( document ).on( 'heartbeat-tick', onTickSettings );
 
   // Initialize the heartbeat timer.
   resetHeartbeatTimer();
+};
+
+/**
+ * Adds event listeners used to update the publish status indicator.
+ */
+export const initPostStatusEventListeners = () => {
+  // Heartbeat events.
+  jQuery( document ).on( 'heartbeat-send', requestStatus );
+  jQuery( document ).on( 'heartbeat-tick', onTickPost );
 };

@@ -265,11 +265,11 @@ class Sync_Helper {
       class="sync-status sync-status-<?php echo esc_attr( $status_data['color'] ); ?>"
       title="<?php echo esc_attr( $status_data['title'] ); ?>"
     ></div>
-
-    <div class="sync-status-label">
-      <?php echo $text ? esc_html( $status_data['title'] ) : ''; ?>
-    </div>
     <?php
+
+    if ( true === $text ) {
+      echo '<div class="sync-status-label">' . esc_html( $status_data['title'] ) . '</div>';
+    }
   }
 
   /**

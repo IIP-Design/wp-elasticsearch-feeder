@@ -64,7 +64,21 @@ export const showGrowl = msg => {
 };
 
 /**
- * Update the publication status indicators.
+ * Update the publication status indicator on an indexable post edit screen.
+ *
+ * @param {string} color The indicator color associated with the provided status.
+ * @param {string} title The title associated with the provided status.
+ */
+export const updatePostStatus = ( color, title ) => {
+  const indicator = document.querySelector( '.sync-status' );
+  const label = document.querySelector( '.sync-status-label' );
+
+  indicator.className = `sync-status sync-status-${color}`;
+  label.textContent = title;
+};
+
+/**
+ * Update the publication status indicators on the settings page.
  *
  * @param {Object} counts List of number of posts for each status.
  */

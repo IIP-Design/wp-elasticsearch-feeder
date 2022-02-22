@@ -1,4 +1,4 @@
-import { initializeEventListener } from './utils/event-listeners';
+import { initSettingsEventListeners } from './utils/event-listeners';
 import { initializeSync } from './ajax/sync';
 import { ready } from './utils/document-ready';
 
@@ -63,5 +63,5 @@ ready( () => {
   };
 
   initializeSync( sync );
-  initializeEventListener( sync );
+  initSettingsEventListeners( sync );
 } );

@@ -28,7 +28,7 @@ class Admin {
   public function __construct( $namespace, $plugin, $version ) {
     $this->handle_settings = $plugin . '-settings';
     $this->handle_chosen   = $plugin . '-chosen';
-    $this->handle_sync     = $plugin . '-sync-status';
+    $this->handle_status   = $plugin . '-post-status';
     $this->namespace       = $namespace;
     $this->plugin          = $plugin;
     $this->version         = $version;
@@ -40,6 +40,7 @@ class Admin {
    * @since 3.0.0
    */
   public function register_admin_scripts_styles() {
+    /* Register settings page styles/scripts */
     $settings_asset = require ES_FEEDER_DIR . 'admin/build/gpalab-feeder-settings.asset.php';
 
     wp_register_script(
@@ -57,11 +58,14 @@ class Admin {
       $this->version
     );
 
+    /* Register post status scripts */
+    $status_asset = require ES_FEEDER_DIR . 'admin/build/gpalab-feeder-status.asset.php';
+
     wp_register_script(
-      $this->handle_sync,
-      ES_FEEDER_URL . 'admin/js/gpalab-feeder-sync-status.js',
-      array( 'jquery' ),
-      $this->version,
+      $this->handle_status,
+      ES_FEEDER_URL . 'admin/build/gpalab-feeder-status.js',
+      $status_asset['dependencies'],
+      $status_asset['version'],
       false
     );
 
@@ -134,14 +138,14 @@ class Admin {
     // Only enqueue post-specific admin scripts on edit page of allowed post types.
     if ( $indexable_post_screen ) {
       wp_localize_script(
-        $this->handle_sync,
+        $this->handle_status,
         'gpalabFeederSyncStatus',
         array(
           'postId' => $post ? $post->ID : null,
         )
       );
 
-      wp_enqueue_script( $this->handle_sync );
+      wp_enqueue_script( $this->handle_status );
       wp_enqueue_script( $this->handle_chosen );
     }
   }
@@ -415,7 +419,7 @@ class Admin {
     $post_helper = new Admin\Helpers\Post_Helper( $this->namespace, $this->plugin );
 
     if ( in_array( get_post_type(), $post_helper->get_allowed_post_types(), true ) ) {
-      $defaults['sync_status'] = __( 'Publish Status', 'gpalab-feeder' );
+      $defaults['cdp_sync_status'] = __( 'Publish Status', 'gpalab-feeder' );
     }
 
     return $defaults;
@@ -432,8 +436,9 @@ class Admin {
   public function populate_custom_column( $column_name, $post_id ) {
     $sync_helper = new Admin\Helpers\Sync_Helper( $this->plugin );
 
-    if ( 'sync_status' === $column_name ) {
+    if ( 'cdp_sync_status' === $column_name ) {
       $status = get_post_meta( $post_id, '_cdp_sync_status', true );
+
       $sync_helper->sync_status_indicator( $status, false, true );
     }
   }
@@ -447,7 +452,7 @@ class Admin {
    * @since 2.0.0
    */
   public function make_sync_column_sortable( $columns ) {
-    $columns['sync_status'] = '_cdp_sync_status';
+    $columns['cdp_sync_status'] = '_cdp_sync_status';
 
     return $columns;
   }

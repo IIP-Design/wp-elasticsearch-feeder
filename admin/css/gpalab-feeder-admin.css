@@ -144,3 +144,7 @@
 .manage-btns .button-secondary {
   margin-top: 5px;
 }
+
+.cdp_sync_status > .sync-status {
+  margin: 0 2.5rem;
+}

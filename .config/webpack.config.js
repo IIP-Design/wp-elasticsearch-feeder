@@ -6,6 +6,7 @@ module.exports = {
   entry: {
     gutenberg: './admin/js/gutenberg-plugin.js',
     settings: './admin/js/settings.js',
+    status: './admin/js/post-status.js',
   },
   output: {
     filename: 'gpalab-feeder-[name].js',

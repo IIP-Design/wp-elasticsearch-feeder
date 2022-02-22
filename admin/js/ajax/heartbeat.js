@@ -1,4 +1,4 @@
-import { updateStatuses, updateTicker } from '../utils/manipulate-dom';
+import { updatePostStatus, updateStatuses, updateTicker } from '../utils/manipulate-dom';
 
 /**
  * Heartbeat object used to maintain the state of the status indicators.
@@ -16,6 +16,8 @@ const heartbeat = {
   set newTimer( timeout ) { this.heartbeatTimer = timeout; },
 };
 
+// ---- Functions pertaining to the settings page. ---- //
+
 /**
  * Appends the gpalab_feeder_count property to the data sent to the server by the heartbeat API.
  * This initiates a DB query to retrieve the publication statuses and provide the on the return tick.
@@ -23,7 +25,7 @@ const heartbeat = {
  * @param {Event} _ The event object, unused.
  * @param {Object} data The page values forwarded to the server.
  */
-export const initStatuses = ( _, data ) => { data.gpalab_feeder_count = 1; };
+export const requestStatuses = ( _, data ) => { data.gpalab_feeder_count = 1; };
 
 /**
  * Clear and restart the timer which shows the seconds since last update from the server.
@@ -46,7 +48,7 @@ export const resetHeartbeatTimer = () => {
  * @param {Event} _ The event object, unused.
  * @param {Object} data The response received from the server.
  */
-export const onTick = ( _, data ) => {
+export const onTickSettings = ( _, data ) => {
   // Restart the time since heartbeat ticker.
   resetHeartbeatTimer();
 
@@ -57,4 +59,39 @@ export const onTick = ( _, data ) => {
 
   // Update the publish statuses on the page.
   updateStatuses( data.gpalab_feeder_count );
+};
+
+// ---- Functions pertaining to the indexable post edit screens. ---- //
+
+/**
+ * Appends the gpalab_feeder_post_id property to the data sent to the server by the heartbeat API.
+ * This initiates a DB query to retrieve the publication status of the given post and provide the on the return tick.
+ *
+ * @param {Event} _ The event object, unused.
+ * @param {Object} data The page values forwarded to the server.
+ */
+export const requestStatus = ( _, data ) => {
+  const id = window?.gpalabFeederSyncStatus?.postId;
+
+  if ( id ) {
+    data.gpalab_feeder_post_id = id;
+  }
+};
+
+/**
+ * Update the post's status indicator upon response from the heartbeat API.
+ *
+ * @param {Event} _ The event object, unused.
+ * @param {Object} data The response received from the server.
+ */
+export const onTickPost = ( _, data ) => {
+  // Exit early if no status is returned from the server.
+  if ( !data.gpalab_feeder_sync_status ) {
+    return;
+  }
+
+  const { color, title } = data.gpalab_feeder_sync_status;
+
+  // Update the publish statuses on the page.
+  updatePostStatus( color, title );
 };
