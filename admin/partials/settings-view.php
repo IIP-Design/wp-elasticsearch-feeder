@@ -99,7 +99,8 @@
               <h3><?php esc_html_e( 'API Server URL', 'gpalab-feeder' ); ?></h3>
               <div class="inside">
                 <input
-                  class="regular-text" id="es_url"
+                  class="regular-text"
+                  id="gpalab-feeder-url-input"
                   name="<?php echo esc_html( $this->plugin ); ?>[es_url]"
                   placeholder="http://localhost:9200/"
                   type="text"
@@ -111,7 +112,7 @@
               <div class="inside">
                 <input
                   class="regular-text"
-                  id="es_token"
+                  id="gpalab-feeder-token-input"
                   name="<?php echo esc_html( $this->plugin . '[es_token]' ); ?>"
                   placeholder="api token"
                   type="password"
@@ -231,32 +232,32 @@
               <div class="inside manage-btns">
                 <button
                   class="button-secondary" 
-                  id="test-connection"
-                  name="test-connection"
+                  id="gpalab-feeder-test-connection"
+                  name="gpalab-feeder-test-connection"
                   type="button" 
                 >
                   <?php esc_html_e( 'Test Connection', 'gpalab-feeder' ); ?>
                 </button>
                 <button 
                   class="button-secondary"
-                  id="fix-errors"
-                  name="fix-errors"
+                  id="gpalab-feeder-fix-errors"
+                  name="gpalab-feeder-fix-errors"
                   type="button" 
                 >
                   <?php esc_html_e( 'Fix Errors', 'gpalab-feeder' ); ?>
                 </button>
                 <button
                   class="button-secondary"
-                  id="validate-sync"
-                  name="validate-sync"
+                  id="gpalab-feeder-validate-sync"
+                  name="gpalab-feeder-validate-sync"
                   type="button" 
                 >
                   <?php esc_html_e( 'Validate Statuses', 'gpalab-feeder' ); ?>
                 </button>
                 <button
                   class="button-primary"
-                  id="es_resync_control"
-                  name="es_resync_control"
+                  id="gpalab-feeder-resync-control"
+                  name="gpalab-feeder-resync-control"
                   style="display: none;"
                   type="button"
                 >
@@ -264,8 +265,8 @@
                 </button>
                 <button
                   class="button-secondary button-danger"
-                  id="resync"
-                  name="resync"
+                  id="gpalab-feeder-resync"
+                  name="gpalab-feeder-resync"
                   style="float: right;"
                   type="button"
                   >
@@ -293,14 +294,14 @@
               </h3>
 
               <div class="inside">
-                <pre class="gpalab-output" id="es_output"></pre>
+                <pre class="gpalab-output" id="gpalab-feeder-output"></pre>
               </div>
             </div>
 
             <div class="postbox">
               <h3><?php esc_html_e( 'Log', 'gpalab-feeder' ); ?></h3>
               <div class="inside manage-btns">
-                <button class="button-secondary" id="clear-logs" type="button" >
+                <button class="button-secondary" id="gpalab-feeder-clear-logs" type="button" >
                   <?php esc_html_e( 'Clear Log', 'gpalab-feeder' ); ?>
                 </button>
                 <a class="button-secondary" href="<?php echo esc_url( ES_FEEDER_URL . 'callback.log' ); ?>">
@@ -312,8 +313,8 @@
                   <p><?php esc_html_e( 'Last 100 Lines', 'gpalab-feeder' ); ?></p>
                   <button
                     class="button-primary"
-                    id="reload-log"
-                    name="reload-log"
+                    id="gpalab-feeder-reload-log"
+                    name="gpalab-feeder-reload-log"
                     type="button"
                   >
                     <?php esc_html_e( 'Reload Log', 'gpalab-feeder' ); ?>

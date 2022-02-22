@@ -33,7 +33,7 @@ export const clearProgress = sync => {
 
   makeVisible( progress, false );
 
-  // $( '#es_resync_control' ).hide();
+  // $( '#gpalab-feeder-resync-control' ).hide();
 };
 
 /**
@@ -54,8 +54,8 @@ export const showProgress = paused => {
     progress.classList.add( 'paused' );
   }
 
-  // $( '#es_resync_control' )
+  // $( '#gpalab-feeder-resync-control' )
   //   .html( sync.paused ? 'Resume Sync' : 'Pause Sync' )
   //   .show();
-  // $( '#es_output' ).empty();
+  // $( '#gpalab-feeder-output' ).empty();
 };

@@ -14,7 +14,7 @@ import { ready } from './utils/document-ready';
 //    */
 //   $( window ).load( () => {
 //     $( '#es_resync' ).on( 'click', resyncStart( 0 ) );
-//     $( '#es_resync_control' ).on( 'click', resyncControl );
+//     $( '#gpalab-feeder-resync-control' ).on( 'click', resyncControl );
 //     $( '#reload_log' ).on( 'click', reloadLog );
 
 //     $( document ).on( 'heartbeat-send', ( event, data ) => {
@@ -54,13 +54,13 @@ import { ready } from './utils/document-ready';
 //    */
 //   function resyncControl() {
 //     if ( sync.paused ) {
-//       $( '#es_resync_control' ).html( 'Pause Sync' );
+//       $( '#gpalab-feeder-resync-control' ).html( 'Pause Sync' );
 //       sync.paused = false;
 //       $( '#progress-bar' ).removeClass( 'paused' );
 //       $( '.spinner-text' ).html( 'Processing... Leaving this page will pause the resync.' );
 //       processQueue();
 //     } else {
-//       $( '#es_resync_control' ).html( 'Resume Sync' );
+//       $( '#gpalab-feeder-resync-control' ).html( 'Resume Sync' );
 //       $( '#progress-bar' ).addClass( 'paused' );
 //       $( '.spinner-text' ).html( 'Paused.' );
 //       sync.paused = true;
@@ -134,8 +134,8 @@ const clearLog = async () => {
 const testConnection = async () => {
   const { feederNonce } = window.gpalabFeederSettings;
 
-  const output = document.getElementById( 'es_output' );
-  const url = document.getElementById( 'es_url' );
+  const output = document.getElementById( 'gpalab-feeder-output' );
+  const url = document.getElementById( 'gpalab-feeder-url-input' );
 
   showSpinner( true, 'Testing connection...' );
 
@@ -180,7 +180,7 @@ const testConnection = async () => {
 const processQueue = async sync => {
   const { feederNonce } = window.gpalabFeederSettings;
 
-  const output = document.getElementById( 'es_output' );
+  const output = document.getElementById( 'gpalab-feeder-output' );
 
   // Abort if the sync process is paused.
   if ( sync.paused ) {
@@ -218,7 +218,7 @@ const processQueue = async sync => {
  * @param result
  */
 const handleQueueResult = ( sync, result ) => {
-  const output = document.getElementById( 'es_output' );
+  const output = document.getElementById( 'gpalab-feeder-output' );
 
   console.log( 'handleQueueResult: ', result );
   if ( result.error || result.done ) {
@@ -253,7 +253,7 @@ const handleQueueResult = ( sync, result ) => {
     // Display error message in results output.
     addText( JSON.stringify( msg, null, 2 ), output );
   } else if ( result.response ) {
-    // $( '#es_output' ).prepend( `${JSON.stringify( result, null, 2 )}\r\n\r\n` );
+    // $( '#gpalab-feeder-output' ).prepend( `${JSON.stringify( result, null, 2 )}\r\n\r\n` );
   }
 };
 
@@ -264,7 +264,7 @@ const handleQueueResult = ( sync, result ) => {
 const resync = async ( sync, errorsOnly ) => {
   const { feederNonce } = window.gpalabFeederSettings;
 
-  const output = document.getElementById( 'es_output' );
+  const output = document.getElementById( 'gpalab-feeder-output' );
 
   // const $notice = $( '.feeder-notice.notice-error' );
 
@@ -327,7 +327,7 @@ const resync = async ( sync, errorsOnly ) => {
 const validateSync = async sync => {
   const { feederNonce } = window.gpalabFeederSettings;
 
-  const output = document.getElementById( 'es_output' );
+  const output = document.getElementById( 'gpalab-feeder-output' );
 
   // let unpause = false;
 
@@ -414,7 +414,7 @@ const reloadLog = async () => {
     // Display error message in log.
     addText( JSON.stringify( err, null, 2 ), logText );
   } finally {
-  // Re-enable all buttons.
+    // Re-enable all buttons.
     disableManageButtons( false );
   }
 };
@@ -423,13 +423,13 @@ const reloadLog = async () => {
  * Initialize all event listeners for the settings page.
  */
 const initializeEventListener = sync => {
-  const clearLogBtn = document.getElementById( 'clear-logs' );
-  const testConnectionBtn = document.getElementById( 'test-connection' );
-  const resyncBtn = document.getElementById( 'resync' );
-  const fixErrorsBtn = document.getElementById( 'fix-errors' );
-  const resyncControl = document.getElementById( 'es_resync_control' );
-  const validateSyncBtn = document.getElementById( 'validate-sync' );
-  const reloadLogBtn = document.getElementById( 'reload-log' );
+  const clearLogBtn = document.getElementById( 'gpalab-feeder-clear-logs' );
+  const testConnectionBtn = document.getElementById( 'gpalab-feeder-test-connection' );
+  const resyncBtn = document.getElementById( 'gpalab-feeder-resync' );
+  const fixErrorsBtn = document.getElementById( 'gpalab-feeder-fix-errors' );
+  const resyncControl = document.getElementById( 'gpalab-feeder-resync-control' );
+  const validateSyncBtn = document.getElementById( 'gpalab-feeder-validate-sync' );
+  const reloadLogBtn = document.getElementById( 'gpalab-feeder-reload-log' );
 
   clearLogBtn.addEventListener( 'click', clearLog );
   testConnectionBtn.addEventListener( 'click', testConnection );
