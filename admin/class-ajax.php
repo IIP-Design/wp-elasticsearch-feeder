@@ -20,8 +20,8 @@ class Ajax {
    * Initializes the class with the plugin name and version.
    *
    * @param string $namespace   The namespace to use for the API endpoint.
-   * @param string $plugin     The plugin name.
-   * @param string $version    The plugin version number.
+   * @param string $plugin      The plugin name.
+   * @param string $version     The plugin version number.
    *
    * @since 3.0.0
    */
@@ -233,6 +233,30 @@ class Ajax {
    * @since 1.0.0
    */
   public function test_connection() {
+    // The following rules are handled by the lab_verify_nonce function and hence can be safely ignored.
+    // phpcs:disable WordPress.Security.NonceVerification.Missing
+    // phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+    // phpcs:disable WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+    // phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotValidated
+    $verification = new Admin\Verification();
+    $verification->lab_verify_nonce( $_POST['security'] );
+
+    // Sanitize the API data pulled off of the settings page form.
+    $request = $verification->sanitize_test_connect_data( $_POST );
+    // phpcs:enable
+
+    $post_actions = new Post_Actions( $this->namespace, $this->plugin );
+
+    // Forward request to the CDP API.
+    $post_actions->request( $request, null, false, false );
+  }
+
+  /**
+   * Forward the Ajax call to the CDP API.
+   *
+   * @since 3.0.0
+   */
+  public function debug_post() {
     // The following rules are handled by the lab_verify_nonce function and hence can be safely ignored.
     // phpcs:disable WordPress.Security.NonceVerification.Missing
     // phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized

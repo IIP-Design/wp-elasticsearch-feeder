@@ -5,28 +5,35 @@
  * @param {string} token  The authorization token for the Elasticsearch API.
  * @returns {Object}      The post data returned from the Elasticsearch API.
  */
-export const fetchDebugData = async ( url, token ) => {
-  const options = {
-    method: 'GET',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-  };
+export const fetchDebugData = async () => {
+  const { apiVars, feederNonce } = window.gpalabFeederAdmin;
 
-  let data;
+  // Prepare the API request body.
+  const formData = new FormData();
 
-  await fetch( url, options )
-    .then( res => res.json() )
-    .then( result => {
-      data = {
-        ...result,
-        content: 'OMITTED',
-      };
-    } )
-    .catch( err => {
-      data = err;
+  formData.append( 'action', 'gpalab_feeder_debug' );
+  formData.append( 'method', 'GET' );
+  formData.append( 'security', feederNonce );
+  formData.append( 'url', apiVars.endpoint );
+
+  try {
+    const response = await fetch( window.ajaxurl, {
+      method: 'POST',
+      body: formData,
     } );
 
-  return data;
+    const result = await response.json();
+
+    const data = ( typeof result === 'object' )
+      ? JSON.stringify( {
+        ...result,
+        content: 'OMITTED',
+      }, null, 2 )
+      : result;
+
+    return data;
+  } catch ( err ) {
+    // Display error message in log.
+    return err;
+  }
 };

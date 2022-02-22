@@ -16,13 +16,13 @@
     <?php esc_html_e( 'Retrieve Data', 'gpalab-feeder' ); ?>
   </a>
 </div>
-<pre id="es_response"></pre>
+<pre id="es-response"></pre>
 <script type="text/javascript">
   jQuery(function($) {
     populate_data();
     $('#populate_data').click(populate_data);
     function populate_data() {
-      $('#es_response').html('');
+      $('#es-response').html('');
       $.ajax({
         type: 'GET',
         dataType: 'JSON',
@@ -30,10 +30,10 @@
         headers: { Authorization: 'Bearer <?php echo esc_html( $token ); ?>'},
         success: function (result) {
           if (result && result.content) result.content = "OMITTED";
-          $('#es_response').html(JSON.stringify(result, null, 2));
+          $('#es-response').html(JSON.stringify(result, null, 2));
         },
         error: function (result) {
-          $('#es_response').html(JSON.stringify(result, null, 2));
+          $('#es-response').html(JSON.stringify(result, null, 2));
         }
       });
     }
