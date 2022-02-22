@@ -20,13 +20,15 @@ class Legacy_Metabox {
    * Initializes the class with the plugin name and version.
    *
    * @param string $namespace   The namespace to use for the API endpoint.
-   * @param string $plugin     The plugin name.
+   * @param string $plugin      The plugin name.
+   * @param string $proxy       The URL for the Elasticsearch proxy API.
    *
    * @since 3.0.0
    */
-  public function __construct( $namespace, $plugin ) {
+  public function __construct( $namespace, $plugin, $proxy ) {
     $this->namespace = $namespace;
     $this->plugin    = $plugin;
+    $this->proxy     = $proxy;
   }
 
   /**
@@ -130,7 +132,7 @@ class Legacy_Metabox {
     $post_helper = new Admin\Helpers\Post_Helper( $this->namespace, $this->plugin );
 
     $options = get_option( $this->plugin );
-    $es_url  = ! empty( $options['es_url'] ) ? $options['es_url'] : null;
+    $es_url  = ! empty( $this->proxy ) ? $this->proxy : null;
     $token   = $options['es_token'];
 
     if ( $es_url && $token ) {

@@ -124,9 +124,9 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       $admin     = new ES_Feeder\Admin( $this->get_namespace(), $this->get_plugin_name(), $this->get_version() );
       $ajax      = new ES_Feeder\Ajax( $this->get_namespace(), $this->get_plugin_name(), $this->get_version() );
       $api       = new ES_Feeder\API( $this->get_namespace(), $this->get_plugin_name(), $this->get_version() );
-      $gutenberg = new ES_Feeder\Gutenberg( $this->get_namespace(), $this->get_plugin_name() );
+      $gutenberg = new ES_Feeder\Gutenberg( $this->get_namespace(), $this->get_plugin_name(), $this->get_proxy() );
       $logging   = new ES_Feeder\Admin\Helpers\Log_Helper();
-      $metaboxes = new ES_Feeder\Legacy_Metabox( $this->get_namespace(), $this->get_plugin_name() );
+      $metaboxes = new ES_Feeder\Legacy_Metabox( $this->get_namespace(), $this->get_plugin_name(), $this->get_proxy() );
       $posts     = new ES_Feeder\Admin\Helpers\Post_Helper( $this->get_namespace(), $this->get_plugin_name() );
       $settings  = new ES_Feeder\Settings( $this->get_namespace(), $this->get_plugin_name(), $this->get_version() );
 
@@ -171,6 +171,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
 
       // Ajax hooks.
       $this->loader->add_filter( 'heartbeat_received', $ajax, 'heartbeat', 10, 2 );
+      $this->loader->add_action( 'wp_ajax_gpalab_feeder_debug', $ajax, 'debug_post' );
       $this->loader->add_action( 'wp_ajax_gpalab_feeder_sync_init', $ajax, 'initiate_sync' );
       $this->loader->add_action( 'wp_ajax_gpalab_feeder_next', $ajax, 'process_next' );
       $this->loader->add_action( 'wp_ajax_gpalab_feeder_test', $ajax, 'test_connection' );
@@ -219,7 +220,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
      *
      * @since 1.0.0
      */
-    public function get_proxy_server() {
+    public function get_proxy() {
       return $this->proxy;
     }
 

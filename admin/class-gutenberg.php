@@ -21,12 +21,14 @@ class Gutenberg {
    *
    * @param string $namespace   The namespace to use for the API endpoint.
    * @param string $plugin      The plugin name.
+   * @param string $proxy       The URL for the Elasticsearch proxy API.
    *
    * @since 3.0.0
    */
-  public function __construct( $namespace, $plugin ) {
+  public function __construct( $namespace, $plugin, $proxy ) {
     $this->namespace = $namespace;
     $this->plugin    = $plugin;
+    $this->proxy     = $proxy;
   }
 
   /**
@@ -89,6 +91,7 @@ class Gutenberg {
       'gpalabFeederAdmin',
       array(
         'apiVars'     => $api_vars,
+        'feederNonce' => wp_create_nonce( 'gpalab-feeder-nonce' ),
         'languages'   => $language_opts,
         'owners'      => $owner_opts,
         'syncStatus'  => $sync_status,
@@ -191,9 +194,9 @@ class Gutenberg {
     $endpoint = '';
 
     // Construct the API endpoint.
-    if ( ! empty( $options['es_url'] ) ) {
+    if ( ! empty( $this->proxy ) ) {
       $uuid     = $post_helper->get_uuid( $post );
-      $endpoint = $options['es_url'] . $post_helper->get_post_type_label( $post->post_type ) . '/' . $uuid;
+      $endpoint = $this->proxy . $post_helper->get_post_type_label( $post->post_type ) . '/' . $uuid;
     }
 
     return array(
