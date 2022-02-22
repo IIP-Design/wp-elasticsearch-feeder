@@ -208,7 +208,7 @@
               <h3><?php esc_html_e( 'Live Status', 'gpalab-feeder' ); ?></h3>
               <strong class="gpalab-last-update">
                 <?php esc_html_e( 'Last update', 'gpalab-feeder' ) . ':'; ?>
-                <span id="last-heartbeat"></span>
+                <span id="gpalab-feeder-last-heartbeat"></span>
               </strong>
               <div class="inside live-status-wrapper">
                 <table class="gpalab-status-table">

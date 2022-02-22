@@ -1,3 +1,5 @@
+import { i18nize } from './i18n';
+
 /**
  * Append a text node to an existing DOM element.
  * @param {string} text The text content to add.
@@ -49,4 +51,41 @@ export const showGrowl = msg => {
     makeVisible( growl, false );
     clearText( growl );
   }, 1500 );
+};
+
+/**
+ * Update the publication status indicators.
+ *
+ * @param {Object} counts List of number of posts for each status.
+ */
+export const updateStatuses = counts => {
+  // Get all status indicator elements.
+  const statuses = document.querySelectorAll( '.status-count' );
+
+  statuses.forEach( status => {
+    // Determine which status each element represents.
+    const { statusId } = status.dataset;
+
+    const currentCount = status.textContent;
+    const updatedCount = counts[statusId] || 0;
+
+    // Fade in new value.
+    if ( updatedCount !== currentCount ) {
+      status.style.opacity = 0;
+      status.textContent = updatedCount;
+      status.style.opacity = 1;
+    }
+  } );
+};
+
+/**
+ * Update the time elapsed since the last heartbeat indicator.
+ *
+ * @param {string} beat Number of seconds since the last update.
+ */
+export const updateTicker = beat => {
+  const text = i18nize( 'seconds ago (typically updates every 60 seconds)' );
+  const indicator = document.getElementById( 'gpalab-feeder-last-heartbeat' );
+
+  indicator.innerHTML = `${beat} ${text}`;
 };
