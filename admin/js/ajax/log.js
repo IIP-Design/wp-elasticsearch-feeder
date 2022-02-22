@@ -1,4 +1,5 @@
 import { addText, clearText, disableManageButtons, showGrowl } from '../utils/manipulate-dom';
+import { i18nize } from '../utils/i18n';
 
 /**
  * Clears the log output on the settings page.
@@ -25,10 +26,10 @@ export const clearLog = async () => {
 
     // Clear out any existing text in the log output section.
     clearText( logText );
-    showGrowl( 'Logs cleared.' );
+    showGrowl( i18nize( 'Logs cleared.' ) );
   } catch ( err ) {
     console.error( err );
-    showGrowl( 'Communication error while clearing logs.' );
+    showGrowl( i18nize( 'Communication error while clearing logs.' ) );
   } finally {
     // Re-enable all buttons.
     disableManageButtons( false );

@@ -1,4 +1,5 @@
 import { addText, clearText, disableManageButtons } from '../utils/manipulate-dom';
+import { i18nize } from '../utils/i18n';
 import { showSpinner } from '../utils/progress-bar';
 
 /**
@@ -10,7 +11,7 @@ export const testConnection = async () => {
   const output = document.getElementById( 'gpalab-feeder-output' );
   const url = document.getElementById( 'gpalab-feeder-url-input' );
 
-  showSpinner( true, 'Testing connection...' );
+  showSpinner( true, i18nize( 'Testing connection...' ) );
 
   // Clear out any existing text in the response output section.
   clearText( output );

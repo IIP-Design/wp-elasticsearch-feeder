@@ -1,5 +1,6 @@
 import { addText, clearText, disableManageButtons } from '../utils/manipulate-dom';
 import { clearProgress, showProgress, showSpinner } from '../utils/progress-bar';
+import { i18nize } from '../utils/i18n';
 
 /**
  * Trigger backend processing of the next available Post in the sync queue
@@ -130,7 +131,7 @@ export const resync = async ( sync, errorsOnly ) => {
   // createProgress();
   // updateProgress();
 
-  const spinnerMsg = errorsOnly ? 'Fixing errors...' : 'Initiating new resync.';
+  const spinnerMsg = errorsOnly ? i18nize( 'Fixing errors...' ) : i18nize( 'Initiating new resync.' );
 
   showSpinner( true, spinnerMsg );
 
