@@ -86,11 +86,11 @@ export const requestStatus = ( _, data ) => {
  */
 export const onTickPost = ( _, data ) => {
   // Exit early if no status is returned from the server.
-  if ( !data.gpalab_feeder_sync_status ) {
+  if ( !data.gpalab_feeder_sync_codes ) {
     return;
   }
 
-  const { color, title } = data.gpalab_feeder_sync_status;
+  const { color, title } = data.gpalab_feeder_sync_codes;
 
   // Update the publish statuses on the page.
   updatePostStatus( color, title );

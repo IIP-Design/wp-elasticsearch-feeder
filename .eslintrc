@@ -5,7 +5,6 @@
   ],
   "ignorePatterns": [
     "admin/build/",
-    "admin/js/chosen.jquery.min.js",
     "node_modules/",
     "vendor/"
   ],

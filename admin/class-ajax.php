@@ -47,10 +47,12 @@ class Ajax {
     $sync_helper = new Admin\Helpers\Sync_Helper( $this->plugin );
 
     if ( ! empty( $data['gpalab_feeder_post_id'] ) ) {
-      $post_id = $data['gpalab_feeder_post_id'];
-      $status  = $sync_helper->get_sync_status( $post_id );
+      $post_id      = $data['gpalab_feeder_post_id'];
+      $status       = $sync_helper->get_sync_status( $post_id );
+      $status_codes = $sync_helper->get_status_code_data( $status );
 
       $response['gpalab_feeder_sync_status'] = $status;
+      $response['gpalab_feeder_sync_codes']  = $status_codes;
     }
 
     if ( ! empty( $data['gpalab_feeder_count'] ) ) {

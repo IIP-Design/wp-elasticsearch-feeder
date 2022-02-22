@@ -27,7 +27,6 @@ class Admin {
    */
   public function __construct( $namespace, $plugin, $version ) {
     $this->handle_settings = $plugin . '-settings';
-    $this->handle_chosen   = $plugin . '-chosen';
     $this->handle_status   = $plugin . '-post-status';
     $this->namespace       = $namespace;
     $this->plugin          = $plugin;
@@ -68,14 +67,6 @@ class Admin {
       $status_asset['version'],
       false
     );
-
-    wp_register_script(
-      $this->handle_chosen,
-      ES_FEEDER_URL . 'admin/js/gpalab-feeder-chosen.jquery.min.js',
-      array( 'jquery' ),
-      $this->version,
-      false
-    );
   }
 
   /**
@@ -87,7 +78,6 @@ class Admin {
    */
   public function enqueue_styles( $hook ) {
     // Check whether the current screen is the edit screen for an indexable post.
-    $indexable_post_screen = $this->is_indexable_screen( $hook, 'post' );
     $indexable_all_screens = $this->is_indexable_screen( $hook, 'all' );
 
     // Enqueue settings styles on settings page and allowed post type edit screens.
@@ -97,17 +87,6 @@ class Admin {
       wp_enqueue_style(
         $this->handle_settings,
         ES_FEEDER_URL . 'admin/css/gpalab-feeder-admin.css',
-        array(),
-        $this->version,
-        'all'
-      );
-    }
-
-    // Only enqueue post-specific admin styles on edit page of allowed post types.
-    if ( $indexable_post_screen ) {
-      wp_enqueue_style(
-        $this->handle_chosen,
-        ES_FEEDER_URL . 'admin/css/gpalab-feeder-chosen.css',
         array(),
         $this->version,
         'all'
@@ -146,7 +125,6 @@ class Admin {
       );
 
       wp_enqueue_script( $this->handle_status );
-      wp_enqueue_script( $this->handle_chosen );
     }
   }
 
