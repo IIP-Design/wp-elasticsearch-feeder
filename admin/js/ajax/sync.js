@@ -1,16 +1,23 @@
-import { addText, clearText, disableManageButtons } from '../utils/manipulate-dom';
+import { addToElement, disableManageButtons, emptyElement } from '../utils/manipulate-dom';
 import { clearProgress, showProgress, showSpinner } from '../utils/progress-bar';
 import { i18nize } from '../utils/i18n';
+import { getNonce, sendAdminAjax, sendAdminAjaxWithTimeout } from './helpers';
+
+const OUTPUT_ID = 'gpalab-feeder-output';
+
+/**
+ * Re-enable all buttons and hide spinner.
+ */
+const reset = () => {
+  disableManageButtons( false );
+  showSpinner( false );
+};
 
 /**
  * Trigger backend processing of the next available Post in the sync queue
  * and relay the results to the result handler function.
  */
 const processQueue = async sync => {
-  const { feederNonce } = window.gpalabFeederSettings;
-
-  const output = document.getElementById( 'gpalab-feeder-output' );
-
   // Abort if the sync process is paused.
   if ( sync.paused ) {
     return;
@@ -20,24 +27,20 @@ const processQueue = async sync => {
   const formData = new FormData();
 
   formData.append( 'action', 'gpalab_feeder_next' );
-  formData.append( 'security', feederNonce );
+  formData.append( 'security', getNonce() );
 
-  try {
-    const response = await fetch( window.ajaxurl, {
-      method: 'POST',
-      body: formData,
-    } );
-
-    const result = await response.json();
-
+  const onSuccess = result => {
     console.log( 'processQueue: ', result );
 
-
     handleQueueResult( sync, result ); // eslint-disable-line no-use-before-define
-  } catch ( err ) {
+  };
+
+  const onError = err => {
     // Display error message in results output.
-    addText( JSON.stringify( err, null, 2 ), output );
-  }
+    addToElement( err, OUTPUT_ID );
+  };
+
+  sendAdminAjax( formData, 'POST', onSuccess, onError );
 };
 
 /**
@@ -47,14 +50,12 @@ const processQueue = async sync => {
  * @param result
  */
 const handleQueueResult = ( sync, result ) => {
-  const output = document.getElementById( 'gpalab-feeder-output' );
-
   console.log( 'handleQueueResult: ', result );
   if ( result.error || result.done ) {
     clearProgress( sync );
 
     if ( result.error && result.message ) {
-      addText( result.message, output );
+      addToElement( result.message, OUTPUT_ID );
     }
     // reloadLog();
   } else {
@@ -80,7 +81,7 @@ const handleQueueResult = ( sync, result ) => {
     const msg = result.results.length > 0 ? JSON.stringify( result.results, null, 2 ) : 'No errors.';
 
     // Display error message in results output.
-    addText( JSON.stringify( msg, null, 2 ), output );
+    addToElement( msg, OUTPUT_ID );
   } else if ( result.response ) {
     // $( '#gpalab-feeder-output' ).prepend( `${JSON.stringify( result, null, 2 )}\r\n\r\n` );
   }
@@ -109,10 +110,6 @@ export const initializeSync = sync => {
  * Clear out old sync post meta (if any) and initiate a new sync process.
  */
 export const resync = async ( sync, errorsOnly ) => {
-  const { feederNonce } = window.gpalabFeederSettings;
-
-  const output = document.getElementById( 'gpalab-feeder-output' );
-
   // const $notice = $( '.feeder-notice.notice-error' );
 
   // if ( $notice.length > 0 ) {
@@ -136,7 +133,7 @@ export const resync = async ( sync, errorsOnly ) => {
   showSpinner( true, spinnerMsg );
 
   // Clear out any existing text in the response output section.
-  clearText( output );
+  emptyElement( OUTPUT_ID );
 
   // Disable buttons for the duration of the request.
   disableManageButtons( true );
@@ -145,37 +142,24 @@ export const resync = async ( sync, errorsOnly ) => {
   const formData = new FormData();
 
   formData.append( 'action', 'gpalab_feeder_sync_init' );
-  formData.append( 'security', feederNonce );
+  formData.append( 'security', getNonce() );
   formData.append( 'sync_errors', errorsOnly );
   formData.append( 'method', 'GET' );
 
-  try {
-    // timeout: 120000,
-
-    const response = await fetch( window.ajaxurl, {
-      method: 'POST',
-      body: formData,
-    } );
-
-    const result = await response.json();
-
+  const onSuccess = result => {
     handleQueueResult( sync, result );
-  } catch ( err ) {
+  };
+
+  const onError = err => {
     clearProgress( sync );
     // Display error message in results output.
-    addText( JSON.stringify( err, null, 2 ), output );
-  } finally {
-  // Re-enable all buttons and hide spinner.
-    disableManageButtons( false );
-    showSpinner( false );
-  }
+    addToElement( err, OUTPUT_ID );
+  };
+
+  sendAdminAjaxWithTimeout( formData, 'POST', onSuccess, onError, reset, 120000 );
 };
 
 export const validateSync = async sync => {
-  const { feederNonce } = window.gpalabFeederSettings;
-
-  const output = document.getElementById( 'gpalab-feeder-output' );
-
   // let unpause = false;
 
   // if ( !sync.paused ) {
@@ -185,7 +169,7 @@ export const validateSync = async sync => {
   // clearProgress();
 
   // Clear out any existing text in the response output section.
-  clearText( output );
+  emptyElement( OUTPUT_ID );
 
   showProgress( sync.paused );
 
@@ -196,36 +180,28 @@ export const validateSync = async sync => {
   const formData = new FormData();
 
   formData.append( 'action', 'gpalab_feeder_validate' );
-  formData.append( 'security', feederNonce );
+  formData.append( 'security', getNonce() );
 
-  try {
-    // timeout: 120000,
-
-    const response = await fetch( window.ajaxurl, {
-      method: 'POST',
-      body: formData,
-    } );
-
-    const result = await response.json();
-
+  const onSuccess = result => {
     clearProgress( sync );
 
     // Display test response in results output.
-    addText( JSON.stringify( result, null, 2 ), output );
+    addToElement( result, OUTPUT_ID );
 
     // if ( unpause ) resyncControl();
     // else updateProgress();
-  } catch ( err ) {
+  };
+
+  const onError = err => {
     clearProgress( sync );
     // createProgress();
 
     // Display error message in results output.
-    addText( JSON.stringify( err, null, 2 ), output );
+    addToElement( err, OUTPUT_ID );
 
     // if ( unpause ) resyncControl();
     // else updateProgress();
-  } finally {
-    // Re-enable all buttons.
-    disableManageButtons( false );
-  }
+  };
+
+  sendAdminAjaxWithTimeout( formData, 'POST', onSuccess, onError, reset, 120000 );
 };

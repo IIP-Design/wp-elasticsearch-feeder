@@ -1,4 +1,4 @@
-import { addText, clearText, makeVisible } from './manipulate-dom';
+import { addToElement, emptyElement, makeVisible } from './manipulate-dom';
 import { i18nize } from './i18n';
 
 /**
@@ -7,16 +7,14 @@ import { i18nize } from './i18n';
  * @param {string} msg An optional value to change the spinner text.
  */
 export const showSpinner = ( show, msg ) => {
-  const spinner = document.getElementById( 'index-spinner' );
+  const spinnerText = 'index-spinner-text';
 
   if ( msg ) {
-    const spinnerText = document.getElementById( 'index-spinner-text' );
-
-    clearText( spinnerText );
-    addText( msg, spinnerText );
+    emptyElement( spinnerText );
+    addToElement( msg, spinnerText );
   }
 
-  makeVisible( spinner, show );
+  makeVisible( 'index-spinner', show );
 };
 
 /**
@@ -30,9 +28,7 @@ export const clearProgress = sync => {
   showSpinner( false );
 
   // Hide the progress bar.
-  const progress = document.getElementById( 'progress-bar' );
-
-  makeVisible( progress, false );
+  makeVisible( 'progress-bar', false );
 
   // $( '#gpalab-feeder-resync-control' ).hide();
 };
@@ -47,11 +43,13 @@ export const showProgress = paused => {
   showSpinner( true, spinnerMsg );
 
   // Show the progress bar.
-  const progress = document.getElementById( 'progress-bar' );
+  const progressId = 'progress-bar';
 
-  makeVisible( progress, true );
+  makeVisible( progressId, true );
 
   if ( paused ) {
+    const progress = document.getElementById( progressId );
+
     progress.classList.add( 'paused' );
   }
 

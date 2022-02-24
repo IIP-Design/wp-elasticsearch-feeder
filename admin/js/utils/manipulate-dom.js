@@ -1,22 +1,26 @@
 import { i18nize } from './i18n';
 
 /**
- * Append a text node to an existing DOM element.
- * @param {string} text The text content to add.
- * @param {Object} node The DOM node to append the text to.
+ * Write response data to the output box.
+ *
+ * @param {Object} data The response data.
  */
-export const addText = ( text, node ) => {
-  const toAdd = document.createTextNode( text );
+export const addToElement = ( data, id ) => {
+  const outputEl = document.getElementById( id );
 
-  node.appendChild( toAdd );
+  outputEl.textContent = data ? JSON.stringify( data, null, 2 ) : '';
 };
 
 /**
- * Sets the innerHTML of an element to an empty string.
- * @param {Object} node The DOM node to clear.
- */
-export const clearText = node => {
-  node.innerHTML = '';
+  * Find an element by its id and clear its text.
+  *
+  * @param {string} id The id value of the targeted element.
+  */
+export const emptyElement = id => {
+  const el = document.getElementById( id );
+
+  // Remove all child elements.
+  while ( el.firstChild ) el.removeChild( el.firstChild );
 };
 
 /**
@@ -31,11 +35,13 @@ export const disableManageButtons = disable => {
 
 /**
  * Toggles the display property of an element.
- * @param {Object} node The DOM node to clear.
+ * @param {Object} id The id of the DOM node to clear.
  * @param {boolean} visible Whether or not the element should be visible.
  * @param {string} alt The value to be used as the inverse of display none. Defaults to block.
  */
-export const makeVisible = ( node, visible, alt = 'block' ) => {
+export const makeVisible = ( id, visible, alt = 'block' ) => {
+  const node = document.getElementById( id );
+
   node.style.display = visible ? alt : 'none';
 };
 
@@ -44,22 +50,21 @@ export const makeVisible = ( node, visible, alt = 'block' ) => {
  * @param {string} msg The message that should be displayed in the growl notification.
  */
 export const showGrowl = msg => {
-  const growl = document.getElementById( 'gpalab-growl' );
+  const growlId = 'gpalab-growl';
 
-  // Abort if the required growl container is missing
-  // or a notification message is not provided.
-  if ( !growl || !msg ) {
+  // Abort if a notification message is not provided.
+  if ( !msg ) {
     return;
   }
 
   // Show the growl.
-  addText( msg, growl );
-  makeVisible( growl, true );
+  addToElement( msg, growlId );
+  makeVisible( growlId, true );
 
   // Clear and hide the growl.
   setTimeout( () => {
-    makeVisible( growl, false );
-    clearText( growl );
+    makeVisible( growlId, false );
+    emptyElement( growlId );
   }, 1500 );
 };
 
