@@ -74,7 +74,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
      * @since 1.0.0
      */
     public function __construct() {
-      $this->namespace   = 'elasticsearch/v1';
+      $this->namespace   = 'gpalab-cdp/v1';
       $this->plugin_name = 'wp-es-feeder';
       $this->version     = '2.5.0';
       $this->proxy       = get_option( $this->plugin_name )['es_url'];
