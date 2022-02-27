@@ -1,8 +1,8 @@
 <?php
 /**
- * Provide a admin area view for the plugin
+ * Provides an admin area view for the plugin.
  *
- * This file is used to markup the admin-facing aspects of the plugin.
+ * This file is used to markup the admin settings page of the plugin.
  *
  * @package ES_Feeder\Settings
  * @since 1.0.0
@@ -32,6 +32,7 @@
     $es_api_data      = array_key_exists( 'es_api_data', $options ) && $options['es_api_data'] ? 1 : 0;
     $es_post_language = array_key_exists( 'es_post_language', $options ) && $options['es_post_language'] ? 1 : 0;
     $es_post_owner    = array_key_exists( 'es_post_owner', $options ) && $options['es_post_owner'] ? 1 : 0;
+    $es_enable_logs   = array_key_exists( 'es_enable_logs', $options ) && $options['es_enable_logs'] ? 1 : 0;
 
     // Get domain(s) - support for Domain Mapping.
     $site = site_url();
@@ -120,20 +121,6 @@
                 />
               </div>
 
-              <h3><?php esc_html_e( 'API Data Display', 'gpalab-feeder' ); ?></h3>
-              <div class="inside">
-                <label for="es_api_data"> 
-                  <input
-                    id="es_api_data"
-                    name="<?php echo esc_html( $this->plugin ); ?>[es_api_data]"
-                    type="checkbox"
-                    value="1"
-                    <?php echo $es_api_data ? 'checked' : ''; ?>
-                  />
-                  <?php esc_html_e( 'Show current API data when editing a post of a supported type', 'gpalab-feeder' ); ?>
-                </label>
-              </div>
-
               <h3><?php esc_html_e( 'Post Types', 'gpalab-feeder' ); ?></h3>
               <div class="inside">
                 <p><?php esc_html_e( 'Select the post-types to index into Elasticsearch.', 'gpalab-feeder' ); ?></p>
@@ -196,6 +183,33 @@
                     <?php echo $es_post_owner ? 'checked' : ''; ?>
                   />
                   <?php esc_html_e( 'Add owner dropdown to the Post (default) content type.', 'gpalab-feeder' ); ?>
+                </label>
+              </div>
+
+              <h3><?php esc_html_e( 'Debugging', 'gpalab-feeder' ); ?></h3>
+              <div class="inside">
+                <label for="es_enable_logs">
+                  <input
+                    id="es_enable_logs"
+                    name="<?php echo esc_html( $this->plugin ); ?>[es_enable_logs]"
+                    type="checkbox"
+                    value="1"
+                    <?php echo $es_enable_logs ? 'checked' : ''; ?>
+                  />
+                  <?php esc_html_e( 'Enable Logging', 'gpalab-feeder' ); ?>
+                </label>
+              </div>
+
+              <div class="inside">
+                <label for="es_api_data">
+                  <input
+                    id="es_api_data"
+                    name="<?php echo esc_html( $this->plugin ); ?>[es_api_data]"
+                    type="checkbox"
+                    value="1"
+                    <?php echo $es_api_data ? 'checked' : ''; ?>
+                  />
+                  <?php esc_html_e( 'Show current API data when editing a post of a supported type', 'gpalab-feeder' ); ?>
                 </label>
               </div>
 
@@ -298,33 +312,12 @@
               </div>
             </div>
 
-            <div class="postbox">
-              <h3><?php esc_html_e( 'Log', 'gpalab-feeder' ); ?></h3>
-              <div class="inside manage-btns">
-                <button class="button-secondary" id="gpalab-feeder-clear-logs" type="button" >
-                  <?php esc_html_e( 'Clear Log', 'gpalab-feeder' ); ?>
-                </button>
-                <a class="button-secondary" href="<?php echo esc_url( ES_FEEDER_URL . 'callback.log' ); ?>">
-                  <?php esc_html_e( 'Download Log', 'gpalab-feeder' ); ?>
-                </a>
-              </div>
-              <div class="inside gpalab-log-wrapper">
-                <div  class="gpalab-log-wrapper-top">
-                  <p><?php esc_html_e( 'Last 100 Lines', 'gpalab-feeder' ); ?></p>
-                  <button
-                    class="button-primary"
-                    id="gpalab-feeder-reload-log"
-                    name="gpalab-feeder-reload-log"
-                    type="button"
-                  >
-                    <?php esc_html_e( 'Reload Log', 'gpalab-feeder' ); ?>
-                  </button>
-                </div>
-                <textarea class="gpalab-output" rows="20" id="log-text" readonly>
-                  <?php echo esc_textarea( $log ); ?>
-                </textarea>
-              </div>
-            </div>
+            <?php
+            // Conditionally render the logging section.
+            if ( 1 === $es_enable_logs ) {
+              require_once ES_FEEDER_DIR . 'admin/partials/log-section.php';
+            }
+            ?>
 
           </div> <!-- End .meta-box-sortables .ui-sortable -->
         </div> <!-- End #post-body-content -->

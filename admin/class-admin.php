@@ -294,6 +294,7 @@ class Admin {
       'es_post_language' => array_key_exists( 'es_post_language', $input ),
       'es_post_owner'    => array_key_exists( 'es_post_owner', $input ),
       'es_token'         => sanitize_text_field( $input['es_token'] ),
+      'es_enable_logs'   => array_key_exists( 'es_enable_logs', $input ),
     );
 
     $types      = array();
