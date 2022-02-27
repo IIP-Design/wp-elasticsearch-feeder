@@ -258,33 +258,23 @@ class Post_Helper {
 
     $statuses = $sync_helper->statuses;
 
-    $options     = get_option( $this->plugin );
-    $es_wpdomain = $options['es_wpdomain'] ? $options['es_wpdomain'] : null;
-
-    if ( ! $es_wpdomain ) {
-      $es_wpdomain = site_url();
-    }
+    $options = get_option( $this->plugin );
+    $domain  = $options['es_wpdomain'] ? $options['es_wpdomain'] : site_url();
 
     if ( ! $post_id ) {
-      return $es_wpdomain . '/wp-json/' . $this->namespace . '/callback/noop';
+      return $domain . '/wp-json/' . $this->namespace . '/callback/noop';
     }
+
+    // What is this trying to do?
+    // do {
+    // $uid   = uniqid();
+    // $query = "SELECT post_id FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_uid' AND meta_value = '$uid'";
+    // } while ( $wpdb->get_var( $query ) );
+
+    $uid = uniqid();
 
     // Create callback for this post.
-    global $wpdb;
-
-    do {
-      $uid   = uniqid();
-      $query = "SELECT post_id FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_uid' AND meta_value = '$uid'";
-    } while ( $wpdb->get_var( $query ) );
-
-    $options     = get_option( $this->plugin );
-    $es_wpdomain = $options['es_wpdomain'] ? $options['es_wpdomain'] : null;
-
-    if ( ! $es_wpdomain ) {
-      $es_wpdomain = site_url();
-    }
-
-    $callback = $es_wpdomain . '/wp-json/' . $this->namespace . '/callback/' . $uid;
+    $callback = $domain . '/wp-json/' . $this->namespace . '/callback/' . $uid;
 
     if ( $log_helper->log_all ) {
       $log_helper->log( "Created callback for: $post_id with UID: $uid", 'feeder.log' );
