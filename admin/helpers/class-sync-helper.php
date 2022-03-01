@@ -353,6 +353,10 @@ class Sync_Helper {
         $color = 'red';
         $title = 'Error';
           break;
+      case $this->statuses['NOT_SYNCED']:
+        $color = 'black';
+        $title = 'Not Synced';
+          break;
       default:
         $color = 'black';
         $title = 'Not Published';
