@@ -48,6 +48,12 @@ class Post_Actions {
       return;
     }
 
+    // Prevent the sync from occurring twice since Gutenberg
+    // uses the Rest API to update/insert the post data.
+    if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
+      return;
+    }
+
     // Return early if missing parameters.
     $settings = get_option( $this->plugin );
 
@@ -284,7 +290,7 @@ class Post_Actions {
     $config = get_option( $this->plugin );
 
     // Initialize response.
-    $error   = false;
+    $error   = null;
     $results = null;
 
     // Set headers.
@@ -311,6 +317,8 @@ class Post_Actions {
 
     // Initialize the Guzzle client, which is used to send HTTP requests.
     $client = new GuzzleHttp\Client( $opts );
+
+    $log_helper->log( 'Sending ' . $request['method'] . ' request to the ' . $request['url'] . ' endpoint' );
 
     try {
       // If a body is provided.
@@ -347,14 +355,9 @@ class Post_Actions {
       $error = $e->getMessage();
     }
 
-    if ( $log_helper->log_all && ! in_array( $request['url'], array( 'owner', 'language', 'taxonomy' ), true ) ) {
-      $log_helper->log( 'Sending ' . $request['method'] . ' request to: ' . $request['url'] . ( array_key_exists( 'body', $request ) && array_key_exists( 'post_id', $request['body'] ) ? ', post_id : ' . $request['body']['post_id'] : '' ), 'feeder.log' );
-      $log_helper->log( "\n\nREQUEST: " . print_r( $request, 1 ), 'es_request.log' );
-      $log_helper->log( 'RESULTS: ' . print_r( $results, 1 ), 'es_request.log' );
-      $log_helper->log( 'ERROR: ' . print_r( $error, 1 ), 'es_request.log' );
-    }
+    if ( null !== $error ) {
+      $log_helper->log( $error );
 
-    if ( $error ) {
       if ( $is_internal || ( isset( $request['print'] ) && ! $request['print'] ) ) {
         return (object) array(
           'error'   => 1,
