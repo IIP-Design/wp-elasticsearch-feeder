@@ -301,6 +301,10 @@ class Language_Helper {
    * @since 2.0.0
    */
   public function get_translations( $post_id ) {
+    if ( ! function_exists( 'is_plugin_active' ) ) {
+      include_once ABSPATH . 'wp-admin/includes/plugin.php';
+    }
+
     if ( is_plugin_active( 'polylang/polylang.php' ) ) {
 
       // Get translations if Polylang is installed.
