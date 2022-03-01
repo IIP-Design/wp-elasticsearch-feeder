@@ -35,6 +35,7 @@ class Post_Helper {
    */
   public function delete( $post ) {
     $post_actions = new \ES_Feeder\Post_Actions( $this->namespace, $this->plugin );
+    $log_helper   = new Log_Helper();
     $sync_helper  = new Sync_Helper();
 
     if ( ! $sync_helper->is_syncable( $post->ID ) ) {
@@ -54,10 +55,12 @@ class Post_Helper {
       'print'  => false,
     );
 
+    $log_helper->log( "Removing $post->post_type #$post->ID from the CDP API..." );
+
     $response = $post_actions->request( $options );
 
     if ( ! $response ) {
-      error_log( print_r( $this->error . 'add_or_update()[add] request failed', true ) );
+      $log_helper->log( 'add_or_update()[add] request failed' );
       update_post_meta( $post->ID, '_cdp_sync_status', $statuses['ERROR'] );
     } elseif ( isset( $response->error ) && $response->error ) {
       update_post_meta( $post->ID, '_cdp_sync_status', $statuses['ERROR'] );
@@ -109,7 +112,7 @@ class Post_Helper {
     $api_response = $api_response->data;
 
     if ( ! $api_response || isset( $api_response['code'] ) ) {
-      error_log( print_r( $this->error . 'add_or_update() calling wp rest failed', true ) );
+      $log_helper->log( 'add_or_update() calling wp rest failed' );
       $api_response['error'] = true;
       $api_response['url']   = $wp_api_url;
 
@@ -130,23 +133,19 @@ class Post_Helper {
       'print'  => $print,
     );
 
+    $log_helper->log( "Upserting $post->post_type #$post->ID to the CDP API..." );
+
     $response = $post_actions->request( $options, $callback, $callback_errors_only );
 
-    if ( $log_helper->log_all ) {
-      $log_helper->log( "IMMEDIATE RESPONSE:\r\n" . print_r( $response, 1 ), 'callback.log' );
-    }
-
     if ( ! $response ) {
-      error_log( print_r( $this->error . 'add_or_update()[add] request failed', true ) );
+      $log_helper->log( 'add_or_update()[add] request failed' );
       update_post_meta( $post->ID, '_cdp_sync_status', $statuses['ERROR'] );
       delete_post_meta( $post->ID, '_cdp_sync_uid' );
     } elseif ( isset( $response->error ) && $response->error ) {
       update_post_meta( $post->ID, '_cdp_sync_status', $statuses['ERROR'] );
       delete_post_meta( $post->ID, '_cdp_sync_uid' );
 
-      if ( ! $log_helper->log_all && $response ) {
-        $log_helper->log( "IMMEDIATE RESPONSE:\r\n" . print_r( $response, 1 ), 'callback.log' );
-      }
+      $log_helper->log( $response->error );
     }
 
     return $response;
@@ -262,18 +261,23 @@ class Post_Helper {
       return $domain . '/wp-json/' . $this->namespace . '/callback/noop';
     }
 
-    // What is this trying to do?
-    // do {
-    // $uid   = uniqid();
-    // $query = "SELECT post_id FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_uid' AND meta_value = '$uid'";
-    // } while ( $wpdb->get_var( $query ) );
+    /*
+     * What is this trying to do?
+     *
+     * do {
+     * $uid   = uniqid();
+     * $query = "SELECT post_id FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_uid' AND meta_value = '$uid'";
+     * } while ( $wpdb->get_var( $query ) );
+     *
+     */
 
-    $uid = uniqid();
+    $uid  = uniqid();
+    $type = get_post_type( $post_id );
 
     // Create callback for this post.
     $callback = $domain . '/wp-json/' . $this->namespace . '/callback/' . $uid;
 
-    $log_helper->log( "Created callback for: $post_id with UID: $uid" );
+    $log_helper->log( "Created a callback route for $type #$post_id with the unique id: $uid" );
 
     update_post_meta( $post_id, '_cdp_sync_uid', $uid );
     update_post_meta( $post_id, '_cdp_sync_status', $statuses['SYNCING'] );
