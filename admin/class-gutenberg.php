@@ -186,7 +186,7 @@ class Gutenberg {
   private function get_api_vars() {
     global $post;
 
-    $post_helper = new Admin\Helpers\Post_Helper( $this->namespace, $this->plugin );
+    $post_helper = new Admin\Helpers\Post_Helper();
 
     $options = get_option( $this->plugin );
 

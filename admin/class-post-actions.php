@@ -75,7 +75,7 @@ class Post_Actions {
 
     // We only care about modifying published posts.
     if ( 'publish' === $post->post_status ) {
-      $post_helper = new Admin\Helpers\Post_Helper( $this->namespace, $this->plugin );
+      $post_helper = new Admin\Helpers\Post_Helper();
 
       $post_helper->post_sync_send( $post, false );
       $this->translate_post( $post );
@@ -135,7 +135,7 @@ class Post_Actions {
    * @since 1.0.0
    */
   public function delete_post( $new_status, $old_status, $id ) {
-    $post_helper = new Admin\Helpers\Post_Helper( $this->namespace, $this->plugin );
+    $post_helper = new Admin\Helpers\Post_Helper();
 
     if ( $old_status === $new_status || 'publish' !== $old_status ) {
       return;
@@ -170,7 +170,7 @@ class Post_Actions {
 
     $language_helper = new Admin\Helpers\Language_Helper( $this->namespace, $this->plugin );
     $log_helper      = new Admin\Helpers\Log_Helper();
-    $post_helper     = new Admin\Helpers\Post_Helper( $this->namespace, $this->plugin );
+    $post_helper     = new Admin\Helpers\Post_Helper();
     $sync_helper     = new Admin\Helpers\Sync_Helper();
 
     $statuses = $sync_helper->statuses;

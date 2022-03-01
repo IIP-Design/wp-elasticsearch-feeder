@@ -21,14 +21,12 @@ class Ajax {
    *
    * @param string $namespace   The namespace to use for the API endpoint.
    * @param string $plugin      The plugin name.
-   * @param string $version     The plugin version number.
    *
    * @since 3.0.0
    */
-  public function __construct( $namespace, $plugin, $version ) {
+  public function __construct( $namespace, $plugin ) {
     $this->namespace = $namespace;
     $this->plugin    = $plugin;
-    $this->version   = $version;
   }
 
   /**
@@ -157,7 +155,7 @@ class Ajax {
 
     global $wpdb;
 
-    $post_helper = new Admin\Helpers\Post_Helper( $this->namespace, $this->plugin );
+    $post_helper = new Admin\Helpers\Post_Helper();
     $sync_helper = new Admin\Helpers\Sync_Helper();
 
     // Load the sync status helper.

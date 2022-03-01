@@ -168,7 +168,7 @@ class Admin {
    * @since 3.0.0
    */
   private function is_indexable( $post_type ) {
-    $post_helper = new Admin\Helpers\Post_Helper( $this->namespace, $this->plugin );
+    $post_helper = new Admin\Helpers\Post_Helper();
 
     $indexable = ! empty( $post_type ) ? in_array( $post_type, $post_helper->get_allowed_post_types(), true ) : false;
 
@@ -395,7 +395,7 @@ class Admin {
    * @since 2.0.0
    */
   public function add_cdp_sync_column( $defaults ) {
-    $post_helper = new Admin\Helpers\Post_Helper( $this->namespace, $this->plugin );
+    $post_helper = new Admin\Helpers\Post_Helper();
 
     if ( in_array( get_post_type(), $post_helper->get_allowed_post_types(), true ) ) {
       $defaults['cdp_sync_status'] = __( 'Publish Status', 'gpalab-feeder' );

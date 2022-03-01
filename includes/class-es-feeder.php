@@ -112,12 +112,12 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
     private function define_admin_hooks() {
       $actions   = new ES_Feeder\Post_Actions( $this->get_namespace(), $this->get_plugin_name() );
       $admin     = new ES_Feeder\Admin( $this->get_namespace(), $this->get_plugin_name(), $this->get_version() );
-      $ajax      = new ES_Feeder\Ajax( $this->get_namespace(), $this->get_plugin_name(), $this->get_version() );
+      $ajax      = new ES_Feeder\Ajax( $this->get_namespace(), $this->get_plugin_name() );
       $api       = new ES_Feeder\API( $this->get_namespace(), $this->get_plugin_name() );
       $gutenberg = new ES_Feeder\Gutenberg( $this->get_namespace(), $this->get_plugin_name(), $this->get_proxy() );
       $logging   = new ES_Feeder\Admin\Helpers\Log_Helper();
       $metaboxes = new ES_Feeder\Legacy_Metabox( $this->get_namespace(), $this->get_plugin_name(), $this->get_proxy() );
-      $posts     = new ES_Feeder\Admin\Helpers\Post_Helper( $this->get_namespace(), $this->get_plugin_name() );
+      $posts     = new ES_Feeder\Admin\Helpers\Post_Helper();
       $settings  = new ES_Feeder\Settings( $this->get_namespace(), $this->get_plugin_name(), $this->get_version() );
 
       // Register and enqueue the admin scripts and styles.

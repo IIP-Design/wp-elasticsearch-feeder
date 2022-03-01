@@ -129,7 +129,7 @@ class Legacy_Metabox {
    * @since 2.1.0
    */
   public function api_debugger( $post ) {
-    $post_helper = new Admin\Helpers\Post_Helper( $this->namespace, $this->plugin );
+    $post_helper = new Admin\Helpers\Post_Helper();
 
     $options = get_option( $this->plugin );
     $es_url  = ! empty( $this->proxy ) ? $this->proxy : null;
