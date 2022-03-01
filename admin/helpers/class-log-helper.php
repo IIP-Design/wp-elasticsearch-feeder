@@ -10,6 +10,7 @@ namespace ES_Feeder\Admin\Helpers;
 
 /**
  * Registers logging helper functions.
+ * TODO: Investigate using WP Filesystem functions.
  *
  * @package ES_Feeder\Admin\Helpers\Log_Helper
  * @since 3.0.0
@@ -17,26 +18,49 @@ namespace ES_Feeder\Admin\Helpers;
 class Log_Helper {
 
   /**
-   * Initializes the class with the plugin name and version.
+   * Initializes the class with the log status and the main log filename.
    *
    * @since 3.0.0
    */
   public function __construct() {
-    $this->log_all = false;
+    $this->logs_enabled = get_option( ES_FEEDER_NAME )['es_enable_logs'];
+    $this->main_log     = 'gpalab-feeder.log';
   }
 
   /**
    * Append a line to the given log file.
    *
-   * @param string $str    The text to be added to the log file.
+   * @param string $input  The text to be added to the log file.
    * @param string $file   The name of the file to write to.
    *
    * @since 2.0.0
    */
-  public function log( $str, $file = 'feeder.log' ) {
-    $path = ES_FEEDER_DIR . $file;
+  public function log( $input, $file = null ) {
+    $filename = null !== $file ? $file : $this->main_log;
 
-    file_put_contents( $path, gmdate( '[m/d/y H:i:s] ' ) . trim( print_r( $str, 1 ) ) . "\r\n\r\n", FILE_APPEND );
+    $path = ES_FEEDER_DIR . $filename;
+
+    $str = 'NULL';
+
+    if ( 'string' === gettype( $input ) ) {
+      $str = trim( $input );
+    } else {
+      $str = wp_json_encode( $input, 0, 4 );
+    }
+
+    // Only write to log if logging is enabled.
+    if ( $this->logs_enabled ) {
+      $existing = '';
+
+      if ( file_exists( $path ) ) {
+        $existing = file_get_contents( $path );
+      }
+
+      file_put_contents(
+        $path,
+        gmdate( '[m/d/y H:i:s] ' ) . $str . "\r\n\r\n" . $existing
+      );
+    }
   }
 
   /**
@@ -80,7 +104,7 @@ class Log_Helper {
     $verification->lab_verify_nonce( $_POST['security'] );
     // phpcs:enable
 
-    $path = ES_FEEDER_DIR . 'callback.log';
+    $path = ES_FEEDER_DIR . $this->main_log;
 
     $log = $this->tail( $path, 100 );
 

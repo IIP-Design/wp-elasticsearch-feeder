@@ -273,9 +273,7 @@ class Post_Helper {
     // Create callback for this post.
     $callback = $domain . '/wp-json/' . $this->namespace . '/callback/' . $uid;
 
-    if ( $log_helper->log_all ) {
-      $log_helper->log( "Created callback for: $post_id with UID: $uid", 'feeder.log' );
-    }
+    $log_helper->log( "Created callback for: $post_id with UID: $uid" );
 
     update_post_meta( $post_id, '_cdp_sync_uid', $uid );
     update_post_meta( $post_id, '_cdp_sync_status', $statuses['SYNCING'] );
