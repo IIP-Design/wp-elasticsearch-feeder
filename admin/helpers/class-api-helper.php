@@ -19,14 +19,11 @@ class API_Helper {
   /**
    * Initializes the class with the plugin name and version.
    *
-   * @param string $namespace   The namespace to use for the API endpoint.
-   * @param string $plugin      The plugin name.
-   *
    * @since 3.0.0
    */
-  public function __construct( $namespace, $plugin ) {
-    $this->namespace = $namespace;
-    $this->plugin    = $plugin;
+  public function __construct() {
+    $this->namespace = ES_FEEDER_API_NAMESPACE;
+    $this->plugin    = ES_FEEDER_NAME;
   }
 
   /**

@@ -10,6 +10,7 @@
 namespace ES_Feeder\Admin\API;
 
 use WP_REST_Controller;
+use ES_Feeder\Admin\Helpers\API_Helper as API;
 
 /**
  * Registers an API endpoint for a given public post type.
@@ -30,12 +31,11 @@ class REST_Controller extends WP_REST_Controller {
    * @since 3.0.0
    */
   public function __construct( $namespace, $plugin, $post_type ) {
-    $api_helper = new \ES_Feeder\Admin\Helpers\API_Helper( $namespace, $plugin );
-
-    $this->namespace = $namespace;
-    $this->plugin    = $plugin;
-    $this->resource  = $api_helper->get_post_type_label( $post_type, 'name' );
-    $this->type      = $post_type;
+    $this->api_helper = new API();
+    $this->namespace  = $namespace;
+    $this->plugin     = $plugin;
+    $this->resource   = $this->api_helper->get_post_type_label( $post_type, 'name' );
+    $this->type       = $post_type;
   }
 
   /**
@@ -54,12 +54,12 @@ class REST_Controller extends WP_REST_Controller {
           'callback'            => array( $this, 'get_items' ),
           'args'                => array(
             'per_page' => array(
-              'validate_callback' => function ( $param, $request, $key ) {
+              'validate_callback' => function ( $param ) {
                 return is_numeric( $param );
               },
             ),
             'page'     => array(
-              'validate_callback' => function ( $param, $request, $key ) {
+              'validate_callback' => function ( $param ) {
                 return is_numeric( $param );
               },
             ),
@@ -79,7 +79,7 @@ class REST_Controller extends WP_REST_Controller {
           'callback'            => array( $this, 'get_item' ),
           'args'                => array(
             'id' => array(
-              'validate_callback' => function ( $param, $request, $key ) {
+              'validate_callback' => function ( $param ) {
                 return is_numeric( $param );
               },
             ),
@@ -153,8 +153,6 @@ class REST_Controller extends WP_REST_Controller {
    * @since 1.0.0
    */
   public function get_item( $request ) {
-    $api_helper = new \ES_Feeder\Admin\Helpers\API_Helper( $this->namespace, $this->plugin );
-
     $id       = (int) $request['id'];
     $response = array();
 
@@ -168,7 +166,7 @@ class REST_Controller extends WP_REST_Controller {
       $response = $this->prepare_item_for_response( $post, $request );
       $data     = $response->get_data();
 
-      $site_taxonomies = $api_helper->get_site_taxonomies( $post->ID );
+      $site_taxonomies = $this->api_helper->get_site_taxonomies( $post->ID );
 
       if ( count( $site_taxonomies ) ) {
         $data['site_taxonomies'] = $site_taxonomies;
@@ -235,7 +233,7 @@ class REST_Controller extends WP_REST_Controller {
    *
    * @param WP_Post                   $post       The WordPress post data for a given post.
    * @param WP_Error|WP_REST_Response $request    The data returned by the API request.
-   * @return array                                The normalized data.
+   * @return WP_Error|WP_REST_Response            The normalized data.
    *
    * @since 1.0.0
    */
@@ -252,7 +250,6 @@ class REST_Controller extends WP_REST_Controller {
    * @since 1.0.0
    */
   public function baseline( $post ) {
-    $api_helper      = new \ES_Feeder\Admin\Helpers\API_Helper( $this->namespace, $this->plugin );
     $language_helper = new \ES_Feeder\Admin\Helpers\Language_Helper( $this->namespace, $this->plugin );
 
     $post_data = array();
@@ -260,7 +257,7 @@ class REST_Controller extends WP_REST_Controller {
     // If the post is an attachment return right away.
     if ( 'attachment' === $post->post_type ) {
       $post_data         = wp_prepare_attachment_for_js( $post->ID );
-      $post_data['site'] = $api_helper->get_site();
+      $post_data['site'] = $this->api_helper->get_site();
 
       return rest_ensure_response( $post_data );
     }
@@ -271,8 +268,8 @@ class REST_Controller extends WP_REST_Controller {
     }
 
     $post_data['type']  = $this->type;
-    $post_data['site']  = $api_helper->get_site();
-    $post_data['owner'] = $api_helper->get_owner( $post->ID );
+    $post_data['site']  = $this->api_helper->get_site();
+    $post_data['owner'] = $this->api_helper->get_owner( $post->ID );
 
     if ( isset( $post->post_date ) ) {
       $post_data['published'] = get_the_date( 'c', $post->ID );
@@ -283,7 +280,7 @@ class REST_Controller extends WP_REST_Controller {
     }
 
     if ( isset( $post->post_author ) ) {
-      $post_data['author'] = $api_helper->get_author( $post->post_author );
+      $post_data['author'] = $this->api_helper->get_author( $post->post_author );
     }
 
     // Pre-approved.
@@ -300,14 +297,14 @@ class REST_Controller extends WP_REST_Controller {
     }
 
     if ( isset( $post->post_content ) ) {
-      $post_data['content'] = $api_helper->render_vc_shortcodes( $post );
+      $post_data['content'] = $this->api_helper->render_vc_shortcodes( $post );
     }
 
     if ( isset( $post->post_excerpt ) ) {
       $post_data['excerpt'] = $post->post_excerpt;
     }
 
-    $post_data['language'] = $api_helper->get_language( $post->ID );
+    $post_data['language'] = $this->api_helper->get_language( $post->ID );
 
     $post_translations      = $language_helper->get_translations( $post->ID );
     $post_data['languages'] = ! empty( $post_translations ) ? $post_translations : array();
@@ -320,7 +317,7 @@ class REST_Controller extends WP_REST_Controller {
       $post_data['categories'] = array();
     }
 
-    $post_data['thumbnail'] = $api_helper->get_image_metadata( get_post_thumbnail_id( $post->ID ) );
+    $post_data['thumbnail'] = $this->api_helper->get_image_metadata( get_post_thumbnail_id( $post->ID ) );
 
     if ( isset( $post->comment_count ) ) {
       $post_data['comment_count'] = (int) $post->comment_count;
@@ -355,8 +352,6 @@ class REST_Controller extends WP_REST_Controller {
    * @since 1.0.0
    */
   private function shouldIndex( $post ) {
-    $api_helper = new \ES_Feeder\Admin\Helpers\API_Helper( $this->namespace, $this->plugin );
-
-    return $api_helper->get_index_to_cdp( $post->ID );
+    return $this->api_helper->get_index_to_cdp( $post->ID );
   }
 }

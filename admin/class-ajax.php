@@ -153,8 +153,6 @@ class Ajax {
     $verification->lab_verify_nonce( $_POST['security'] );
     // phpcs:enable
 
-    global $wpdb;
-
     $post_helper = new Admin\Helpers\Post_Helper();
     $sync_helper = new Admin\Helpers\Sync_Helper();
 
@@ -374,7 +372,7 @@ class Ajax {
    */
   private function get_indexed_posts() {
     // Load helper functions.
-    $api_helper   = new Admin\Helpers\API_Helper( $this->namespace, $this->plugin );
+    $api_helper   = new Admin\Helpers\API_Helper();
     $post_actions = new Post_Actions( $this->namespace, $this->plugin );
 
     // Initialize the relevant variables.
@@ -445,13 +443,16 @@ class Ajax {
     $cache_key       = 'indexable_posts';
     $indexable_posts = wp_cache_get( $cache_key, 'gpalab_feeder' );
 
-    // Get the current sync status for all posts that
-    // are published and set to be indexed into the CDP.
+    /**
+     * Get the current sync status for all posts that
+     * are published and set to be indexed into the CDP.
+     *
+     * phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery
+     * phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+     * phpcs:disable WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+     */
     if ( false === $indexable_posts ) {
-      // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery
       $indexable_posts = $wpdb->get_results(
-        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-        // phpcs:disable WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
         $wpdb->prepare(
           "SELECT p.ID, p.post_modified, ms.meta_value as sync_status FROM $wpdb->posts p 
            LEFT JOIN (SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_status') ms ON p.ID = ms.post_id

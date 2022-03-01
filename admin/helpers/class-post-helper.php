@@ -80,7 +80,7 @@ class Post_Helper {
      */
   public function add_or_update( $post, $print = true, $callback_errors_only = false, $check_syncable = true ) {
     $post_actions = new \ES_Feeder\Post_Actions( $this->namespace, $this->plugin );
-    $api_helper   = new API_Helper( $this->namespace, $this->plugin );
+    $api_helper   = new API_Helper();
     $log_helper   = new Log_Helper();
     $sync_helper  = new Sync_Helper();
 
