@@ -320,6 +320,13 @@
             ?>
 
           </div> <!-- End .meta-box-sortables .ui-sortable -->
+          <div class="gpalab-feeder-settings-footer">
+            <span>
+              <?php
+              echo esc_html__( 'GPA Lab Elasticsearch Feeder Plugin | Version ', 'gpalab-feeder' ) . esc_html( $this->version );
+              ?>
+            </span>
+          </div>
         </div> <!-- End #post-body-content -->
       </div> <!-- End #post-body -->
       <br class="clear">

@@ -55,6 +55,12 @@
   margin: 0.5rem 0;
 }
 
+.gpalab-feeder-settings-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 /* Growl Notification */
 .gpalab-growl {
   background: #e33637;
