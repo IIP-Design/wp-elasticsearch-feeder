@@ -181,7 +181,7 @@ class Admin {
    * @since 3.0.0
    */
   private function localize_settings_script() {
-    $sync_helper = new Admin\Helpers\Sync_Helper( $this->plugin );
+    $sync_helper = new Admin\Helpers\Sync_Helper();
 
     // Initialize sync status array with fallback values.
     $sync = array(
@@ -342,7 +342,7 @@ class Admin {
    * @since 2.0.0
    */
   public function sync_errors_notice() {
-    $sync_helper = new Admin\Helpers\Sync_Helper( $this->plugin );
+    $sync_helper = new Admin\Helpers\Sync_Helper();
 
     // Only show the error message if the user is an admin and has not dismissed the message previously.
     if ( ! current_user_can( 'manage_options' ) || isset( $_COOKIE['cdp-feeder-notice-dismissed'] ) ) {
@@ -413,7 +413,7 @@ class Admin {
    * @since 2.0.0
    */
   public function populate_custom_column( $column_name, $post_id ) {
-    $sync_helper = new Admin\Helpers\Sync_Helper( $this->plugin );
+    $sync_helper = new Admin\Helpers\Sync_Helper();
 
     if ( 'cdp_sync_status' === $column_name ) {
       $status = get_post_meta( $post_id, '_cdp_sync_status', true );

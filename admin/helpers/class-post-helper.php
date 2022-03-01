@@ -38,7 +38,7 @@ class Post_Helper {
    */
   public function delete( $post ) {
     $post_actions = new \ES_Feeder\Post_Actions( $this->namespace, $this->plugin );
-    $sync_helper  = new Sync_Helper( $this->plugin );
+    $sync_helper  = new Sync_Helper();
 
     if ( ! $sync_helper->is_syncable( $post->ID ) ) {
       return;
@@ -85,7 +85,7 @@ class Post_Helper {
     $post_actions = new \ES_Feeder\Post_Actions( $this->namespace, $this->plugin );
     $api_helper   = new API_Helper( $this->namespace, $this->plugin );
     $log_helper   = new Log_Helper();
-    $sync_helper  = new Sync_Helper( $this->plugin );
+    $sync_helper  = new Sync_Helper();
 
     $statuses = $sync_helper->statuses;
 
@@ -254,7 +254,7 @@ class Post_Helper {
    */
   public function create_callback( $post_id = null ) {
     $log_helper  = new Log_Helper();
-    $sync_helper = new Sync_Helper( $this->plugin );
+    $sync_helper = new Sync_Helper();
 
     $statuses = $sync_helper->statuses;
 

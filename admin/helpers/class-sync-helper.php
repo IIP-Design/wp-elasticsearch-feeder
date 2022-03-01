@@ -21,12 +21,10 @@ class Sync_Helper {
   /**
    * Initializes the class with the plugin name and version.
    *
-   * @param string $plugin  The plugin name.
-   *
    * @since 3.0.0
    */
-  public function __construct( $plugin ) {
-    $this->plugin       = $plugin;
+  public function __construct() {
+    $this->plugin       = ES_FEEDER_NAME;
     $this->statuses     = array(
       'NOT_SYNCED'         => 0,
       'SYNCING'            => 1,

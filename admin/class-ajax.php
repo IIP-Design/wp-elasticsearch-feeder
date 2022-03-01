@@ -44,7 +44,7 @@ class Ajax {
    * @since 2.0.0
    */
   public function heartbeat( $response, $data ) {
-    $sync_helper = new Admin\Helpers\Sync_Helper( $this->plugin );
+    $sync_helper = new Admin\Helpers\Sync_Helper();
 
     if ( ! empty( $data['gpalab_feeder_post_id'] ) ) {
       $post_id      = $data['gpalab_feeder_post_id'];
@@ -84,7 +84,7 @@ class Ajax {
     // phpcs:enable
 
     // Load the sync status helper.
-    $sync_helper = new Admin\Helpers\Sync_Helper( $this->plugin );
+    $sync_helper = new Admin\Helpers\Sync_Helper();
 
     if ( $sync_errors ) {
       $errors   = $sync_helper->check_sync_errors();
@@ -158,7 +158,7 @@ class Ajax {
     global $wpdb;
 
     $post_helper = new Admin\Helpers\Post_Helper( $this->namespace, $this->plugin );
-    $sync_helper = new Admin\Helpers\Sync_Helper( $this->plugin );
+    $sync_helper = new Admin\Helpers\Sync_Helper();
 
     // Load the sync status helper.
     $statuses   = $sync_helper->statuses;
@@ -294,7 +294,7 @@ class Ajax {
     set_time_limit( 600 );
 
     // Load the sync status helper.
-    $sync_helper = new Admin\Helpers\Sync_Helper( $this->plugin );
+    $sync_helper = new Admin\Helpers\Sync_Helper();
     $statuses    = $sync_helper->statuses;
 
     // Initialize the relevant variables.

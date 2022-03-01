@@ -21,14 +21,12 @@ class API {
    *
    * @param string $namespace   The namespace to use for the API endpoint.
    * @param string $plugin      The plugin name.
-   * @param string $version    The plugin version number.
    *
    * @since 3.0.0
    */
-  public function __construct( $namespace, $plugin, $version ) {
+  public function __construct( $namespace, $plugin ) {
     $this->namespace = $namespace;
     $this->plugin    = $plugin;
-    $this->version   = $version;
   }
 
   /**

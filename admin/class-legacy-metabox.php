@@ -109,7 +109,7 @@ class Legacy_Metabox {
    * @since 1.0.0
    */
   public function index_item_toggle( $post ) {
-    $sync_helper = new Admin\Helpers\Sync_Helper( $this->plugin ); // Do not remove, used in the partial below.
+    $sync_helper = new Admin\Helpers\Sync_Helper(); // Do not remove, used in the partial below.
 
     $sync_status = get_post_meta( $post->ID, '_cdp_sync_status', true );
     $value       = get_post_meta( $post->ID, '_iip_index_post_to_cdp_option', true ); // Do not remove, used in the partial below.

@@ -12,7 +12,7 @@
 
   $api_helper  = new ES_Feeder\Admin\Helpers\API_Helper( $this->namespace, $this->plugin );
   $log_helper  = new ES_Feeder\Admin\Helpers\Log_Helper();
-  $sync_helper = new ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
+  $sync_helper = new ES_Feeder\Admin\Helpers\Sync_Helper();
 ?>
 
 <div class="wrap wp_es_settings">

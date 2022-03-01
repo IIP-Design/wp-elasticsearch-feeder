@@ -171,7 +171,7 @@ class Post_Actions {
     $language_helper = new Admin\Helpers\Language_Helper( $this->namespace, $this->plugin );
     $log_helper      = new Admin\Helpers\Log_Helper();
     $post_helper     = new Admin\Helpers\Post_Helper( $this->namespace, $this->plugin );
-    $sync_helper     = new Admin\Helpers\Sync_Helper( $this->plugin );
+    $sync_helper     = new Admin\Helpers\Sync_Helper();
 
     $statuses = $sync_helper->statuses;
 

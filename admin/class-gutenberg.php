@@ -168,7 +168,7 @@ class Gutenberg {
   private function get_status() {
     global $post;
 
-    $sync_helper = new Admin\Helpers\Sync_Helper( $this->plugin );
+    $sync_helper = new Admin\Helpers\Sync_Helper();
 
     $sync_status = get_post_meta( $post->ID, '_cdp_sync_status', true );
     $status      = ! empty( $sync_status ) ? $sync_status : 'Never synced';
