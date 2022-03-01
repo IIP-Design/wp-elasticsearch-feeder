@@ -47,22 +47,12 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
     /**
      * The URL for the Elasticsearch proxy API.
      *
-     * @var string $proxy
+     * @var string $proxy_url
      *
      * @access protected
      * @since 1.0.0
      */
-    public $proxy;
-
-    /**
-     * A prefix to add to error log entries.
-     *
-     * @var string $error
-     *
-     * @access protected
-     * @since 1.0.0
-     */
-    public $error;
+    public $proxy_url;
 
     /**
      * Define the methods called whenever this class is initialized.
@@ -74,11 +64,10 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
      * @since 1.0.0
      */
     public function __construct() {
-      $this->namespace   = 'gpalab-cdp/v1';
-      $this->plugin_name = 'wp-es-feeder';
-      $this->version     = '2.5.0';
-      $this->proxy       = get_option( $this->plugin_name )['es_url'];
-      $this->error       = '[WP_ES_FEEDER] [:LOG] ';
+      $this->namespace   = ES_FEEDER_API_NAMESPACE;
+      $this->plugin_name = ES_FEEDER_NAME;
+      $this->version     = ES_FEEDER_VERSION;
+      $this->proxy_url   = get_option( $this->plugin_name )['es_url'];
       $this->load_dependencies();
       $this->define_admin_hooks();
     }
@@ -221,7 +210,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
      * @since 1.0.0
      */
     public function get_proxy() {
-      return $this->proxy;
+      return $this->proxy_url;
     }
 
     /**

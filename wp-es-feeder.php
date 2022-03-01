@@ -19,8 +19,25 @@ if ( ! defined( 'WPINC' ) ) {
 }
 
 // Define constants.
-define( 'ES_FEEDER_DIR', plugin_dir_path( dirname( __FILE__ ) ) . 'wp-elasticsearch-feeder/' );
-define( 'ES_FEEDER_URL', plugin_dir_url( dirname( __FILE__ ) ) . 'wp-elasticsearch-feeder/' );
+if ( ! defined( 'ES_FEEDER_DIR' ) ) {
+  define( 'ES_FEEDER_DIR', plugin_dir_path( dirname( __FILE__ ) ) . 'wp-elasticsearch-feeder/' );
+}
+
+if ( ! defined( 'ES_FEEDER_URL' ) ) {
+  define( 'ES_FEEDER_URL', plugin_dir_url( dirname( __FILE__ ) ) . 'wp-elasticsearch-feeder/' );
+}
+
+if ( ! defined( 'ES_FEEDER_NAME' ) ) {
+  define( 'ES_FEEDER_NAME', 'wp-es-feeder' );
+}
+
+if ( ! defined( 'ES_FEEDER_VERSION' ) ) {
+  define( 'ES_FEEDER_VERSION', '2.5.0' );
+}
+
+if ( ! defined( 'ES_FEEDER_API_NAMESPACE' ) ) {
+  define( 'ES_FEEDER_API_NAMESPACE', 'gpalab-cdp/v1' );
+}
 
 /**
  * Autoload plugin's class to make them available without require statements.
