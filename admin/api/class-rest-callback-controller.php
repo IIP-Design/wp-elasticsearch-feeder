@@ -10,7 +10,9 @@
 namespace ES_Feeder\Admin\API;
 
 use WP_REST_Controller;
-
+use ES_Feeder\Admin\Helpers\Log_Helper as Logger;
+use ES_Feeder\Admin\Helpers\Post_Helper as Poster;
+use ES_Feeder\Admin\Helpers\Sync_Helper as Sync;
 /**
  * Handles the callback from the ES API when the sync of a post completes or fails.
  *
@@ -31,6 +33,9 @@ class REST_Callback_Controller extends WP_REST_Controller {
   public function __construct( $namespace, $plugin ) {
     $this->namespace = $namespace;
     $this->plugin    = $plugin;
+    $this->logger    = new Logger();
+    $this->poster    = new Poster();
+    $this->sync      = new Sync();
   }
 
   /**
@@ -48,8 +53,9 @@ class REST_Callback_Controller extends WP_REST_Controller {
           'callback'            => array( $this, 'process_response' ),
           'args'                => array(
             'uid' => array(
-              'validate_callback' => function ( $param, $request, $key ) {
-                return true;
+              'required'          => true,
+              'validate_callback' => function ( $param ) {
+                return 'string' === gettype( $param );
               },
             ),
           ),
@@ -68,136 +74,180 @@ class REST_Callback_Controller extends WP_REST_Controller {
    * @since 2.0.0
    */
   public function process_response( $request ) {
-    global $wpdb;
+    $params = $request->get_params();
 
-    $logger      = new \ES_Feeder\Admin\Helpers\Log_Helper();
-    $post_helper = new \ES_Feeder\Admin\Helpers\Post_Helper( $this->namespace, $this->plugin );
-    $sync_helper = new \ES_Feeder\Admin\Helpers\Sync_Helper( $this->plugin );
-    $statuses    = $sync_helper->statuses;
+    $uid = $params['uid'];
+    $id  = null;
 
-    $data = $request->get_json_params();
-
-    if ( ! $data ) {
-      $data = $request->get_body_params();
+    // Retrieve the post id from the Elasticsearch document in the API response.
+    // TODO: Unsure why the second and third checks are necessary.
+    if ( array_key_exists( 'doc', $params ) ) {
+      $id = $params['doc']['post_id'];
+    } elseif ( array_key_exists( 'request', $params ) && array_key_exists( 'post_id', $params['request'] ) ) {
+      $id = $params['request']['post_id'];
+    } elseif ( array_key_exists( 'params', $params ) && array_key_exists( 'post_id', $params['params'] ) ) {
+      $id = $params['params']['post_id'];
     }
 
-    $uid     = $request->get_param( 'uid' );
-    $post_id = null;
+    if ( null === $id ) {
+      $this->logger->log( 'CDP Sync Error - No id provided in the request for sync id' . $uid );
 
-    if ( array_key_exists( 'doc', $data ) ) {
-      $post_id = $data['doc']['post_id'];
-    } elseif ( array_key_exists( 'request', $data ) && array_key_exists( 'post_id', $data['request'] ) ) {
-      $post_id = $data['request']['post_id'];
-    } elseif ( array_key_exists( 'params', $data ) && array_key_exists( 'post_id', $data['params'] ) ) {
-      $post_id = $data['params']['post_id'];
+      exit;
     }
 
-    $sync_status = get_post_meta( $post_id, '_cdp_sync_status', true );
+    $sync_status  = get_post_meta( $id, '_cdp_sync_status', true );
+    $sync_decoded = $this->sync->get_status_code_data( $sync_status );
+    $post_type    = get_post_type( $id );
 
-    if ( $logger->log_all ) {
-      $logger->log( "INCOMING CALLBACK FOR UID: $uid, post_id: $post_id, sync_status: $sync_status\r\n" . print_r( $data, 1 ) . "\r\n", 'callback.log' );
-      $logger->log( "Callback received with sync_status: $sync_status for: $post_id, uid: $uid", 'feeder.log' );
+    $this->logger->log(
+      "Callback with the unique id $uid received from the CDP API for $post_type with id $id. Current sync status: " . $sync_decoded['title']
+    );
+
+    // Abort early if the provided unique id does not match that saved for the post.
+    if ( get_post_meta( $id, '_cdp_sync_uid', true ) !== $uid ) {
+      $this->logger->log( "The provided UID ($uid) did not match the stored sync id for $post_type #$id." );
+
+      exit;
     }
 
-    if ( $post_id == $wpdb->get_var( "SELECT post_id FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_uid' AND meta_value = '" . $wpdb->_real_escape( $uid ) . "'" ) ) {
-      if ( ! $data['error'] ) {
-        if ( $logger->log_all ) {
-          $logger->log( "No error found for $post_id, sync_uid: $uid", 'feeder.log' );
-        }
-        if ( $statuses['SYNC_WHILE_SYNCING'] === $sync_status ) {
+    // Handle error cases.
+    if ( $params['error'] ) {
+      $this->handle_errors( $id, $params );
 
-          $count   = get_post_meta( $post_id, '_cdp_resync_count', true );
-          $resyncs = ! empty( $count ) ? $count : 0;
+      exit;
+    }
 
-          update_post_meta( $post_id, '_cdp_sync_status', $statuses['RESYNC'] );
-          if ( $resyncs < 3 ) {
-            $resyncs++;
-            $logger->log( "Resyncing post: $post_id, resync #$resyncs", 'callback.log' );
-            update_post_meta( $post_id, '_cdp_resync_count', $resyncs );
-            $post = get_post( $post_id );
-            if ( 'publish' === $post->post_status ) {
-              $post_helper->post_sync_send( $post, false );
-            } else {
-              $post_helper->delete( $post );
-            }
-          }
-        } else {
-          update_post_meta( $post_id, '_cdp_sync_status', $statuses['SYNCED'] );
-          delete_post_meta( $post_id, '_cdp_resync_count' );
-        }
-      } elseif ( stripos( $data['message'], 'Document not found' ) === 0 ) {
-        $post_status = $wpdb->get_var(
-          $wpdb->prepare(
-            "SELECT post_status FROM $wpdb->posts WHERE ID = %d",
-            $post_id
-          )
-        );
+    // Log that there are no errors.
+    $this->logger->log( "The sync id ($uid) matches $post_type #$id, proceeding with update." );
 
-        $index     = get_post_meta( $post_id, '_iip_index_post_to_cdp_option', true );
-        $index_cdp = ! empty( $index ) ? $index : 'yes';
-
-        if ( 'publish' === $post_status && 'no' !== $index_cdp ) {
-
-          $count   = get_post_meta( $post_id, '_cdp_resync_count', true );
-          $resyncs = ! empty( $count ) ? $count : 0;
-
-          update_post_meta( $post_id, '_cdp_sync_status', $statuses['RESYNC'] );
-
-          if ( $resyncs < 3 ) {
-            $resyncs++;
-            $logger->log( "Resyncing post: $post_id, resync #$resyncs", 'callback.log' );
-            update_post_meta( $post_id, '_cdp_resync_count', $resyncs );
-            $post = get_post( $post_id );
-            $post_helper->post_sync_send( $post, false );
-          } else {
-            update_post_meta( $post_id, '_cdp_sync_status', $statuses['ERROR'] );
-            delete_post_meta( $post_id, '_cdp_resync_count' );
-          }
-        } elseif ( 'publish' !== $post_status || 'no' === $index_cdp ) {
-          update_post_meta( $post_id, '_cdp_sync_status', $statuses['NOT_SYNCED'] );
-          delete_post_meta( $post_id, '_cdp_resync_count' );
-        } else {
-          update_post_meta( $post_id, '_cdp_sync_status', $statuses['ERROR'] );
-          delete_post_meta( $post_id, '_cdp_resync_count' );
-        }
-      } else {
-        $log = null;
-        if ( $data['message'] ) {
-          $log = "Incoming Callback: $uid - ID: $post_id - ";
-          if ( $data['error'] ) {
-            $log .= 'Error: ' . $data['message'];
-          } else {
-            $log .= 'Message: ' . $data['message'];
-          }
-        } elseif ( ! array_key_exists( 'request', $data ) ) {
-          $log = array(
-            'type'        => 'Incoming Callback',
-            'uid'         => $uid,
-            'post_id'     => $post_id,
-            'sync_status' => $sync_status,
-          );
-          $log = array_merge( $log, $data );
-        }
-        $logger->log( $log, 'callback.log' );
-        update_post_meta( $post_id, '_cdp_sync_status', $statuses['ERROR'] );
-        delete_post_meta( $post_id, '_cdp_resync_count' );
-      }
-
-      $wpdb->delete(
-        $wpdb->postmeta,
-        array(
-          'meta_key'   => '_cdp_sync_uid',
-          'meta_value' => $uid,
-        )
-      );
-
-      if ( $logger->log_all ) {
-        $logger->log( "Sync UID ($uid) deleted for: $post_id", 'feeder.log' );
-      }
+    // Initiate the sync/resync.
+    if ( $this->sync->statuses['SYNC_WHILE_SYNCING'] === $sync_status ) {
+      $this->resync_post( $id );
     } else {
-      $logger->log( "UID ($uid) did not match post_id: $post_id\r\n\r\n", 'callback.log' );
+      $this->set_status( $id, 'SYNCED' );
     }
+
+    $this->logger->log( "Sync of $post_type #$id successful, deleting sync id ($uid)." );
+
+    // Clear the sync id record.
+    delete_post_meta( $id, '_cdp_sync_uid' );
 
     return array( 'status' => 'ok' );
+  }
+
+  /**
+   * Logs any syncing errors.
+   *
+   * @param int   $id        A given post id.
+   * @param array $params    The parameters passed in the CDP API response.
+   * @return void
+   *
+   * @since 3.0.0
+   */
+  private function handle_errors( $id, $params ) {
+    // General error if no error message received.
+    if ( ! $params['message'] ) {
+      $this->log_sync_error( 'Unspecified error.' );
+
+      exit;
+    }
+
+    // Handle the case in which the post is not found in the CDP API.
+    if ( stripos( $params['message'], 'Document not found' ) === 0 ) {
+      $this->log_sync_error( 'Elasticsearch document not found in the CDP API.' );
+
+      $post_status  = get_post_status( $id );
+      $is_indexable = get_post_meta( $id, '_iip_index_post_to_cdp_option', true );
+      $index_to_cdp = ! empty( $is_indexable ) ? $is_indexable : 'yes';
+
+      if ( 'no' === $index_to_cdp ) {
+        // If the post not meant to be index set the status to not synced.
+        $this->set_status( $id, 'NOT_SYNCED' );
+      } elseif ( 'publish' === $post_status ) {
+        // If post indexable and published attempt resync.
+        $count = $this->resync_post( $id );
+
+        // Set sync status to error if the maximum of
+        // three resync attempts is exceeded.
+        if ( 3 === $count ) {
+          $this->set_status( $id, 'ERROR' );
+        }
+      } else {
+        // If the post is not published on the WordPress site, set sync status to error.
+        $this->set_status( $id, 'ERROR' );
+      }
+    } else {
+      // Handle the case in which the post is not found in the CDP API.
+      $this->log_sync_error( $params['message'] );
+      $this->set_status( $id, 'ERROR' );
+    }
+  }
+
+  /**
+   * Start all error messages with the same prefix.
+   *
+   * @param string $msg The message to be prefixed with a standard error message.
+   * @return void
+   *
+   * @since 3.0.0
+   */
+  private function log_sync_error( $msg ) {
+    $prefix = 'CDP Sync Error - ';
+
+    $this->logger->log( $prefix . $msg );
+  }
+
+  /**
+   * Attempt to resync the post.
+   *
+   * @param int $id     A given post id.
+   * @return int        The number of resync attempts.
+   *
+   * @since 3.0.0
+   */
+  private function resync_post( $id ) {
+    // Check for previous resync attempts.
+    $stored_count = get_post_meta( $id, '_cdp_resync_count', true );
+    $resync_count = ! empty( $stored_count ) ? $stored_count : 0;
+
+    $this->set_status( $id, 'RESYNC', false );
+
+    // Only attempt resync if there were 3 or fewer previous attempts.
+    if ( $resync_count < 3 ) {
+      // Increment the number of resync attempts.
+      $resync_count++;
+
+      $post = get_post( $id );
+
+      $this->logger->log( "Attempting to re-syncing $post->post_type #$id, resync attempt #$resync_count." );
+
+      update_post_meta( $id, '_cdp_resync_count', $resync_count );
+
+      if ( 'publish' === $post->post_status ) {
+        $this->poster->post_sync_send( $post, false );
+      } else {
+        $this->poster->delete( $post );
+      }
+    }
+
+    return $resync_count;
+  }
+
+  /**
+   * Updates the sync status for a given post.
+   *
+   * @param int    $id           A given post id.
+   * @param string $status       The CDP sync status that the post should be set to.
+   * @param bool   $clear_count  Whether or not to clear the resync counter.
+   * @return void
+   *
+   * @since 3.0.0
+   */
+  private function set_status( $id, $status, $clear_count = true ) {
+    update_post_meta( $id, '_cdp_sync_status', $this->sync->statuses[ $status ] );
+
+    if ( $clear_count ) {
+      delete_post_meta( $id, '_cdp_resync_count' );
+    }
   }
 }
