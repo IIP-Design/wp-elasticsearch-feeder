@@ -3,12 +3,14 @@ import { i18nize } from './i18n';
 /**
  * Write response data to the output box.
  *
- * @param {Object} data The response data.
+ * @param {string|Object} data The response data.
  */
 export const addToElement = ( data, id ) => {
   const outputEl = document.getElementById( id );
 
-  outputEl.textContent = data ? JSON.stringify( data, null, 2 ) : '';
+  const val = typeof data === 'string' ? data : JSON.stringify( data, null, 2 );
+
+  outputEl.textContent = val || '';
 };
 
 /**
