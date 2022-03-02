@@ -274,78 +274,68 @@ class Post_Actions {
   }
 
   /**
-   * Send an indexing request.
+   * Send an indexing request to the CDP API.
    *
-   * @param array   $request                Options to be used when sending the AJAX request.
-   * @param string  $callback               The callback url for failed requests.
-   * @param boolean $callback_errors_only   Whether to only use callback for errors(?).
-   * @param boolean $is_internal            Whether or not the origin is an AJAX request.
+   * @param array   $request        Options to be used when sending the CDP API request.
+   * @param string  $callback       The destination for CDP API request responses.
+   * @param boolean $errors_only    Whether to only use callback for errors.
+   * @param boolean $is_internal    Whether the origin is a WP AJAX (as opposed to direct) request.
    *
    * @since 1.0.0
    */
-  public function request( $request, $callback = null, $callback_errors_only = false, $is_internal = true ) {
+  public function request( $request, $callback = null, $errors_only = false, $is_internal = true ) {
     $log_helper = new Admin\Helpers\Log_Helper();
 
-    // Get the plugin configurations.
-    $config = get_option( $this->plugin );
-
     // Initialize response.
-    $error   = null;
-    $results = null;
-
-    // Set headers.
-    $headers                    = array();
-    $headers['callback_errors'] = $callback_errors_only ? 1 : 0;
-
-    if ( $callback ) {
-      $headers['callback'] = $callback;
-    }
-
-    if ( ! empty( $config['es_token'] ) ) {
-      $headers['Authorization'] = 'Bearer ' . $config['es_token'];
-    }
+    $error    = null;
+    $response = null;
 
     // Set request headers.
-    $opts = array(
-      'timeout'     => 30,
-      'http_errors' => false,
+    $headers = $this->set_request_headers( $callback, $errors_only );
+
+    // Initialize the Guzzle client, which is used to
+    // send HTTP requests, with the relevant headers.
+    $client = new GuzzleHttp\Client(
+      array(
+        'timeout'     => 30,
+        'http_errors' => false,
+      )
     );
 
-    if ( $is_internal ) {
-      $opts['base_uri'] = trim( $config['es_url'], '/' ) . '/';
-    }
+    // Get the target request URL.
+    $endpoint = $this->set_request_endpoint( $is_internal, $request['url'] );
 
-    // Initialize the Guzzle client, which is used to send HTTP requests.
-    $client = new GuzzleHttp\Client( $opts );
-
-    $log_helper->log( 'Sending ' . $request['method'] . ' request to the ' . $request['url'] . ' endpoint' );
+    $log_helper->log( 'Sending ' . $request['method'] . ' request to the endpoint: ' . $endpoint );
 
     try {
-      // If a body is provided.
-      if ( isset( $request['body'] ) ) {
-        // Unwrap the post data from ajax call.
-        if ( ! $is_internal ) {
-          $body = urldecode( base64_decode( $request['body'] ) );
-        } else {
-          $body                    = wp_json_encode( $request['body'] );
+      // Initialize request options.
+      $options = array();
+
+      // Set the body in the request options if required.
+      $body = $this->set_request_body( $request, $is_internal );
+
+      if ( null !== $body ) {
+        $options['body'] = $body;
+
+        // Non-direct API requests require an additional header.
+        if ( $is_internal ) {
           $headers['Content-Type'] = 'application/json';
         }
-
-        $body = $this->map_domain( $body );
-
-        $response = $client->request(
-          $request['method'],
-          $request['url'],
-          array(
-            'body'    => $body,
-            'headers' => $headers,
-          )
-        );
-      } else {
-        $response = $client->request( $request['method'], $request['url'], array( 'headers' => $headers ) );
       }
 
-      $response = $response->getBody()->getContents();
+      // Set the headers in the request options.
+      $options['headers'] = $headers;
+
+      // Send the HTTP request to the CDP API.
+      $res = $client->request( $request['method'], $endpoint, $options );
+
+      // Log the response.
+      $log_helper->log(
+        $callback . ' Received response: "' . $res->getStatusCode() . ' - ' . $res->getReasonPhrase() . '" from ' . $endpoint
+      );
+
+      // Parse the API response.
+      $response = $res->getBody()->getContents();
 
     } catch ( GuzzleHttp\Exception\ConnectException $e ) {
       $error = $e->getMessage();
@@ -355,37 +345,146 @@ class Post_Actions {
       $error = $e->getMessage();
     }
 
+    // Determine whether or not to send the response as JSON.
+    $no_print     = isset( $request['print'] ) && ! $request['print'];
+    $no_send_json = $is_internal || $no_print;
+
+    // Handle errors and various expected response types.
     if ( null !== $error ) {
       $log_helper->log( $error );
 
-      if ( $is_internal || ( isset( $request['print'] ) && ! $request['print'] ) ) {
-        return (object) array(
-          'error'   => 1,
-          'message' => $error,
-        );
-      } else {
-        wp_send_json(
-          array(
-            'error'   => 1,
-            'message' => $error,
-          )
-        );
-
-        return null;
-      }
-    } elseif ( $is_internal || ( isset( $request['print'] ) && ! $request['print'] ) ) {
-      return json_decode( $response );
+      return $this->handle_request_errors( $error, $no_send_json );
     } else {
-      wp_send_json( json_decode( $response ) );
+      return $this->handle_request_response( $response, $no_send_json );
+    }
+  }
 
+  /**
+   * Handle errors received from the API depending on the request configuration.
+   *
+   * @param string  $error          The error that was encountered.
+   * @param boolean $no_send_json   Whether or not to send a JSON response.
+   * @return object|null            The response object to be passed on if required.
+   *
+   * @since 3.0.0
+   */
+  private function handle_request_errors( $error, $no_send_json ) {
+    $response = null;
+    $message  = array(
+      'error'   => 1,
+      'message' => $error,
+    );
+
+    if ( $no_send_json ) {
+      $response = (object) $message;
+    } else {
+      wp_send_json( $message );
+    }
+
+    return $response;
+  }
+
+  /**
+   * Handle errors received from the API depending on the request configuration.
+   *
+   * @param string  $res            The response received from the CDP API.
+   * @param boolean $no_send_json   Whether or not to send a JSON response.
+   * @return object|null            The response object to be passed on if required.
+   *
+   * @since 3.0.0
+   */
+  private function handle_request_response( $res, $no_send_json ) {
+    $response = null;
+
+    if ( $no_send_json ) {
+      $response = json_decode( $res );
+    } else {
+      wp_send_json( json_decode( $res ) );
+    }
+
+    return $response;
+  }
+
+  /**
+   * Set the appropriate headers depending on the request options.
+   *
+   * @param string  $callback        The destination for CDP API request responses.
+   * @param boolean $errors_only     Whether to only use callback for errors.
+   * @return array
+   *
+   * @since 3.0.0
+   */
+  private function set_request_headers( $callback, $errors_only ) {
+    // Get the plugin configurations.
+    $config = get_option( $this->plugin );
+
+    $headers = array();
+
+    $headers['callback_errors'] = $errors_only ? 1 : 0;
+
+    if ( $callback ) {
+      $headers['callback'] = $callback;
+    }
+
+    if ( ! empty( $config['es_token'] ) ) {
+      $headers['Authorization'] = 'Bearer ' . $config['es_token'];
+    }
+
+    return $headers;
+  }
+
+  /**
+   * Generate the full endpoint URL.
+   *
+   * @param boolean $is_internal    Whether the origin is a WP AJAX (as opposed to direct) request.
+   * @param string  $url            The endpoint provided in the request.
+   * @return string                 The final target URL for the request.
+   *
+   * @since 3.0.0
+   */
+  private function set_request_endpoint( $is_internal, $url ) {
+    // Get the plugin configurations.
+    $config = get_option( $this->plugin );
+
+    // Get the base URL from the value stored in the plugin configuration.
+    $base_uri = trim( $config['es_url'], '/' ) . '/';
+
+    $endpoint = $is_internal ? $base_uri . $url : $url;
+
+    return $endpoint;
+  }
+
+  /**
+   * Convert the received body into a format usable by the CDP API.
+   *
+   * @param array   $request        Options to be used when sending the CDP API request.
+   * @param boolean $is_internal    Whether the origin is a WP AJAX (as opposed to direct) request.
+   * @return null|string            The body to be used in the CDP API request.
+   *
+   * @since 3.0.0
+   */
+  private function set_request_body( $request, $is_internal ) {
+    // Short circuit if the request has no body.
+    if ( ! isset( $request['body'] ) ) {
       return null;
     }
+
+    // Unwrap the post data from ajax call.
+    if ( ! $is_internal ) {
+      $body = urldecode( base64_decode( $request['body'] ) );
+    } else {
+      $body = wp_json_encode( $request['body'] );
+    }
+
+    // Ensure that site URLs are set correctly in the body.
+    return $this->map_domain( $body );
   }
 
   /**
    * Check if the domain is properly set when domain mapping is in use.
    *
    * @param string $body   A stringified Ajax request body.
+   * @return string        The provided body with domains updated.
    *
    * @since 2.0.0
    */
