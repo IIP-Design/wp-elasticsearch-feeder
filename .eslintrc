@@ -17,5 +17,10 @@
         ]
       }
     ]
+  },
+  "settings": {
+    "import/core-modules": [
+      "react"
+    ]
   }
 }
