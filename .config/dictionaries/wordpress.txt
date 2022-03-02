@@ -3,5 +3,6 @@ bloginfo
 metaboxes
 pagenow
 postmeta
+poststuff
 unslash
 wpdb

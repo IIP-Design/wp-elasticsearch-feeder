@@ -231,7 +231,7 @@ class Admin {
    *
    * @since 3.0.0
    */
-  public function register_metakeys() {
+  public function register_meta_keys() {
     $options   = get_option( $this->plugin );
     $indexable = ! empty( $options['es_post_types'] ) ? $options['es_post_types'] : array();
 
