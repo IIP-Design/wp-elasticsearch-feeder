@@ -398,7 +398,7 @@ class Admin {
     $post_helper = new Admin\Helpers\Post_Helper();
 
     if ( in_array( get_post_type(), $post_helper->get_allowed_post_types(), true ) ) {
-      $defaults['cdp_sync_status'] = __( 'Publish Status', 'gpalab-feeder' );
+      $defaults['cdp_sync_status'] = __( 'Commons Status', 'gpalab-feeder' );
     }
 
     return $defaults;

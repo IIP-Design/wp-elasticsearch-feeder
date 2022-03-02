@@ -347,7 +347,7 @@ class Sync_Helper {
           break;
       case $this->statuses['RESYNC']:
         $color = 'orange';
-        $title = 'Validation Required';
+        $title = 'Status Undetermined';
           break;
       case $this->statuses['ERROR']:
         $color = 'red';
