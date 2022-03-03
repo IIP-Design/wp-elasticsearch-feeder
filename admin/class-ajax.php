@@ -199,7 +199,7 @@ class Ajax {
         update_post_meta( $id, '_cdp_last_sync', gmdate( 'Y-m-d H:i:s' ) );
 
         $post = get_post( $id );
-        $resp = $post_helper->add_or_update( $post, false, true, false );
+        $resp = $post_helper->add_or_update( $post, false, false, false );
 
         if ( ! $resp ) {
           $results[] = array(
