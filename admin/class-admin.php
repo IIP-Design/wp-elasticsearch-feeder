@@ -405,7 +405,7 @@ class Admin {
     // If there are errors, add the notification.
     if ( $errors['errors'] ) {
       $plural = ( 1 !== $errors['errors'] ? 's' : '' );?>
-      <div class="notice notice-error feeder-notice is-dismissible">
+      <div class="notice notice-error feeder-notice is-dismissible" id="gpalab-feeder-notice">
         <p><?php echo wp_kses( $message, 'post' ); ?></p>
       </div>
       <script type="text/javascript">

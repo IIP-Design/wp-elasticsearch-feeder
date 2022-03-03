@@ -32,21 +32,6 @@ import { ready } from './utils/document-ready';
 //       sync.paused = true;
 //     }
 //   }
-
-//   /**
-//    * Update the progress bar and state UI using the local sync variable.
-//    */
-//   function updateProgress() {
-//     $( '.index-spinner .count' ).html( `${sync.complete} / ${sync.total}` );
-//     $( '#progress-bar span' ).animate( { width: `${( sync.complete / sync.total ) * 100}%` } );
-//     $( '.current-post' ).html(
-//       sync.post
-//         ? `Indexing post: ${
-//           sync.post.title ? sync.post.title : `${sync.post.type} post #${sync.post.post_id}`
-//         }`
-//         : '',
-//     );
-//   }
 // } )( jQuery );
 
 /**

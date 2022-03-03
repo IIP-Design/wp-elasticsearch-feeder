@@ -104,6 +104,8 @@ class Language_Helper {
       }
     }
 
+    unset( $lang );
+
     if ( $locale_match ) {
       return $locale_match;
     }
@@ -173,6 +175,8 @@ class Language_Helper {
           foreach ( $data as $lang ) {
             $languages[ $lang->locale ] = $lang;
           }
+
+          unset( $lang );
         }
       }
     }
@@ -257,6 +261,8 @@ class Language_Helper {
         'language' => $lang,
       );
     }
+
+    unset( $result );
 
     return $translations;
   }

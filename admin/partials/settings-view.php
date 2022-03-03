@@ -291,12 +291,13 @@
               <div class="inside gpalab-index-spinner" id="index-spinner">
                 <div class="spinner is-active gpalab-spinner-animation">
                   <span id="index-spinner-text">Validating...</span>
+                  <span id="index-spinner-count"></span>
                 </div>
               </div>
 
               <div class="inside progress-wrapper">
                 <div class="gpalab-progress-bar" id="progress-bar">
-                  <span></span>
+                  <span id="progress-bar-span"></span>
                 </div>
               </div>
 

@@ -1,7 +1,8 @@
-import { addToElement, disableManageButtons, emptyElement } from '../utils/manipulate-dom';
-import { clearProgress, showProgress, showSpinner } from '../utils/progress-bar';
+import { addToElement, clearErrorNotice, disableManageButtons, emptyElement, prependToElement } from '../utils/manipulate-dom';
+import { clearProgress, showProgress, showSpinner, updateProgress } from '../utils/progress-bar';
 import { i18nize } from '../utils/i18n';
 import { getNonce, sendAdminAjax, sendAdminAjaxWithTimeout } from './helpers';
+import { reloadLog } from './log';
 
 const OUTPUT_ID = 'gpalab-feeder-output';
 
@@ -18,6 +19,8 @@ const reset = () => {
  * and relay the results to the result handler function.
  */
 const processQueue = async sync => {
+  showSpinner( true, 'Processing... Leaving this page will pause the resync.' );
+
   // Abort if the sync process is paused.
   if ( sync.paused ) {
     return;
@@ -30,7 +33,7 @@ const processQueue = async sync => {
   formData.append( 'security', getNonce() );
 
   const onSuccess = result => {
-    console.log( 'processQueue: ', result );
+    updateProgress( sync );
 
     handleQueueResult( sync, result ); // eslint-disable-line no-use-before-define
   };
@@ -50,40 +53,49 @@ const processQueue = async sync => {
  * @param result
  */
 const handleQueueResult = ( sync, result ) => {
-  console.log( 'handleQueueResult: ', result );
-  if ( result.error || result.done ) {
-    clearProgress( sync );
+  const { complete, done, error, message, response, results, total } = result;
 
-    if ( result.error && result.message ) {
-      addToElement( result.message, OUTPUT_ID );
+  // Log the return from the API.
+  if ( results ) {
+    const msg = results.length > 0 ? JSON.stringify( results, null, 2 ) : 'No errors.';
+
+    // Display error message in results output.
+    addToElement( msg, OUTPUT_ID );
+  } else if ( response ) {
+    const msg = JSON.stringify( response, null, 2 );
+
+    prependToElement( msg, OUTPUT_ID );
+  }
+
+  // End loop if done or in error.
+  if ( error || done ) {
+    if ( message ) {
+      addToElement( message, OUTPUT_ID );
+      reloadLog();
     }
-    // reloadLog();
-  } else {
-    sync.complete = result.complete;
-    sync.total = result.total;
 
-    if ( result.response ) {
-      sync.post = result.response.req;
+    // Reset the initial page state.
+    clearProgress( sync );
+    reset();
+  } else {
+    // If loop continues, update sync data.
+    sync.complete = complete;
+    sync.total = total;
+
+    if ( response ) {
+      sync.post = response.req;
       sync.results = null;
-    } else if ( result.results ) {
-      sync.results = result.results;
+    } else if ( results ) {
+      sync.results = results;
       sync.post = null;
     } else {
       sync.results = null;
       sync.post = null;
     }
 
-    // updateProgress();
+    // Progress with loop.
     processQueue( sync );
-  }
-
-  if ( result.results ) {
-    const msg = result.results.length > 0 ? JSON.stringify( result.results, null, 2 ) : 'No errors.';
-
-    // Display error message in results output.
-    addToElement( msg, OUTPUT_ID );
-  } else if ( result.response ) {
-    // $( '#gpalab-feeder-output' ).prepend( `${JSON.stringify( result, null, 2 )}\r\n\r\n` );
+    updateProgress( sync );
   }
 };
 
@@ -110,33 +122,19 @@ export const initializeSync = sync => {
  * Clear out old sync post meta (if any) and initiate a new sync process.
  */
 export const resync = async ( sync, errorsOnly ) => {
-  // const $notice = $( '.feeder-notice.notice-error' );
+  // Clear out any existing text in the response output section.
+  emptyElement( OUTPUT_ID );
+  clearProgress( sync );
+  clearErrorNotice();
 
-  // if ( $notice.length > 0 ) {
-  //   $notice.fadeTo( 100, 0, () => {
-  //     $notice.slideUp( 100, () => {
-  //       $notice.remove();
-  //     } );
-  //   } );
-  // }
-  // sync = {
-  //   total: 0,
-  //   complete: 0,
-  //   post: null,
-  //   paused: false,
-  // };
-  // createProgress();
-  // updateProgress();
+  // Disable buttons for the duration of the request.
+  disableManageButtons( true );
 
   const spinnerMsg = errorsOnly ? i18nize( 'Fixing errors...' ) : i18nize( 'Initiating new resync.' );
 
   showSpinner( true, spinnerMsg );
 
-  // Clear out any existing text in the response output section.
-  emptyElement( OUTPUT_ID );
-
-  // Disable buttons for the duration of the request.
-  disableManageButtons( true );
+  showProgress();
 
   // Prepare the API request body.
   const formData = new FormData();
@@ -151,27 +149,22 @@ export const resync = async ( sync, errorsOnly ) => {
   };
 
   const onError = err => {
-    clearProgress( sync );
     // Display error message in results output.
     addToElement( err, OUTPUT_ID );
+    clearProgress( sync );
   };
 
-  sendAdminAjaxWithTimeout( formData, 'POST', onSuccess, onError, reset, 120000 );
+  sendAdminAjaxWithTimeout( formData, 'POST', onSuccess, onError, null, 120000 );
 };
 
-export const validateSync = async sync => {
-  // let unpause = false;
-
-  // if ( !sync.paused ) {
-  //   unpause = true;
-  //   resyncControl();
-  // }
-  // clearProgress();
-
+/**
+ * Retrieves the a list of posts in error.
+ */
+export const validateSync = async () => {
   // Clear out any existing text in the response output section.
   emptyElement( OUTPUT_ID );
 
-  showProgress( sync.paused );
+  showSpinner( true, i18nize( 'Validating...' ) );
 
   // Disable buttons for the duration of the request.
   disableManageButtons( true );
@@ -182,26 +175,10 @@ export const validateSync = async sync => {
   formData.append( 'action', 'gpalab_feeder_validate' );
   formData.append( 'security', getNonce() );
 
-  const onSuccess = result => {
-    clearProgress( sync );
-
-    // Display test response in results output.
+  // Display test response or error in results output.
+  const onResponse = result => {
     addToElement( result, OUTPUT_ID );
-
-    // if ( unpause ) resyncControl();
-    // else updateProgress();
   };
 
-  const onError = err => {
-    clearProgress( sync );
-    // createProgress();
-
-    // Display error message in results output.
-    addToElement( err, OUTPUT_ID );
-
-    // if ( unpause ) resyncControl();
-    // else updateProgress();
-  };
-
-  sendAdminAjaxWithTimeout( formData, 'POST', onSuccess, onError, reset, 120000 );
+  sendAdminAjaxWithTimeout( formData, 'POST', onResponse, onResponse, reset, 120000 );
 };

@@ -193,15 +193,12 @@ class Sync_Helper {
     );
 
     if ( $rows ) {
-      if ( $log_helper->log_all ) {
-        // Get the sync id.
-        $sync_uid = get_post_meta( $post_id, '_cdp_sync_uid', true );
+      // Get the sync id.
+      $sync_uid = get_post_meta( $post_id, '_cdp_sync_uid', true );
 
-        $log_helper->log(
-          'Post not syncable so status updated to SYNC_WHILE_SYNCING: $post_id, sync_uid:' . ! empty( $sync_uid ) ? $sync_uid : 'none',
-          'feeder.log'
-        );
-      }
+      $log_helper->log(
+        'Post not syncable so status updated to SYNC_WHILE_SYNCING: $post_id, sync_uid:' . ! empty( $sync_uid ) ? $sync_uid : 'none'
+      );
 
       return false;
     }

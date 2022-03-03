@@ -109,9 +109,10 @@ class Post_Helper {
 
     $statuses = $sync_helper->statuses;
 
+    // Abort if sync is already in progress.
     if ( $check_syncable && ! $sync_helper->is_syncable( $post->ID ) ) {
       $response = array(
-        'error'   => 1,
+        'error'   => true,
         'message' => 'Could not publish while publish in progress.',
       );
 

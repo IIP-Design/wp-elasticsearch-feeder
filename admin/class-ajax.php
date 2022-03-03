@@ -90,44 +90,59 @@ class Ajax {
     // Load the sync status helper.
     $sync_helper = new Admin\Helpers\Sync_Helper();
 
-    if ( $sync_errors ) {
+    if ( $sync_errors ) { // Only resync posts in error.
+      // Find all posts in an error state.
       $errors   = $sync_helper->check_sync_errors();
       $post_ids = $errors['ids'];
 
-      if ( count( $post_ids ) ) {
+      // If none found, short circuit.
+      if ( ! count( $post_ids ) ) {
+        wp_send_json(
+          array(
+            'done'    => true,
+            'message' => 'No posts found to be in error.',
+          )
+        );
+
+        exit;
+      } else {
+        // If posts found in the error, clear out their sync status.
         foreach ( $post_ids as $id ) {
           delete_post_meta( $id, '_cdp_sync_status' );
         }
-      } else {
-        echo wp_json_encode(
-          array(
-            'error'   => true,
-            'message' => 'No posts found to be in error.',
-          )
-        );
 
-        exit;
+        unset( $id );
       }
 
+      // Get sync total values.
       $results = $sync_helper->get_resync_totals();
 
+      // Send back list of results.
       wp_send_json( $results );
-    } else {
+    } else { // Resync all posts.
+      // Delete the sync status of all posts in order to make them all syncable.
+      // phpcs:disable WordPress.DB.DirectDatabaseQuery.NoCaching
+      // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery
+      // phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key
       $wpdb->delete( $wpdb->postmeta, array( 'meta_key' => '_cdp_sync_status' ) );
+      // phpcs:enable
 
+      // Find all syncable posts.
       $post_ids = $sync_helper->get_syncable_posts();
 
+      // If none found, short circuit.
       if ( ! count( $post_ids ) ) {
-        echo wp_json_encode(
+        wp_send_json(
           array(
-            'error'   => true,
-            'message' => 'No posts found to be in error.',
+            'done'    => true,
+            'message' => 'No syncable posts found.',
           )
         );
 
         exit;
       }
 
+      // Send back list of results.
       wp_send_json(
         array(
           'done'     => 0,
@@ -138,6 +153,7 @@ class Ajax {
         )
       );
     }
+
     exit;
   }
 
@@ -161,6 +177,7 @@ class Ajax {
 
     $post_helper = new Admin\Helpers\Post_Helper();
     $sync_helper = new Admin\Helpers\Sync_Helper();
+    $logger      = new Admin\Helpers\Log_Helper();
 
     // Load the sync status helper.
     $statuses   = $sync_helper->statuses;
@@ -173,6 +190,7 @@ class Ajax {
     // Get ids of posts that can be indexed to the CDP.
     $post_ids = $sync_helper->get_syncable_posts( $sync_limit );
 
+    // If no syncable post end processing.
     if ( ! count( $post_ids ) ) {
       delete_option( $this->plugin . '_syncable_posts' );
 
@@ -198,6 +216,7 @@ class Ajax {
 
         $post = get_post( $id );
         $resp = $post_helper->add_or_update( $post, false, false, false );
+        $logger->log( $resp );
 
         if ( ! $resp ) {
           $results[] = array(
@@ -219,14 +238,15 @@ class Ajax {
 
           update_post_meta( $id, '_cdp_sync_status', $statuses['ERROR'] );
         }
+
+        $totals            = $sync_helper->get_resync_totals();
+        $totals['done']    = false;
+        $totals['results'] = $results;
+
+        wp_send_json( $totals );
       }
-
-      $totals            = $sync_helper->get_resync_totals();
-      $totals['done']    = false;
-      $totals['results'] = $results;
-
-      wp_send_json( $totals );
     }
+
     exit;
   }
 

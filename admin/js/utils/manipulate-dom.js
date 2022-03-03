@@ -4,6 +4,7 @@ import { i18nize } from './i18n';
  * Write response data to the output box.
  *
  * @param {string|Object} data The response data.
+ * @param {string} id The id value of the targeted element.
  */
 export const addToElement = ( data, id ) => {
   const outputEl = document.getElementById( id );
@@ -14,15 +15,33 @@ export const addToElement = ( data, id ) => {
 };
 
 /**
-  * Find an element by its id and clear its text.
-  *
-  * @param {string} id The id value of the targeted element.
-  */
+ * Find an element by its id and clear its text.
+ *
+ * @param {string} id The id value of the targeted element.
+ */
 export const emptyElement = id => {
   const el = document.getElementById( id );
 
   // Remove all child elements.
   while ( el.firstChild ) el.removeChild( el.firstChild );
+};
+
+/**
+ * Add content to the beginning of an HTML element.
+ *
+ * @param {string|Object} data The response data.
+ * @param {string} id The id value of the targeted element.
+ */
+export const prependToElement = ( data, id ) => {
+  const parent = document.getElementById( id );
+
+  const child = document.createElement( 'p' );
+
+  const val = typeof data === 'string' ? data : JSON.stringify( data, null, 2 );
+
+  child.textContent = val || '';
+
+  parent.insertBefore( child, parent.firstChild );
 };
 
 /**
@@ -119,4 +138,12 @@ export const updateTicker = beat => {
   const indicator = document.getElementById( 'gpalab-feeder-last-heartbeat' );
 
   indicator.innerHTML = `${beat} ${text}`;
+};
+
+export const clearErrorNotice = () => {
+  const notice = document.getElementById( 'gpalab-feeder-notice' );
+
+  if ( notice && notice.parentNode !== null ) {
+    notice.parentNode.removeChild( notice );
+  }
 };
