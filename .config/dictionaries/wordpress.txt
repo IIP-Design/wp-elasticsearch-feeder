@@ -1,6 +1,8 @@
 # WordPress phrases that set off the spell checker.
+ABSPATH
 ajaxurl
 ALLMETHODS
+autoloader
 bloginfo
 metaboxes
 pagenow
@@ -9,4 +11,5 @@ poststuff
 sitename
 unslash
 unslashed
+WPINC
 wpdb

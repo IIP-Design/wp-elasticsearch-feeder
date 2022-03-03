@@ -29,12 +29,24 @@ class Settings {
   protected $plugin;
 
   /**
+   * The version of this plugin.
+   *
+   * @var string $version
+   *
+   * @access protected
+   * @since 1.0.0
+   */
+  protected $version;
+
+
+  /**
    * Initializes the class with the plugin name and version.
    *
    * @since 3.0.0
    */
   public function __construct() {
-    $this->plugin = ES_FEEDER_NAME;
+    $this->plugin  = ES_FEEDER_NAME;
+    $this->version = ES_FEEDER_VERSION;
   }
 
   /**

@@ -68,7 +68,7 @@
       }
     }
 
-    $pathname = ES_FEEDER_DIR . 'callback.log';
+    $pathname = ES_FEEDER_DIR . 'gpalab-feeder.log';
     $log      = $log_helper->tail( $pathname, 100 );
 
     settings_fields( $this->plugin );

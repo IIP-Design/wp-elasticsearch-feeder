@@ -10,7 +10,6 @@ namespace ES_Feeder\Admin\Helpers;
 
 /**
  * Registers logging helper functions.
- * TODO: Investigate using WP Filesystem functions.
  *
  * @package ES_Feeder\Admin\Helpers\Log_Helper
  * @since 3.0.0
@@ -18,13 +17,61 @@ namespace ES_Feeder\Admin\Helpers;
 class Log_Helper {
 
   /**
+   * An instance of the WordPress direct filesystem class.
+   *
+   * @var object $filesystem
+   *
+   * @access protected
+   * @since 3.0.0
+   */
+  protected $filesystem;
+
+  /**
+   * Whether or not logging is enabled in the plugin settings.
+   *
+   * @var string $logs_enabled
+   *
+   * @access protected
+   * @since 3.0.0
+   */
+  protected $logs_enabled;
+
+  /**
+   * The file name to be used for the default plugin log file.
+   *
+   * @var string $main_log
+   *
+   * @access protected
+   * @since 3.0.0
+   */
+  protected $main_log;
+
+  /**
+   * The permission to apply to the log files when creating them.
+   *
+   * @var int $permissions
+   *
+   * @access protected
+   * @since 3.0.0
+   */
+  protected $permissions;
+
+  /**
    * Initializes the class with the log status and the main log filename.
    *
    * @since 3.0.0
    */
   public function __construct() {
+    // Ensure that we can instantiate the WP Filesystem classes.
+    require_once ABSPATH . '/wp-admin/includes/class-wp-filesystem-base.php';
+    require_once ABSPATH . '/wp-admin/includes/class-wp-filesystem-direct.php';
+
+    $this->filesystem   = new \WP_Filesystem_Direct( array() );
     $this->logs_enabled = get_option( ES_FEEDER_NAME )['es_enable_logs'];
     $this->main_log     = 'gpalab-feeder.log';
+
+    // Respect the site's chmod settings if set.
+    $this->permissions = defined( 'FS_CHMOD_FILE' ) ? FS_CHMOD_FILE : 0644;
   }
 
   /**
@@ -53,12 +100,13 @@ class Log_Helper {
       $existing = '';
 
       if ( file_exists( $path ) ) {
-        $existing = file_get_contents( $path );
+        $existing = $this->filesystem->get_contents( $path );
       }
 
-      file_put_contents(
+      $this->filesystem->put_contents(
         $path,
-        gmdate( '[m/d/y H:i:s] ' ) . $str . "\r\n\r\n" . $existing
+        gmdate( '[m/d/y H:i:s] ' ) . $str . "\r\n\r\n" . $existing,
+        $this->permissions
       );
     }
   }
@@ -79,11 +127,18 @@ class Log_Helper {
     $verification->lab_verify_nonce( $_POST['security'] );
     // phpcs:enable
 
+    // Get all log files at plugin directory root.
     $path = ES_FEEDER_DIR . '*.log';
 
+    // Iterate over all log files setting their contents to an empty string.
     foreach ( glob( $path ) as $log ) {
-      file_put_contents( $log, '' );
+      $this->filesystem->put_contents(
+        $log,
+        '',
+        $this->permissions
+      );
     }
+
     echo 1;
 
     exit;
@@ -129,6 +184,11 @@ class Log_Helper {
    * @since 2.4.0
    */
   public function tail( $filepath, $lines = 1, $adaptive = true ) {
+    // Abort if the file doesn't exist.
+    if ( ! file_exists( $filepath ) ) {
+      return;
+    }
+
     // Open file.
     $f = @fopen( $filepath, 'rb' );
     if ( false === $f ) {

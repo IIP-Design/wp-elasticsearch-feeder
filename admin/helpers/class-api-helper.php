@@ -17,6 +17,26 @@ namespace ES_Feeder\Admin\Helpers;
 class API_Helper {
 
   /**
+   * The name of the plugin-specific API endpoint.
+   *
+   * @var string $namespace
+   *
+   * @access protected
+   * @since 3.0.0
+   */
+  protected $namespace;
+
+  /**
+   * The unique identifier this plugin.
+   *
+   * @var string $plugin
+   *
+   * @access protected
+   * @since 3.0.0
+   */
+  protected $plugin;
+
+  /**
    * Initializes the class with the plugin name and version.
    *
    * @since 3.0.0
