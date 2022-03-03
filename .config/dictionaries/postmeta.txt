@@ -1,5 +1,0 @@
-# Metadata names that set off the spell checker.
-es_reindex
-es_wpdomain
-syncable
-wp_kses

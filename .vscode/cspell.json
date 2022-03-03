@@ -1,8 +1,8 @@
 {
   "dictionaryDefinitions": [
     {
-      "name": "Post Meta",
-      "path": "../.config/dictionaries/postmeta.txt"
+      "name": "Plugin Words",
+      "path": "../.config/dictionaries/plugin-words.txt"
     },
     {
       "name": "WordPress",
@@ -14,7 +14,7 @@
     }
   ],
   "dictionaries": [
-    "Post Meta",
+    "Plugin Words",
     "WordPress",
     "WP Plugins"
   ]

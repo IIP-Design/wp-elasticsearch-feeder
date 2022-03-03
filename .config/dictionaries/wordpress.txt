@@ -1,8 +1,12 @@
 # WordPress phrases that set off the spell checker.
+ajaxurl
+ALLMETHODS
 bloginfo
 metaboxes
 pagenow
 postmeta
 poststuff
+sitename
 unslash
+unslashed
 wpdb

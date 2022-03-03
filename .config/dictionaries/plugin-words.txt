@@ -1,0 +1,13 @@
+# Plugin-specific words that set off the spell checker.
+
+# GPA Lab
+gpalab
+
+# Metadata names
+es_reindex
+es_wpdomain
+syncable
+wp_kses
+
+# Plugin function names
+i18nize
