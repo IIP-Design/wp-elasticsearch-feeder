@@ -37,16 +37,6 @@ class Language_Helper {
   protected $languages;
 
   /**
-   * The name of the plugin-specific API endpoint.
-   *
-   * @var string $namespace
-   *
-   * @access protected
-   * @since 3.0.0
-   */
-  protected $namespace;
-
-  /**
    * The unique identifier this plugin.
    *
    * @var string $plugin
@@ -70,7 +60,6 @@ class Language_Helper {
       'native_name'    => 'English',
     );
     $this->languages    = get_option( 'cdp_languages' );
-    $this->namespace    = ES_FEEDER_API_NAMESPACE;
     $this->plugin       = ES_FEEDER_NAME;
   }
 
@@ -144,14 +133,20 @@ class Language_Helper {
    * @since 2.0.0
    */
   public function load_languages() {
-    $post_actions = new \ES_Feeder\Post_Actions( $this->namespace, $this->plugin );
+    $post_actions = new \ES_Feeder\Post_Actions();
+    $logger       = new Log_Helper();
 
+    $languages = array();
+
+    // If in the process of an AJAX request return the stored owner values.
     if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
-      $this->languages = get_option( 'cdp_languages' );
+      $stored = $this->languages;
 
-      if ( $this->languages ) {
-        return;
+      if ( $stored ) {
+        $languages = $stored;
       }
+
+      return $languages;
     }
 
     $args = array(
@@ -159,19 +154,32 @@ class Language_Helper {
       'url'    => 'language',
     );
 
+    // Request the list of languages from the API.
     $data = $post_actions->request( $args );
 
-    if ( $data && count( $data ) && ! is_string( $data )
-        && ( ! is_array( $data ) || ( is_array( $data ) && ( ! array_key_exists( 'error', $data ) || ! $data['error'] ) )
-        && ( ! is_object( $data ) || ( is_object( $data ) && ! $data->error ) ) ) ) {
-      $this->languages = array();
-
-      foreach ( $data as $lang ) {
-        $this->languages[ $lang->locale ] = $lang;
+    // Look of errors in the form of an object.
+    if ( $data && is_object( $data ) ) {
+      if ( $data->error ) {
+        $logger->log( $data->error );
       }
     }
 
-    update_option( 'cdp_languages', $this->languages );
+    // If the response is an array, as expected...
+    if ( $data && is_array( $data ) ) {
+      // Make sure there are no errors...
+      if ( $data['error'] ) {
+        $logger->log( $data['error'] );
+      } else {
+        // An iterate through the array of languages.
+        foreach ( $data as $lang ) {
+          $languages[ $lang->locale ] = $lang;
+        }
+      }
+    }
+
+    update_option( 'cdp_languages', $languages );
+
+    return $languages;
   }
 
   /**

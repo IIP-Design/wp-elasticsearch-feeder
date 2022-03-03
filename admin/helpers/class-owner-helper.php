@@ -17,16 +17,22 @@ namespace ES_Feeder\Admin\Helpers;
 class Owner_Helper {
 
   /**
-   * Initializes the class with the plugin name and version.
+   * The unique identifier this plugin.
    *
-   * @param string $namespace   The namespace to use for the API endpoint.
-   * @param string $plugin   The plugin name.
+   * @var string $plugin
+   *
+   * @access protected
+   * @since 3.0.0
+   */
+  protected $plugin;
+
+  /**
+   * Initializes the class with the plugin name and version.
    *
    * @since 3.0.0
    */
-  public function __construct( $namespace, $plugin ) {
-    $this->namespace = $namespace;
-    $this->plugin    = $plugin;
+  public function __construct() {
+    $this->plugin = ES_FEEDER_NAME;
   }
 
   /**
@@ -38,29 +44,47 @@ class Owner_Helper {
    * @since 2.5.0
    */
   public function get_owners() {
-    $post_actions = new \ES_Feeder\Post_Actions( $this->namespace, $this->plugin );
-
-    if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
-      $owners = get_option( 'cdp_owners' );
-
-      if ( $owners ) {
-        return $owners;
-      }
-    }
+    $post_actions = new \ES_Feeder\Post_Actions();
+    $logger       = new Log_Helper();
 
     $owners = array();
-    $args   = array(
+
+    // If in the process of an AJAX request return the stored owner values.
+    if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
+      $stored = get_option( 'cdp_owners' );
+
+      if ( $stored ) {
+        $owners = $stored;
+      }
+
+      return $owners;
+    }
+
+    $args = array(
       'method' => 'GET',
       'url'    => 'owner',
     );
 
+    // Request the list of owners from the API.
     $data = $post_actions->request( $args );
 
-    if ( $data && count( $data ) && ! is_string( $data )
-      && ( ! is_array( $data ) || ! array_key_exists( 'error', $data ) || ! $data['error'] )
-      && ( ! is_object( $data ) || ! $data->error ) ) {
-      foreach ( $data as $owner ) {
-        $owners[ $owner->name ] = $owner->name;
+    // Look of errors in the form of an object.
+    if ( $data && is_object( $data ) ) {
+      if ( $data->error ) {
+        $logger->log( $data->error );
+      }
+    }
+
+    // If the response is an array, as expected...
+    if ( $data && is_array( $data ) ) {
+      // Make sure there are no errors...
+      if ( $data['error'] ) {
+        $logger->log( $data['error'] );
+      } else {
+        // An iterate through the array of owners.
+        foreach ( $data as $owner ) {
+          $owners[ $owner->name ] = $owner->name;
+        }
       }
     }
 

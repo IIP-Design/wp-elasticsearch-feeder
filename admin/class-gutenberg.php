@@ -164,7 +164,7 @@ class Gutenberg {
    * @since 3.0.0
    */
   private function get_owners_options() {
-    $owner_helper = new Admin\Helpers\Owner_Helper( $this->namespace, $this->plugin );
+    $owner_helper = new Admin\Helpers\Owner_Helper();
     $owners       = $owner_helper->get_owners();
     $sitename     = get_bloginfo( 'name' );
 

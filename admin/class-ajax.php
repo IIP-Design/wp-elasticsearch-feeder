@@ -17,16 +17,24 @@ namespace ES_Feeder;
 class Ajax {
 
   /**
+   * The unique identifier this plugin.
+   *
+   * @var string $plugin
+   *
+   * @access protected
+   * @since 3.0.0
+   */
+  protected $plugin;
+
+  /**
    * Initializes the class with the plugin name and version.
    *
-   * @param string $namespace   The namespace to use for the API endpoint.
    * @param string $plugin      The plugin name.
    *
    * @since 3.0.0
    */
-  public function __construct( $namespace, $plugin ) {
-    $this->namespace = $namespace;
-    $this->plugin    = $plugin;
+  public function __construct( $plugin ) {
+    $this->plugin = $plugin;
   }
 
   /**
@@ -242,7 +250,7 @@ class Ajax {
     $request = $verification->sanitize_test_connect_data( $_POST );
     // phpcs:enable
 
-    $post_actions = new Post_Actions( $this->namespace, $this->plugin );
+    $post_actions = new Post_Actions();
 
     // Forward request to the CDP API.
     $post_actions->request( $request, null, false, false );
@@ -266,7 +274,7 @@ class Ajax {
     $request = $verification->sanitize_test_connect_data( $_POST );
     // phpcs:enable
 
-    $post_actions = new Post_Actions( $this->namespace, $this->plugin );
+    $post_actions = new Post_Actions();
 
     // Forward request to the CDP API.
     $post_actions->request( $request, null, false, false );
@@ -373,7 +381,7 @@ class Ajax {
   private function get_indexed_posts() {
     // Load helper functions.
     $api_helper   = new Admin\Helpers\API_Helper();
-    $post_actions = new Post_Actions( $this->namespace, $this->plugin );
+    $post_actions = new Post_Actions();
 
     // Initialize the relevant variables.
     $query_size    = 500;

@@ -17,16 +17,22 @@ namespace ES_Feeder\Admin\Helpers;
 class Taxonomy_Helper {
 
   /**
-   * Initializes the class with the plugin name and version.
+   * The unique identifier this plugin.
    *
-   * @param string $namespace   The namespace to use for the API endpoint.
-   * @param string $plugin   The plugin name.
+   * @var string $plugin
+   *
+   * @access protected
+   * @since 3.0.0
+   */
+  protected $plugin;
+
+  /**
+   * Initializes the class with the plugin name and version.
    *
    * @since 3.0.0
    */
-  public function __construct( $namespace, $plugin ) {
-    $this->namespace = $namespace;
-    $this->plugin    = $plugin;
+  public function __construct() {
+    $this->plugin = ES_FEEDER_NAME;
   }
 
   /**
@@ -35,7 +41,7 @@ class Taxonomy_Helper {
    * @since 2.0.0
    */
   public function get_taxonomy() {
-    $post_actions = new \ES_Feeder\Post_Actions( $this->namespace, $this->plugin );
+    $post_actions = new \ES_Feeder\Post_Actions();
 
     $args = array(
       'method' => 'GET',

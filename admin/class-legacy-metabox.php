@@ -211,7 +211,7 @@ class Legacy_Metabox {
    */
   public function owner_dropdown( $post ) {
     // Get list of available owners.
-    $owner_helper = new Admin\Helpers\Owner_Helper( $this->namespace, $this->plugin );
+    $owner_helper = new Admin\Helpers\Owner_Helper();
     $owners       = $owner_helper->get_owners(); // Do not remove, used in the partial below.
 
     $post_owner = get_post_meta( $post->ID, '_iip_owner', true );
@@ -265,7 +265,7 @@ class Legacy_Metabox {
    * @since 2.0.0
    */
   private function cdp_taxonomy_display( $post ) {
-    $tax_helper    = new Admin\Helpers\Taxonomy_Helper( $this->namespace, $this->plugin );
+    $tax_helper    = new Admin\Helpers\Taxonomy_Helper();
     $current_terms = get_post_meta( $post->ID, '_iip_taxonomy_terms', true );
     $selected      = ! empty( $current_terms ) ? $current_terms : array(); // Do not remove, used in the partial below.
     $taxonomy      = $tax_helper->get_taxonomy(); // Do not remove, used in the partial below.

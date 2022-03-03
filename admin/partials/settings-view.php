@@ -123,13 +123,17 @@
 
               <h3><?php esc_html_e( 'Post Types', 'gpalab-feeder' ); ?></h3>
               <div class="inside">
-                <p><?php esc_html_e( 'Select the post-types to index into Elasticsearch.', 'gpalab-feeder' ); ?></p>
+                <p><?php esc_html_e( 'Select the post types to index into Content Commons.', 'gpalab-feeder' ); ?></p>
                 <?php
+                // Get all public post types.
                 $post_types = get_post_types( array( 'public' => true ) );
                 foreach ( $post_types as $key => $value ) {
+
+                  // Skip those post types not available for indexing into Content Commons.
                   if ( ! post_type_supports( $key, 'cdp-rest' ) ) {
                     continue;
                   }
+
                   $value_state = ( array_key_exists( $key, $es_post_types ) ) ? $es_post_types[ $value ] : 0;
                   $checked     = ( 1 === $value_state ) ? 'checked="checked"' : '';
 
@@ -168,7 +172,7 @@
                     value="1" 
                     <?php echo $es_post_language ? 'checked' : ''; ?>
                   />
-                    <?php esc_html_e( 'Add language dropdown to the Post (default) content type.', 'gpalab-feeder' ); ?>
+                    <?php esc_html_e( 'Add language dropdown to indexable content types. Should be disabled if using a translation plugin like WPML or Polylang.', 'gpalab-feeder' ); ?>
                 </label>
               </div>
 
@@ -182,7 +186,7 @@
                     value="1" 
                     <?php echo $es_post_owner ? 'checked' : ''; ?>
                   />
-                  <?php esc_html_e( 'Add owner dropdown to the Post (default) content type.', 'gpalab-feeder' ); ?>
+                  <?php esc_html_e( 'Add owner dropdown to indexable content types. This allows editors to select which team they represent.', 'gpalab-feeder' ); ?>
                 </label>
               </div>
 

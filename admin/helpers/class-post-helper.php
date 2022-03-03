@@ -17,6 +17,26 @@ namespace ES_Feeder\Admin\Helpers;
 class Post_Helper {
 
   /**
+   * The name of the plugin-specific API endpoint.
+   *
+   * @var string $namespace
+   *
+   * @access protected
+   * @since 3.0.0
+   */
+  protected $namespace;
+
+  /**
+   * The unique identifier this plugin.
+   *
+   * @var string $plugin
+   *
+   * @access protected
+   * @since 3.0.0
+   */
+  protected $plugin;
+
+  /**
    * Initializes the class with the plugin name and version.
    *
    * @since 3.0.0
@@ -34,7 +54,7 @@ class Post_Helper {
    * @since 1.0.0
    */
   public function delete( $post ) {
-    $post_actions = new \ES_Feeder\Post_Actions( $this->namespace, $this->plugin );
+    $post_actions = new \ES_Feeder\Post_Actions();
     $log_helper   = new Log_Helper();
     $sync_helper  = new Sync_Helper();
 
@@ -82,7 +102,7 @@ class Post_Helper {
      * @since 1.0.0
      */
   public function add_or_update( $post, $print = true, $callback_errors_only = false, $check_syncable = true ) {
-    $post_actions = new \ES_Feeder\Post_Actions( $this->namespace, $this->plugin );
+    $post_actions = new \ES_Feeder\Post_Actions();
     $api_helper   = new API_Helper();
     $log_helper   = new Log_Helper();
     $sync_helper  = new Sync_Helper();
