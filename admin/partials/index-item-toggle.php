@@ -32,5 +32,7 @@
 
 <div style="margin-top: 6px;">
   <?php esc_html_e( 'Publish Status:', 'gpalab-feeder' ); ?>
-  <div id="cdp_sync_status" style="display: inline-block;"><?php $sync_helper->sync_status_indicator( $sync, true, true ); ?></div>
+  <div id="cdp_sync_status" style="display: inline-block;">
+    <?php $sync_helper->sync_status_indicator( $sync, true, true ); ?>
+  </div>
 </div>

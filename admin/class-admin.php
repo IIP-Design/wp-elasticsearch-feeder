@@ -17,20 +17,56 @@ namespace ES_Feeder;
 class Admin {
 
   /**
-   * Initializes the class with the plugin name and version.
+   * The unique identifier of this plugin.
    *
-   * @param string $namespace  The namespace to use for the API endpoint.
-   * @param string $plugin     The plugin name.
-   * @param string $version    The plugin version number.
+   * @var string $plugin
+   *
+   * @access protected
+   * @since 3.0.0
+   */
+  protected $plugin;
+
+  /**
+   * The version of this plugin.
+   *
+   * @var string $version
+   *
+   * @access protected
+   * @since 3.0.0
+   */
+  protected $version;
+
+  /**
+   * The name used to identify settings page scripts.
+   *
+   * @var string $handle_settings
+   *
+   * @access protected
+   * @since 1.0.0
+   */
+  protected $handle_settings;
+
+  /**
+   * The name used to identify post status scripts.
+   *
+   * @var string $handle_status
+   *
+   * @access protected
+   * @since 1.0.0
+   */
+  protected $handle_status;
+
+  /**
+   * Initializes the class with the plugin name and version.
    *
    * @since 3.0.0
    */
-  public function __construct( $namespace, $plugin, $version ) {
-    $this->handle_settings = $plugin . '-settings';
-    $this->handle_status   = $plugin . '-post-status';
-    $this->namespace       = $namespace;
-    $this->plugin          = $plugin;
-    $this->version         = $version;
+  public function __construct() {
+    $this->plugin  = ES_FEEDER_NAME;
+    $this->version = ES_FEEDER_VERSION;
+
+    $this->handle_settings = $this->plugin . '-settings';
+    $this->handle_status   = $this->plugin . '-post-status';
   }
 
   /**

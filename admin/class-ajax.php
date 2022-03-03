@@ -29,12 +29,10 @@ class Ajax {
   /**
    * Initializes the class with the plugin name and version.
    *
-   * @param string $plugin      The plugin name.
-   *
    * @since 3.0.0
    */
-  public function __construct( $plugin ) {
-    $this->plugin = $plugin;
+  public function __construct() {
+    $this->plugin = ES_FEEDER_NAME;
   }
 
   /**

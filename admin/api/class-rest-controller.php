@@ -22,6 +22,56 @@ use ES_Feeder\Admin\Helpers\API_Helper as API;
 class REST_Controller extends WP_REST_Controller {
 
   /**
+   * An instance of the API helper class.
+   *
+   * @var object $api_helper
+   *
+   * @access protected
+   * @since 3.0.0
+   */
+  protected $api_helper;
+
+  /**
+   * The name of the plugin-specific API endpoint.
+   *
+   * @var string $namespace
+   *
+   * @access protected
+   * @since 3.0.0
+   */
+  protected $namespace;
+
+  /**
+   * The unique identifier of this plugin.
+   *
+   * @var string $plugin
+   *
+   * @access protected
+   * @since 3.0.0
+   */
+  protected $plugin;
+
+  /**
+   * Get the display name for the current post type.
+   *
+   * @var string $resource
+   *
+   * @access protected
+   * @since 3.0.0
+   */
+  protected $resource;
+
+  /**
+   * The given post type to add to the API.
+   *
+   * @var string $type
+   *
+   * @access protected
+   * @since 3.0.0
+   */
+  protected $type;
+
+  /**
    * Initializes the class with the plugin name and version.
    *
    * @param string $namespace   The namespace to use for the API endpoint.

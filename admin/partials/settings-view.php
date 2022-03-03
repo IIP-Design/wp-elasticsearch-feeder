@@ -37,10 +37,10 @@
     // Get domain(s) - support for Domain Mapping.
     $site = site_url();
 
-    $dmtable = $wpdb->base_prefix . 'domain_mapping';
+    $dm_table = $wpdb->base_prefix . 'domain_mapping';
 
     $has_domain_mapping = $wpdb->get_results(
-      $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $dmtable ) )
+      $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $dm_table ) )
     );
 
     $domains;

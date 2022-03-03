@@ -19,18 +19,22 @@ namespace ES_Feeder;
 class Settings {
 
   /**
-   * Initializes the class with the plugin name and version.
+   * The unique identifier of this plugin.
    *
-   * @param string $namespace   The namespace to use for the API endpoint.
-   * @param string $plugin      The plugin name.
-   * @param string $version     The plugin version number.
+   * @var string $plugin
+   *
+   * @access protected
+   * @since 3.0.0
+   */
+  protected $plugin;
+
+  /**
+   * Initializes the class with the plugin name and version.
    *
    * @since 3.0.0
    */
-  public function __construct( $namespace, $plugin, $version ) {
-    $this->namespace = $namespace;
-    $this->plugin    = $plugin;
-    $this->version   = $version;
+  public function __construct() {
+    $this->plugin = ES_FEEDER_NAME;
   }
 
   /**

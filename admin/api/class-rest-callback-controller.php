@@ -23,6 +23,56 @@ use ES_Feeder\Admin\Helpers\Sync_Helper as Sync;
 class REST_Callback_Controller extends WP_REST_Controller {
 
   /**
+   * The name of the plugin-specific API endpoint.
+   *
+   * @var string $namespace
+   *
+   * @access protected
+   * @since 3.0.0
+   */
+  protected $namespace;
+
+  /**
+   * The unique identifier of this plugin.
+   *
+   * @var string $plugin
+   *
+   * @access protected
+   * @since 3.0.0
+   */
+  protected $plugin;
+
+  /**
+   * An instance of the logging helper class.
+   *
+   * @var object $logger
+   *
+   * @access protected
+   * @since 3.0.0
+   */
+  protected $logger;
+
+  /**
+   * An instance of the post helper class.
+   *
+   * @var object $poster
+   *
+   * @access protected
+   * @since 3.0.0
+   */
+  protected $poster;
+
+  /**
+   * An instance of the sync helper class.
+   *
+   * @var object $sync
+   *
+   * @access protected
+   * @since 3.0.0
+   */
+  protected $sync;
+
+  /**
    * Initializes the class with the plugin name and version.
    *
    * @param string $namespace   The namespace to use for the API endpoint.

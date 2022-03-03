@@ -17,22 +17,12 @@ namespace ES_Feeder;
 class Gutenberg {
 
   /**
-   * The name of the plugin-specific API endpoint.
-   *
-   * @var string $namespace
-   *
-   * @access protected
-   * @since 3.0.0
-   */
-  protected $namespace;
-
-  /**
    * The unique identifier of this plugin.
    *
    * @var string $plugin
    *
    * @access protected
-   * @since 1.0.0
+   * @since 3.0.0
    */
   protected $plugin;
 
@@ -42,22 +32,19 @@ class Gutenberg {
    * @var string $proxy_url
    *
    * @access protected
-   * @since 1.0.0
+   * @since 3.0.0
    */
   protected $proxy_url;
 
   /**
    * Initializes the class with the plugin name and version.
    *
-   * @param string $namespace   The namespace to use for the API endpoint.
-   * @param string $plugin      The plugin name.
    * @param string $proxy_url   The URL for the Elasticsearch proxy API.
    *
    * @since 3.0.0
    */
-  public function __construct( $namespace, $plugin, $proxy_url ) {
-    $this->namespace = $namespace;
-    $this->plugin    = $plugin;
+  public function __construct( $proxy_url ) {
+    $this->plugin    = ES_FEEDER_NAME;
     $this->proxy_url = $proxy_url;
   }
 

@@ -1,6 +1,7 @@
 <?php
 /**
  * A debugger window to show API response data.
+ * Used in conjunction with legacy metabox on non-Gutenberg sites.
  *
  * @package ES_Feeder\Admin
  * @since 2.1.0
