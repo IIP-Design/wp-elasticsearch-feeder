@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: WP Elasticsearch Feeder
+ * Plugin Name: Content Commons Feeder
  * Plugin URI: https://github.com/IIP-Design/wp-elasticsearch-feeder
  * Description: Creates REST API endpoints for each post type and indexes them into Elasticsearch.
  * Version: v2.5.0

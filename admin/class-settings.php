@@ -40,8 +40,8 @@ class Settings {
    */
   public function add_plugin_admin_menu() {
     add_options_page(
-      __( 'WP Elasticsearch Feeder Settings', 'gpalab-feeder' ),
-      __( 'WP ES Feeder', 'gpalab-feeder' ),
+      __( 'Content Commons Feeder Settings', 'gpalab-feeder' ),
+      __( 'Commons Feeder', 'gpalab-feeder' ),
       'manage_options',
       $this->plugin,
       function() {
