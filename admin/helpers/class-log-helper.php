@@ -159,13 +159,29 @@ class Log_Helper {
     $verification->lab_verify_nonce( $_POST['security'] );
     // phpcs:enable
 
-    $path = ES_FEEDER_DIR . $this->main_log;
-
-    $log = $this->tail( $path, 100 );
+    $log = $this->get_main_log();
 
     echo wp_json_encode( $log );
 
     exit;
+  }
+
+  /**
+   * Retrieves the contents of the main plugin log file.
+   *
+   * @return string    The log file contents.
+   *
+   * @since 3.0.0
+   */
+  public function get_main_log() {
+    $filepath = ES_FEEDER_DIR . $this->main_log;
+
+    // Abort if the file doesn't exist.
+    if ( ! file_exists( $filepath ) ) {
+      return '';
+    }
+
+    return trim( $this->filesystem->get_contents( $filepath ) );
   }
 
   /**
@@ -182,6 +198,7 @@ class Log_Helper {
    * @return string
    *
    * @since 2.4.0
+   * @deprecated
    */
   public function tail( $filepath, $lines = 1, $adaptive = true ) {
     // Abort if the file doesn't exist.
@@ -205,7 +222,7 @@ class Log_Helper {
     fseek( $f, -1, SEEK_END );
     // Read it and adjust line number if necessary.
     // (Otherwise the result would be wrong if file doesn't end with a blank line).
-    if ( fread( $f, 1 ) != "\n" ) {
+    if ( fread( $f, 1 ) !== "\n" ) {
       --$lines;
     }
 

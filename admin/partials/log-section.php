@@ -8,6 +8,9 @@
  * @since 3.0.0
  */
 
+$log_helper = new ES_Feeder\Admin\Helpers\Log_Helper();
+
+$log = $log_helper->get_main_log();
 ?>
 
 <div class="postbox">
@@ -32,8 +35,6 @@
         <?php esc_html_e( 'Reload Log', 'gpalab-feeder' ); ?>
       </button>
     </div>
-    <textarea class="gpalab-output" rows="20" id="log-text" readonly>
-      <?php echo esc_textarea( $log ); ?>
-    </textarea>
+    <textarea class="gpalab-output" rows="20" id="log-text" readonly><?php echo esc_textarea( $log ); ?></textarea>
   </div>
 </div>

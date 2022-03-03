@@ -11,7 +11,6 @@
   global $wpdb;
 
   $api_helper  = new ES_Feeder\Admin\Helpers\API_Helper();
-  $log_helper  = new ES_Feeder\Admin\Helpers\Log_Helper();
   $sync_helper = new ES_Feeder\Admin\Helpers\Sync_Helper();
 ?>
 
@@ -67,9 +66,6 @@
         $domain_output .= "<option value='$protocol$wp_domain' $selected>$protocol$wp_domain</option>";
       }
     }
-
-    $pathname = ES_FEEDER_DIR . 'gpalab-feeder.log';
-    $log      = $log_helper->tail( $pathname, 100 );
 
     settings_fields( $this->plugin );
     ?>
