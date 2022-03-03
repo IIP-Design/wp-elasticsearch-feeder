@@ -148,6 +148,7 @@ class Language_Helper {
 
     if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
       $this->languages = get_option( 'cdp_languages' );
+
       if ( $this->languages ) {
         return;
       }
@@ -159,6 +160,7 @@ class Language_Helper {
     );
 
     $data = $post_actions->request( $args );
+
     if ( $data && count( $data ) && ! is_string( $data )
         && ( ! is_array( $data ) || ( is_array( $data ) && ( ! array_key_exists( 'error', $data ) || ! $data['error'] ) )
         && ( ! is_object( $data ) || ( is_object( $data ) && ! $data->error ) ) ) ) {
@@ -220,24 +222,28 @@ class Language_Helper {
         continue;
       }
 
+      // Skip if the language cannot be detected.
       $lang = $this->get_language_by_code( $code );
 
       if ( ! $lang ) {
         continue;
       }
 
+      // Skip if the post id not published in WP.
       $status = get_post_status( $id );
 
       if ( 'publish' !== $status ) {
         continue;
       }
 
+      // Skip if the post is set to not be indexed.
       $sync = get_post_meta( $id, '_iip_index_post_to_cdp_option', true );
 
       if ( 'no' === $sync ) {
         continue;
       }
 
+      // Construct the translations array.
       $translations[] = array(
         'post_id'  => $id,
         'language' => $lang,
@@ -258,32 +264,64 @@ class Language_Helper {
   public function get_wpml_translations( $post_id ) {
     global $wpdb;
 
-    // Short circuit if required WPML function isn't present.
-    if ( ! function_exists( 'icl_object_id' ) ) {
+    // Short circuit if WPML isn't present.
+    if ( ! class_exists( 'SitePress' ) ) {
       return array();
     }
 
-    $vars = $wpdb->get_row(
-      $wpdb->prepare(
-        "SELECT trid, element_type FROM {$wpdb->prefix}icl_translations WHERE element_id = %d",
-        $post_id
-      )
-    );
+    // Retrieve the post's translations information from cache.
+    $post_cache_key  = 'wpml_properties';
+    $wpml_properties = wp_cache_get( $post_cache_key, 'gpalab_feeder' );
 
-    if ( ! $vars || ! $vars->trid || ! $vars->element_type ) {
+    /**
+     * Get the WPML translation ID and the element type for the given post.
+     *
+     * phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery
+     */
+    if ( false === $wpml_properties ) {
+      $wpml_properties = $wpdb->get_row(
+        $wpdb->prepare(
+          "SELECT trid, element_type FROM {$wpdb->prefix}icl_translations WHERE element_id = %d",
+          $post_id
+        )
+      );
+      // phpcs:enable
+
+      // Cache the results of the query.
+      wp_cache_set( $post_cache_key, $wpml_properties, 'gpalab_feeder' );
+    }
+
+    // If post not found in translations table return.
+    if ( ! $wpml_properties || ! $wpml_properties->trid || ! $wpml_properties->element_type ) {
       return array();
     }
 
-    $results = $wpdb->get_results(
-      $wpdb->prepare(
-        "SELECT element_id, language_code FROM {$wpdb->prefix}icl_translations WHERE trid = %d AND element_type = %s AND element_id != %d",
-        $vars->trid,
-        $vars->element_type,
-        $post_id
-      )
-    );
+    // Retrieve the list translations for the given post from cache.
+    $trans_cache_key = 'wpml_translations';
+    $trans_results   = wp_cache_get( $trans_cache_key, 'gpalab_feeder' );
 
-    $translations = $this->normalize_translations( $results, $post_id, 'WPML' );
+    /**
+     * Get the post id and language code for all other posts with the
+     * same WPML translation ID and element type as the initial post.
+     *
+     * phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery
+     */
+    if ( false === $trans_results ) {
+      $trans_results = $wpdb->get_results(
+        $wpdb->prepare(
+          "SELECT element_id, language_code FROM {$wpdb->prefix}icl_translations WHERE trid = %d AND element_type = %s AND element_id != %d",
+          $wpml_properties->trid,
+          $wpml_properties->element_type,
+          $post_id
+        )
+      );
+      // phpcs:enable
+
+      // Cache the results of the query.
+      wp_cache_set( $trans_cache_key, $trans_results, 'gpalab_feeder' );
+    }
+
+    $translations = $this->normalize_translations( $trans_results, $post_id, 'WPML' );
 
     return $translations;
   }
