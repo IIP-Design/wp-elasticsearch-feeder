@@ -250,7 +250,7 @@ class REST_Controller extends WP_REST_Controller {
    * @since 1.0.0
    */
   public function baseline( $post ) {
-    $language_helper = new \ES_Feeder\Admin\Helpers\Language_Helper( $this->namespace, $this->plugin );
+    $language_helper = new \ES_Feeder\Admin\Helpers\Language_Helper();
 
     $post_data = array();
 

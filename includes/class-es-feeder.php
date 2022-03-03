@@ -25,14 +25,24 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
     protected $loader;
 
     /**
-     * The unique identifier and version of this plugin.
+     * The name of the plugin-specific API endpoint.
      *
-     * @var string $plugin_name
+     * @var string $namespace
+     *
+     * @access protected
+     * @since 3.0.0
+     */
+    protected $namespace;
+
+    /**
+     * The unique identifier of this plugin.
+     *
+     * @var string $plugin
      *
      * @access protected
      * @since 1.0.0
      */
-    protected $plugin_name;
+    protected $plugin;
 
     /**
      * The version of this plugin.
@@ -64,10 +74,10 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
      * @since 1.0.0
      */
     public function __construct() {
-      $this->namespace   = ES_FEEDER_API_NAMESPACE;
-      $this->plugin_name = ES_FEEDER_NAME;
-      $this->version     = ES_FEEDER_VERSION;
-      $this->proxy_url   = get_option( $this->plugin_name )['es_url'];
+      $this->namespace = ES_FEEDER_API_NAMESPACE;
+      $this->plugin    = ES_FEEDER_NAME;
+      $this->version   = ES_FEEDER_VERSION;
+      $this->proxy_url = get_option( $this->plugin )['es_url'];
       $this->load_dependencies();
       $this->define_admin_hooks();
     }
@@ -138,7 +148,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       $this->loader->add_action( 'admin_enqueue_scripts', $gutenberg, 'enqueue_gutenberg_plugin' );
 
       // Add settings link to plugin.
-      $plugin_basename = plugin_basename( plugin_dir_path( __DIR__ ) . $this->plugin_name . '.php' );
+      $plugin_basename = plugin_basename( plugin_dir_path( __DIR__ ) . $this->plugin . '.php' );
       $this->loader->add_filter( 'plugin_action_links_' . $plugin_basename, $admin, 'add_action_links' );
 
       // Register the wp_es_feeder site option for plugin data.
@@ -202,7 +212,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
      * @since 1.0.0
      */
     public function get_plugin_name() {
-      return $this->plugin_name;
+      return $this->plugin;
     }
 
     /**

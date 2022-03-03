@@ -19,7 +19,7 @@ class Admin {
   /**
    * Initializes the class with the plugin name and version.
    *
-   * @param string $namespace   The namespace to use for the API endpoint.
+   * @param string $namespace  The namespace to use for the API endpoint.
    * @param string $plugin     The plugin name.
    * @param string $version    The plugin version number.
    *

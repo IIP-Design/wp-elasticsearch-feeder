@@ -132,7 +132,7 @@ class API_Helper {
   public function get_language( $id ) {
     global $sitepress;
 
-    $language_helper = new \ES_Feeder\Admin\Helpers\Language_Helper( $this->namespace, $this->plugin );
+    $language_helper = new \ES_Feeder\Admin\Helpers\Language_Helper();
 
     if ( $sitepress ) {
       $output           = apply_filters( 'wpml_post_language_details', null, $id );

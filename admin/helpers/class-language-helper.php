@@ -9,7 +9,7 @@
 namespace ES_Feeder\Admin\Helpers;
 
 /**
- * Registers language helper functions.
+ * Registers the helper functions used to manage post translations.
  *
  * @package ES_Feeder\Admin\Helpers\Language_Helper
  * @since 3.0.0
@@ -37,14 +37,31 @@ class Language_Helper {
   protected $languages;
 
   /**
-   * Initializes the class with the default language object.
+   * The name of the plugin-specific API endpoint.
    *
-   * @param string $namespace   The namespace to use for the API endpoint.
-   * @param string $plugin   The plugin name.
+   * @var string $namespace
+   *
+   * @access protected
+   * @since 3.0.0
+   */
+  protected $namespace;
+
+  /**
+   * The unique identifier this plugin.
+   *
+   * @var string $plugin
+   *
+   * @access protected
+   * @since 3.0.0
+   */
+  protected $plugin;
+
+  /**
+   * Initializes the class with the default language object.
    *
    * @since 3.0.0
    */
-  public function __construct( $namespace, $plugin ) {
+  public function __construct() {
     $this->default_lang = (object) array(
       'language_code'  => 'en',
       'locale'         => 'en-us',
@@ -53,8 +70,8 @@ class Language_Helper {
       'native_name'    => 'English',
     );
     $this->languages    = get_option( 'cdp_languages' );
-    $this->namespace    = $namespace;
-    $this->plugin       = $plugin;
+    $this->namespace    = ES_FEEDER_API_NAMESPACE;
+    $this->plugin       = ES_FEEDER_NAME;
   }
 
   /**
@@ -301,6 +318,8 @@ class Language_Helper {
    * @since 2.0.0
    */
   public function get_translations( $post_id ) {
+    $log_helper = new Log_Helper();
+
     if ( ! function_exists( 'is_plugin_active' ) ) {
       include_once ABSPATH . 'wp-admin/includes/plugin.php';
     }
@@ -316,6 +335,8 @@ class Language_Helper {
       return $this->get_wpml_translations( $post_id );
 
     } else {
+      $log_helper->log( 'Translation support not detected. The WPML or PolyLang plugins are required to add translations.' );
+
       return array();
     }
   }

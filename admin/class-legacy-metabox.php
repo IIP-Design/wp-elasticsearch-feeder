@@ -17,18 +17,58 @@ namespace ES_Feeder;
 class Legacy_Metabox {
 
   /**
+   * The name of the plugin-specific API endpoint.
+   *
+   * @var string $namespace
+   *
+   * @access protected
+   * @since 3.0.0
+   */
+    protected $namespace;
+
+  /**
+   * The unique identifier of this plugin.
+   *
+   * @var string $plugin
+   *
+   * @access protected
+   * @since 1.0.0
+   */
+  protected $plugin;
+
+  /**
+   * The version of this plugin.
+   *
+   * @var string $version
+   *
+   * @access protected
+   * @since 1.0.0
+   */
+  protected $version;
+
+  /**
+   * The URL for the Elasticsearch proxy API.
+   *
+   * @var string $proxy_url
+   *
+   * @access protected
+   * @since 1.0.0
+   */
+  protected $proxy_url;
+
+  /**
    * Initializes the class with the plugin name and version.
    *
-   * @param string $namespace   The namespace to use for the API endpoint.
-   * @param string $plugin      The plugin name.
-   * @param string $proxy       The URL for the Elasticsearch proxy API.
+   * @param string $namespace      The namespace to use for the API endpoint.
+   * @param string $plugin         The plugin name.
+   * @param string $proxy_url      The URL for the Elasticsearch proxy API.
    *
    * @since 3.0.0
    */
-  public function __construct( $namespace, $plugin, $proxy ) {
+  public function __construct( $namespace, $plugin, $proxy_url ) {
     $this->namespace = $namespace;
     $this->plugin    = $plugin;
-    $this->proxy     = $proxy;
+    $this->proxy_url = $proxy_url;
   }
 
   /**
@@ -132,7 +172,7 @@ class Legacy_Metabox {
     $post_helper = new Admin\Helpers\Post_Helper();
 
     $options = get_option( $this->plugin );
-    $es_url  = ! empty( $this->proxy ) ? $this->proxy : null;
+    $es_url  = ! empty( $this->proxy_url ) ? $this->proxy_url : null;
     $token   = $options['es_token'];
 
     if ( $es_url && $token ) {
@@ -152,7 +192,7 @@ class Legacy_Metabox {
    */
   public function language_dropdown( $post ) {
     // Get list of available languages.
-    $language_helper = new Admin\Helpers\Language_Helper( $this->namespace, $this->plugin );
+    $language_helper = new Admin\Helpers\Language_Helper();
     $langs           = $language_helper->get_languages(); // Do not remove, used in the partial below.
 
     // Get the current language, falling back to English if not set.

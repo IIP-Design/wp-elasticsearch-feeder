@@ -166,7 +166,7 @@ class Post_Actions {
    * @since 2.1.0
    */
   private function translate_post( $post ) {
-    $language_helper = new Admin\Helpers\Language_Helper( $this->namespace, $this->plugin );
+    $language_helper = new Admin\Helpers\Language_Helper();
     $log_helper      = new Admin\Helpers\Log_Helper();
     $post_helper     = new Admin\Helpers\Post_Helper();
     $sync_helper     = new Admin\Helpers\Sync_Helper();
