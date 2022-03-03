@@ -54,15 +54,8 @@ class Post_Actions {
       return;
     }
 
-    // Return early if missing parameters.
-    $settings = get_option( $this->plugin );
-
-    if (
-      null === $post
-      || ! array_key_exists( 'es_post_types', $settings )
-      || ! array_key_exists( $post->post_type, $settings['es_post_types'] )
-      || ! $settings['es_post_types'][ $post->post_type ]
-    ) {
+    // Return early if not a post type set to be indexed to the CDP.
+    if ( ! $this->check_if_indexable_post_type( $post ) ) {
       return;
     }
 
@@ -84,6 +77,8 @@ class Post_Actions {
       $post_helper = new Admin\Helpers\Post_Helper();
 
       $post_helper->post_sync_send( $post, false );
+
+      // Update translations (to add a connection to this post).
       $this->translate_post( $post );
     }
   }
@@ -131,145 +126,99 @@ class Post_Actions {
   }
 
   /**
-   * Only delete posts if the old status was 'publish'.
-   * Otherwise, do nothing.
+   * Delete the given post from the CDP API.
    *
-   * @param string $new_status   The new post status.
-   * @param string $old_status   Current post status.
-   * @param int    $id           The WordPress post id.
+   * @param string      $new_status   The new post status.
+   * @param string      $old_status   Current post status.
+   * @param int|WP_Post $post         A WordPress post id or post object.
    *
    * @since 1.0.0
    */
-  public function delete_post( $new_status, $old_status, $id ) {
+  public function delete_post( $new_status, $old_status, $post ) {
     $post_helper = new Admin\Helpers\Post_Helper();
 
+    // Only delete posts if the old status was 'publish'.
     if ( $old_status === $new_status || 'publish' !== $old_status ) {
       return;
     }
 
-    if ( is_object( $id ) ) {
-      $post = $id;
-    } else {
-      $post = get_post( $id );
+    // Get the post data if only the id is provided.
+    if ( ! is_object( $post ) ) {
+      $post = get_post( $post );
     }
 
-    $settings  = get_option( $this->plugin );
-    $post_type = $post->post_type;
-
-    if ( null === $post || ! array_key_exists( 'es_post_types', $settings ) || ! array_key_exists( $post_type, $settings['es_post_types'] ) || ! $settings['es_post_types'][ $post_type ] ) {
+    // Return early if not a post type set to be indexed to the CDP.
+    if ( ! $this->check_if_indexable_post_type( $post ) ) {
       return;
     }
 
     $post_helper->delete( $post );
+
+    // Update translations (to remove the connection to this post).
     $this->translate_post( $post );
   }
 
   /**
    * Fire PUT requests containing associated translations after save_post.
    *
-   * @param int|WP_Post $id   A WordPress post id or post object.
+   * @param int|WP_Post $post   A WordPress post id or post object.
    *
    * @since 2.1.0
    */
-  private function translate_post( $id ) {
-    global $wpdb;
-
+  private function translate_post( $post ) {
     $language_helper = new Admin\Helpers\Language_Helper( $this->namespace, $this->plugin );
     $log_helper      = new Admin\Helpers\Log_Helper();
     $post_helper     = new Admin\Helpers\Post_Helper();
     $sync_helper     = new Admin\Helpers\Sync_Helper();
 
-    $statuses = $sync_helper->statuses;
-
-    if ( ! function_exists( 'icl_object_id' ) ) {
-      return;
+    // Get the post data if only the id is provided.
+    if ( ! is_object( $post ) ) {
+      $post = get_post( $post );
     }
 
-    if ( is_object( $id ) ) {
-      $post = $id;
-    } else {
-      $post = get_post( $id );
-    }
-
-    $settings  = get_option( $this->plugin );
     $post_type = $post->post_type;
+    $post_id   = $post->ID;
 
-    if ( null === $post || ! array_key_exists( 'es_post_types', $settings ) || ! array_key_exists( $post_type, $settings['es_post_types'] ) || ! $settings['es_post_types'][ $post_type ] ) {
+    $log_helper->log( "Looking for translations for $post_type #$post_id" );
+
+    // Retrieve the translations.
+    $translations = $language_helper->get_translations( $post_id );
+
+    // Exit the function if no translations found.
+    if ( 0 === count( $translations ) ) {
+      $log_helper->log( "No translations found for $post_type #$post_id" );
+
       return;
+    } else {
+      // Get list of translation post ids.
+      $list = implode( ', ', array_column( $translations, 'post_id' ) );
+
+      $log_helper->log( 'Found ' . count( $translations ) . " translations for $post_type #$post_id: ( $list )" );
     }
 
-    // Get associated post IDs.
-    $vars = $wpdb->get_row(
-      $wpdb->prepare(
-        "SELECT trid, element_type FROM {$wpdb->prefix}icl_translations WHERE element_id = %d",
-        $post->ID
-      )
-    );
+    // Loop through the translations, syncing each one.
+    foreach ( $translations as $trans ) {
+      $item = get_post( $trans['post_id'] );
 
-    if ( ! $vars || ! $vars->trid || ! $vars->element_type ) {
-      return;
-    }
-
-    $post_ids = $wpdb->get_col(
-      $wpdb->prepare(
-        "SELECT element_id FROM {$wpdb->prefix}icl_translations WHERE trid = %d AND element_type = %s AND element_id != %d",
-        $vars->trid,
-        $vars->element_type,
-        $post->ID
-      )
-    );
-
-    if ( $log_helper->log_all ) {
-      $log_helper->log( 'Found ' . count( $post_ids ) . " translations for: $post->ID", 'feeder.log' );
-    }
-
-    foreach ( $post_ids as $post_id ) {
-      $post = get_post( $post_id );
-      if ( 'publish' !== $post->post_status ) {
+      // Skip translations if not published in WP.
+      if ( 'publish' !== $item->post_status ) {
         continue;
       }
-      $sync = get_post_meta( $post_id, '_iip_index_post_to_cdp_option', true );
+
+      // Skip if translation is set to not index to the CDP.
+      $sync = get_post_meta( $item->ID, '_iip_index_post_to_cdp_option', true );
 
       if ( 'no' === $sync ) {
         continue;
       }
-      if ( ! $sync_helper->is_syncable( $post_id ) ) {
+
+      // Skip if translation is in a non-syncable state.
+      if ( ! $sync_helper->is_syncable( $item->ID ) ) {
         continue;
       }
 
-      $translations = $language_helper->get_translations( $post_id );
-      $options      = array(
-        'url'    => $post_helper->get_post_type_label( $post->post_type ) . '/' . $post_helper->get_uuid( $post_id ),
-        'method' => 'PUT',
-        'body'   => array(
-          'languages' => $translations,
-        ),
-        'print'  => false,
-      );
-      $callback     = $post_helper->create_callback( $post_id );
-
-      if ( $log_helper->log_all ) {
-        $log_helper->log( "Sending off translations for: $post_id", 'feeder.log' );
-      }
-
-      $response = $this->request( $options, $callback, false );
-
-      if ( $log_helper->log_all && $response ) {
-        $log_helper->log( "IMMEDIATE RESPONSE (PUT):\r\n" . print_r( $response, 1 ), 'callback.log' );
-      }
-
-      if ( ! $response ) {
-        error_log( print_r( $this->error . 'translate_post() request failed', true ) );
-        update_post_meta( $post_id, '_cdp_sync_status', $statuses['ERROR'] );
-        delete_post_meta( $post_id, '_cdp_sync_uid' );
-      } elseif ( isset( $response->error ) && $response->error ) {
-        update_post_meta( $post_id, '_cdp_sync_status', $statuses['ERROR'] );
-        delete_post_meta( $post_id, '_cdp_sync_uid' );
-
-        if ( ! $log_helper->log_all && $response ) {
-          $log_helper->log( "IMMEDIATE RESPONSE (PUT):\r\n" . print_r( $response, 1 ), 'callback.log' );
-        }
-      }
+      // If all checks pass, sync the translation.
+      $post_helper->post_sync_send( $item, false );
     }
   }
 
@@ -505,5 +454,27 @@ class Post_Actions {
     }
 
     return $body;
+  }
+
+  /**
+   * Check whether the current post type is indexable.
+   *
+   * @param WP_Post $post    WordPress post object.
+   * @return boolean         Whether or not the current type is of a type that can be indexed.
+   *
+   * @since 3.0.0
+   */
+  private function check_if_indexable_post_type( $post ) {
+    // Return early if missing parameters.
+    $config = get_option( $this->plugin );
+
+    $not_indexable = (
+      null === $post
+      || ! array_key_exists( 'es_post_types', $config )
+      || ! array_key_exists( $post->post_type, $config['es_post_types'] )
+      || ! $config['es_post_types'][ $post->post_type ]
+    );
+
+    return ! $not_indexable;
   }
 }
