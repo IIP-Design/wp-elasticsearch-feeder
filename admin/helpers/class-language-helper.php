@@ -134,7 +134,7 @@ class Language_Helper {
    */
   public function load_languages() {
     $post_actions = new \ES_Feeder\Post_Actions();
-    $logger       = new Log_Helper();
+    $log_helper   = new Log_Helper();
 
     $languages = array();
 
@@ -157,22 +157,22 @@ class Language_Helper {
     // Request the list of languages from the API.
     $data = $post_actions->request( $args );
 
-    // Look of errors in the form of an object.
-    if ( $data && is_object( $data ) ) {
-      if ( $data->error ) {
-        $logger->log( $data->error );
+    if ( $data ) {
+      // Look of errors in the form of an object.
+      if ( is_object( $data ) && $data->error ) {
+        $log_helper->log( $data->error );
       }
-    }
 
-    // If the response is an array, as expected...
-    if ( $data && is_array( $data ) ) {
-      // Make sure there are no errors...
-      if ( $data['error'] ) {
-        $logger->log( $data['error'] );
-      } else {
-        // An iterate through the array of languages.
-        foreach ( $data as $lang ) {
-          $languages[ $lang->locale ] = $lang;
+      // If the response is an array, as expected...
+      if ( is_array( $data ) ) {
+        // Make sure there are no errors...
+        if ( array_key_exists( 'error', $data ) && $data['error'] ) {
+          $log_helper->log( $data['error'] );
+        } else {
+          // And iterate through the array of languages.
+          foreach ( $data as $lang ) {
+            $languages[ $lang->locale ] = $lang;
+          }
         }
       }
     }

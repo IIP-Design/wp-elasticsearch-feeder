@@ -282,7 +282,7 @@ class Post_Helper {
     }
 
     /*
-     * What is this trying to do?
+     * TODO: What is this trying to do?
      *
      * do {
      * $uid   = uniqid();

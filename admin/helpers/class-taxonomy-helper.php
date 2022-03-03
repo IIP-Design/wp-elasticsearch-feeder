@@ -42,26 +42,35 @@ class Taxonomy_Helper {
    */
   public function get_taxonomy() {
     $post_actions = new \ES_Feeder\Post_Actions();
+    $log_helper   = new Log_Helper();
+
+    $taxonomy = array();
 
     $args = array(
       'method' => 'GET',
       'url'    => 'taxonomy?tree',
     );
 
+    // Request the taxonomy from the API.
     $data = $post_actions->request( $args );
 
     if ( $data ) {
+      // Look of errors in the form of an object.
       if ( is_object( $data ) && $data->error ) {
-        return array();
+        $log_helper->log( $data->error );
       }
 
-      if ( is_array( $data ) && array_key_exists( 'error', $data ) && $data['error'] ) {
-        return array();
-      } elseif ( is_array( $data ) ) {
-        return $data;
+      // If the response is an array, as expected...
+      if ( is_array( $data ) ) {
+        // Make sure there are no errors...
+        if ( array_key_exists( 'error', $data ) && $data['error'] ) {
+          $log_helper->log( $data['error'] );
+        } else {
+          $taxonomy = $data;
+        }
       }
     }
 
-    return array();
+    return $taxonomy;
   }
 }
