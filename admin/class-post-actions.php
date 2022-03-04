@@ -226,6 +226,8 @@ class Post_Actions {
       // If all checks pass, sync the translation.
       $post_helper->post_sync_send( $item, false );
     }
+
+    unset( $trans );
   }
 
   /**

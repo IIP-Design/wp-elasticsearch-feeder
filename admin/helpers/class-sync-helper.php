@@ -125,6 +125,8 @@ class Sync_Helper {
       $sync_count [ $total->status ] = $total->total;
     }
 
+    unset( $total );
+
     return $sync_count;
   }
 
@@ -312,6 +314,8 @@ class Sync_Helper {
         $result['ids'][] = $row->ID;
       }
     }
+
+    unset( $row );
 
     return $result;
   }

@@ -126,6 +126,9 @@ class API_Helper {
         }
       }
     }
+
+    unset( $size );
+
     if ( $image['sizes']['full'] ) {
       $sizes['full'] = $image['sizes']['full'];
     }
@@ -262,6 +265,8 @@ class API_Helper {
           'name' => $category->name,
         );
       }
+
+      unset( $category );
     }
 
     return $output;
@@ -298,7 +303,10 @@ class API_Helper {
           }
         }
       }
+
+      unset( $taxonomy );
     }
+
     return $output;
   }
 
@@ -319,6 +327,8 @@ class API_Helper {
         'name' => $term->name,
       );
     }
+
+    unset( $term );
 
     return $arr;
   }
@@ -343,6 +353,8 @@ class API_Helper {
       foreach ( $categories as $category ) {
         $output[] = $category->slug;
       }
+
+      unset( $category );
     }
 
     return $output;
@@ -369,6 +381,8 @@ class API_Helper {
           'slug' => $tag->slug,
         );
       }
+
+      unset( $tag );
     }
 
     return $output;
@@ -391,6 +405,8 @@ class API_Helper {
       foreach ( $tags as $tag ) {
         $output[] = $tag->slug;
       }
+
+      unset( $tag );
     }
 
     return $output;

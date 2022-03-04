@@ -84,6 +84,8 @@ class Owner_Helper {
           foreach ( $data as $owner ) {
             $owners[ $owner->name ] = $owner->name;
           }
+
+          unset( $owner );
         }
       }
     }

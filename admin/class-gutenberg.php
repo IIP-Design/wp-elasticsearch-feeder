@@ -139,6 +139,8 @@ class Gutenberg {
       array_push( $normalized, $item );
     }
 
+    unset( $lang );
+
     return $normalized;
   }
 
@@ -171,6 +173,8 @@ class Gutenberg {
 
       array_push( $normalized, $item );
     }
+
+    unset( $own );
 
     return $normalized;
   }

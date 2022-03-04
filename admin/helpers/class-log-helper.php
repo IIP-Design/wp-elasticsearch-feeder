@@ -139,6 +139,8 @@ class Log_Helper {
       );
     }
 
+    unset( $log );
+
     echo 1;
 
     exit;

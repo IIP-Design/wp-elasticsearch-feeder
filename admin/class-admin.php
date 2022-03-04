@@ -311,6 +311,8 @@ class Admin {
         )
       );
     }
+
+    unset( $post_type );
   }
 
   /**
@@ -346,8 +348,11 @@ class Admin {
         if ( ! isset( $input[ 'es_post_type_' . $value ] ) || ! $input[ 'es_post_type_' . $value ] ) {
           continue;
         }
+
         $types[ $value ] = ( isset( $input[ 'es_post_type_' . $value ] ) ) ? 1 : 0;
       }
+
+      unset( $value );
     }
 
     $valid['es_post_types'] = $types;

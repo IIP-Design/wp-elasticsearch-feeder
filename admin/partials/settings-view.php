@@ -65,6 +65,8 @@
         }
         $domain_output .= "<option value='$protocol$wp_domain' $selected>$protocol$wp_domain</option>";
       }
+
+      unset( $wp_domain );
     }
 
     settings_fields( $this->plugin );
@@ -155,6 +157,8 @@
                   </fieldset>
                   <?php
                 }
+
+                unset( $value );
                 ?>
               </div>
 

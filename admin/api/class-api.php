@@ -71,6 +71,8 @@ class API {
       foreach ( $post_types as $type ) {
         $this->register_post_types( $type );
       }
+
+      unset( $type );
     }
 
     // Add callback API to handle incomplete or failed syncs.

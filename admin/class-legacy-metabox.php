@@ -67,6 +67,8 @@ class Legacy_Metabox {
           array_push( $screens, $key );
         }
       }
+
+      unset( $value );
     }
 
     foreach ( $screens as $screen ) {
@@ -116,6 +118,8 @@ class Legacy_Metabox {
         );
       }
     }
+
+    unset( $screen );
   }
 
   /**
@@ -219,6 +223,8 @@ class Legacy_Metabox {
           }
         }
       }
+
+      unset( $value );
     }
 
     foreach ( $screens as $screen ) {
@@ -232,6 +238,8 @@ class Legacy_Metabox {
         array( '__back_compat_meta_box' => true )
       );
     }
+
+    unset( $screen );
   }
 
   /**

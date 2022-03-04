@@ -245,6 +245,8 @@ class Ajax {
 
         wp_send_json( $totals );
       }
+
+      unset( $id );
     }
 
     exit;
@@ -376,6 +378,8 @@ class Ajax {
         }
       }
 
+      unset( $indexable );
+
       // Any posts remaining in in the indexed_posts array are present in the
       // Elasticsearch index but cannot be found in the WordPress database.
       $stats['missing_from_wp'] = count( $indexed_posts );
@@ -430,6 +434,8 @@ class Ajax {
         foreach ( $result->hits->hits as $hit ) {
           $indexed_posts[ $hit->_source->post_id ] = $hit->_source->modified;
         }
+
+        unset( $hit );
       }
 
       // Get next set of posts.

@@ -189,6 +189,8 @@ class Post_Helper {
           $types[] = $post_type;
         }
       }
+
+      unset( $val );
     }
 
     return $types;

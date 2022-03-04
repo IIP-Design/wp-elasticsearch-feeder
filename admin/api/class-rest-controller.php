@@ -191,6 +191,8 @@ class REST_Controller extends WP_REST_Controller {
       $data[]   = $this->prepare_response_for_collection( $response );
     }
 
+    unset( $posts );
+
     return rest_ensure_response( $data );
   }
 
@@ -224,12 +226,16 @@ class REST_Controller extends WP_REST_Controller {
 
       $categories = ! empty( get_post_meta( $id, '_iip_taxonomy_terms', true ) ) ? get_post_meta( $id, '_iip_taxonomy_terms', true ) : array();
       $cat_ids    = array();
+
       foreach ( $categories as $cat ) {
         $args = explode( '<', $cat );
         if ( ! in_array( $args[0], $cat_ids, true ) ) {
           $cat_ids[] = $args[0];
         }
       }
+
+      unset( $cat );
+
       $data['categories'] = $cat_ids;
       $response->set_data( $data );
     }
