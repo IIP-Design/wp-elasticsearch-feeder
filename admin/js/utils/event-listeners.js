@@ -1,6 +1,6 @@
 import { clearLog, reloadLog } from '../ajax/log';
 import { onTickPost, onTickSettings, requestStatus, requestStatuses, resetHeartbeatTimer } from '../ajax/heartbeat';
-import { resync, validateSync } from '../ajax/sync';
+import { resync, togglePause, validateSync } from '../ajax/sync';
 import { testConnection } from '../ajax/test-connection';
 
 /**
@@ -11,7 +11,7 @@ export const initSettingsEventListeners = sync => {
   const testConnectionBtn = document.getElementById( 'gpalab-feeder-test-connection' );
   const resyncBtn = document.getElementById( 'gpalab-feeder-resync' );
   const fixErrorsBtn = document.getElementById( 'gpalab-feeder-fix-errors' );
-  const resyncControl = document.getElementById( 'gpalab-feeder-resync-control' );
+  const pauseResyncBtn = document.getElementById( 'gpalab-feeder-resync-control' );
   const validateSyncBtn = document.getElementById( 'gpalab-feeder-validate-sync' );
   const reloadLogBtn = document.getElementById( 'gpalab-feeder-reload-log' );
 
@@ -19,7 +19,7 @@ export const initSettingsEventListeners = sync => {
   testConnectionBtn.addEventListener( 'click', testConnection );
   resyncBtn.addEventListener( 'click', () => resync( sync, false ) );
   fixErrorsBtn.addEventListener( 'click', () => resync( sync, true ) );
-  resyncControl.addEventListener( 'click', resyncControl );
+  pauseResyncBtn.addEventListener( 'click', () => togglePause( sync ) );
   validateSyncBtn.addEventListener( 'click', () => validateSync( sync ) );
   reloadLogBtn.addEventListener( 'click', reloadLog );
 

@@ -22,15 +22,42 @@
   margin: 0 1rem;
 }
 
+/* Manage Buttons */
+.gpalab-manage-btns {
+  display: flex;
+  justify-content: space-between;
+}
+
+.gpalab-manage-group {
+  display: flex;
+}
+
+.gpalab-manage-button.button-secondary {
+  margin-right: 5px;
+}
+
+.button-danger.button-secondary {
+  background-color: #e33637;
+  border-color: #b02a2b;
+  color: #ffffff;
+}
+
+.button-danger.button-secondary:focus,
+.button-danger.button-secondary:hover {
+  background-color: #c22e2f;
+  border-color: #c22e2f;
+  color: #ffffff;
+}
+
 /* Spinner and progress bar */
 .gpalab-index-spinner {
   height: 28px;
-  display: none;
   opacity: 0.7;
   position: relative;
 }
 
 .gpalab-spinner-animation {
+  display: none;
   float: none;
   width: auto;
   height: auto;

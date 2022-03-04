@@ -128,23 +128,6 @@
   text-align: right;
 }
 
-.button-secondary.button-danger {
-  background-color: #e33637;
-  border-color: #b02a2b;
-  color: #fff;
-}
-
-.button-secondary.button-danger:hover {
-  background-color: #c22e2f;
-  border-color: #c22e2f;
-  color: #fff;
-}
-
-.manage-btns .button-primary,
-.manage-btns .button-secondary {
-  margin-top: 5px;
-}
-
 .cdp_sync_status > .sync-status {
   margin: 0 2.5rem;
 }

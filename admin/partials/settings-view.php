@@ -247,53 +247,54 @@
               <hr/>
 
               <h3><?php esc_html_e( 'Manage', 'gpalab-feeder' ); ?></h3>
-              <div class="inside manage-btns">
-                <button
-                  class="button-secondary" 
-                  id="gpalab-feeder-test-connection"
-                  name="gpalab-feeder-test-connection"
-                  type="button" 
-                >
-                  <?php esc_html_e( 'Test Connection', 'gpalab-feeder' ); ?>
-                </button>
-                <button 
-                  class="button-secondary"
-                  id="gpalab-feeder-fix-errors"
-                  name="gpalab-feeder-fix-errors"
-                  type="button" 
-                >
-                  <?php esc_html_e( 'Fix Errors', 'gpalab-feeder' ); ?>
-                </button>
-                <button
-                  class="button-secondary"
-                  id="gpalab-feeder-validate-sync"
-                  name="gpalab-feeder-validate-sync"
-                  type="button" 
-                >
-                  <?php esc_html_e( 'Validate Statuses', 'gpalab-feeder' ); ?>
-                </button>
-                <button
-                  class="button-primary"
-                  id="gpalab-feeder-resync-control"
-                  name="gpalab-feeder-resync-control"
-                  style="display: none;"
-                  type="button"
-                >
-                  <?php esc_html_e( 'Pause', 'gpalab-feeder' ); ?>
-                </button>
+              <div class="inside gpalab-manage-btns">
+                <div class="gpalab-manage-group">
+                  <button
+                    class="button-secondary gpalab-manage-button" 
+                    id="gpalab-feeder-test-connection"
+                    name="gpalab-feeder-test-connection"
+                    type="button" 
+                  >
+                    <?php esc_html_e( 'Test Connection', 'gpalab-feeder' ); ?>
+                  </button>
+                  <button 
+                    class="button-secondary gpalab-manage-button"
+                    id="gpalab-feeder-fix-errors"
+                    name="gpalab-feeder-fix-errors"
+                    type="button" 
+                  >
+                    <?php esc_html_e( 'Fix Errors', 'gpalab-feeder' ); ?>
+                  </button>
+                  <button
+                    class="button-secondary gpalab-manage-button"
+                    id="gpalab-feeder-validate-sync"
+                    name="gpalab-feeder-validate-sync"
+                    type="button" 
+                  >
+                    <?php esc_html_e( 'Validate Statuses', 'gpalab-feeder' ); ?>
+                  </button>
+                  <button
+                    class="button-secondary"
+                    id="gpalab-feeder-resync-control"
+                    name="gpalab-feeder-resync-control"
+                    style="display: none;"
+                    type="button"
+                  >
+                    <?php esc_html_e( 'Pause', 'gpalab-feeder' ); ?>
+                  </button>
+                </div>
                 <button
                   class="button-secondary button-danger"
                   id="gpalab-feeder-resync"
                   name="gpalab-feeder-resync"
-                  style="float: right;"
                   type="button"
                   >
                   <?php esc_html_e( 'Resync All Data', 'gpalab-feeder' ); ?>
                 </button>
               </div>
 
-              <div class="inside gpalab-index-spinner" id="index-spinner">
-                <div class="spinner is-active gpalab-spinner-animation">
+              <div class="inside gpalab-index-spinner">
+                <div class="spinner is-active gpalab-spinner-animation" id="index-spinner">
                   <span id="index-spinner-text">Validating...</span>
                   <span id="index-spinner-count"></span>
                 </div>

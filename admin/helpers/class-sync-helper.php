@@ -237,7 +237,7 @@ class Sync_Helper {
     // phpcs:enable
 
     return array(
-      'done'     => $row->total === $row->complete ? 1 : 0,
+      'done'     => $row->total === $row->complete ? true : false,
       'response' => null,
       'results'  => null,
       'total'    => $row->total,

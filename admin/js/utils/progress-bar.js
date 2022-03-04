@@ -1,4 +1,5 @@
 import { addToElement, emptyElement, makeVisible } from './manipulate-dom';
+import { i18nize } from './i18n';
 
 /**
  * Hides/shows the spinner element.
@@ -34,27 +35,6 @@ export const clearProgress = sync => {
 };
 
 /**
-   * Add relevant markup for the progress bar and state UI/UX.
-   */
-export const showProgress = paused => {
-  // Show the progress bar.
-  const progressId = 'progress-bar';
-
-  makeVisible( progressId, true );
-
-  if ( paused ) {
-    const progress = document.getElementById( progressId );
-
-    progress.classList.add( 'paused' );
-  }
-
-  // $( '#gpalab-feeder-resync-control' )
-  //   .html( sync.paused ? 'Resume Sync' : 'Pause Sync' )
-  //   .show();
-  // $( '#gpalab-feeder-output' ).empty();
-};
-
-/**
  * Update the progress bar and state UI using the local sync variable.
  */
 export const updateProgress = sync => {
@@ -63,4 +43,38 @@ export const updateProgress = sync => {
   const bar = document.getElementById( 'progress-bar-span' );
 
   bar.style.width = `${( sync.complete / sync.total ) * 100}%`;
+};
+
+/**
+ * Pause or resume the current sync process and update the UI accordingly.
+ * @param {boolean} paused Whether or not the sync progress is paused.
+ */
+export const setPauseControls = paused => {
+  const toggle = 'gpalab-feeder-resync-control';
+  const progressBar = document.getElementById( 'progress-bar' );
+
+  emptyElement( toggle );
+
+  if ( paused ) {
+    addToElement( i18nize( 'Pause Sync' ), toggle );
+    progressBar.classList.remove( 'paused' );
+  } else {
+    addToElement( i18nize( 'Resume Sync' ), toggle );
+    progressBar.classList.add( 'paused' );
+  }
+};
+
+/**
+ * Add relevant markup for the progress bar and state UI/UX.
+ * @param {boolean} paused Whether or not the sync progress is paused.
+ */
+export const showProgress = paused => {
+  // Show the progress bar.
+  const progressId = 'progress-bar';
+
+  makeVisible( progressId, true );
+
+  if ( paused ) {
+    setPauseControls( paused );
+  }
 };

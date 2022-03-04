@@ -49,8 +49,10 @@ export const prependToElement = ( data, id ) => {
  * @param {boolean} disable Whether the buttons should be disabled or not.
  */
 export const disableManageButtons = disable => {
-  const btns = document.querySelectorAll( '.inside.manage-btns button' );
+  const btns = document.querySelectorAll( '.inside.gpalab-manage-btns button.gpalab-manage-button' );
+  const danger = document.getElementById( 'gpalab-feeder-resync' );
 
+  danger.disabled = disable;
   btns.forEach( btn => { btn.disabled = disable; } );
 };
 
