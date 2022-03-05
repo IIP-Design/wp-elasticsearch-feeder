@@ -106,8 +106,8 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       require_once ES_FEEDER_DIR . 'admin/class-admin.php';
       require_once ES_FEEDER_DIR . 'admin/class-ajax.php';
       require_once ES_FEEDER_DIR . 'admin/class-gutenberg.php';
+      require_once ES_FEEDER_DIR . 'admin/class-indexing.php';
       require_once ES_FEEDER_DIR . 'admin/class-legacy-metabox.php';
-      require_once ES_FEEDER_DIR . 'admin/class-post-actions.php';
       require_once ES_FEEDER_DIR . 'admin/class-settings.php';
       require_once ES_FEEDER_DIR . 'includes/class-loader.php';
 
@@ -120,11 +120,11 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
      * @since 1.0.0
      */
     private function define_admin_hooks() {
-      $actions   = new ES_Feeder\Post_Actions();
       $admin     = new ES_Feeder\Admin();
       $ajax      = new ES_Feeder\Ajax();
       $api       = new ES_Feeder\API();
       $gutenberg = new ES_Feeder\Gutenberg( $this->get_proxy() );
+      $indexing  = new ES_Feeder\Indexing();
       $logging   = new ES_Feeder\Admin\Helpers\Log_Helper();
       $metaboxes = new ES_Feeder\Legacy_Metabox( $this->get_proxy() );
       $posts     = new ES_Feeder\Admin\Helpers\Post_Helper();
@@ -166,8 +166,8 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       }
 
       // Elasticsearch indexing hook actions.
-      $this->loader->add_action( 'save_post', $actions, 'save_post', 101, 2 );
-      $this->loader->add_action( 'transition_post_status', $actions, 'delete_post', 10, 3 );
+      $this->loader->add_action( 'save_post', $indexing, 'save_post', 101, 2 );
+      $this->loader->add_action( 'transition_post_status', $indexing, 'delete_post', 10, 3 );
 
       // Ajax hooks.
       $this->loader->add_filter( 'heartbeat_received', $ajax, 'heartbeat', 10, 2 );

@@ -41,8 +41,8 @@ class Taxonomy_Helper {
    * @since 2.0.0
    */
   public function get_taxonomy() {
-    $post_actions = new \ES_Feeder\Post_Actions();
-    $log_helper   = new Log_Helper();
+    $indexing   = new \ES_Feeder\Indexing();
+    $log_helper = new Log_Helper();
 
     $taxonomy = array();
 
@@ -52,7 +52,7 @@ class Taxonomy_Helper {
     );
 
     // Request the taxonomy from the API.
-    $data = $post_actions->request( $args );
+    $data = $indexing->request( $args );
 
     if ( $data ) {
       // Look of errors in the form of an object.

@@ -1,8 +1,8 @@
 <?php
 /**
- * Registers the Post_Actions class.
+ * Registers the Indexing class.
  *
- * @package ES_Feeder\Post_Actions
+ * @package ES_Feeder\Indexing
  * @since 3.0.0
  */
 
@@ -11,12 +11,12 @@ namespace ES_Feeder;
 use Exception, GuzzleHttp;
 
 /**
- * Handles Post_Actions calls needed to persist data on the server.
+ * Handles indexing operation to communicate with the CDP API.
  *
- * @package ES_Feeder\Post_Actions
+ * @package ES_Feeder\Indexing
  * @since 3.0.0
  */
-class Post_Actions {
+class Indexing {
 
   /**
    * The unique identifier this plugin.

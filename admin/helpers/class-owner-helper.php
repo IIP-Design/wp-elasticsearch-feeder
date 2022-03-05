@@ -44,8 +44,8 @@ class Owner_Helper {
    * @since 2.5.0
    */
   public function get_owners() {
-    $post_actions = new \ES_Feeder\Post_Actions();
-    $log_helper   = new Log_Helper();
+    $indexing   = new \ES_Feeder\Indexing();
+    $log_helper = new Log_Helper();
 
     $owners = array();
 
@@ -66,7 +66,7 @@ class Owner_Helper {
     );
 
     // Request the list of owners from the API.
-    $data = $post_actions->request( $args );
+    $data = $indexing->request( $args );
 
     if ( $data ) {
       // Look of errors in the form of an object.

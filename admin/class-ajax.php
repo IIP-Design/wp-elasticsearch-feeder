@@ -319,10 +319,10 @@ class Ajax {
     $request = $verification->sanitize_test_connect_data( $_POST );
     // phpcs:enable
 
-    $post_actions = new Post_Actions();
+    $indexing = new Indexing();
 
     // Forward request to the CDP API.
-    $post_actions->request( $request, null, false, false );
+    $indexing->request( $request, null, false, false );
   }
 
   /**
@@ -343,10 +343,10 @@ class Ajax {
     $request = $verification->sanitize_test_connect_data( $_POST );
     // phpcs:enable
 
-    $post_actions = new Post_Actions();
+    $indexing = new Indexing();
 
     // Forward request to the CDP API.
-    $post_actions->request( $request, null, false, false );
+    $indexing->request( $request, null, false, false );
   }
 
   /**
@@ -451,8 +451,8 @@ class Ajax {
    */
   private function get_indexed_posts() {
     // Load helper functions.
-    $api_helper   = new Admin\Helpers\API_Helper();
-    $post_actions = new Post_Actions();
+    $api_helper = new Admin\Helpers\API_Helper();
+    $indexing   = new Indexing();
 
     // Initialize the relevant variables.
     $query_size    = 500;
@@ -477,7 +477,7 @@ class Ajax {
     // list of all posts and the date they were last modified in the API.
     // Continues querying in batches of 500 until there are no more results.
     do {
-      $result = $post_actions->request( $request );
+      $result = $indexing->request( $request );
 
       if ( $result && $result->hits && count( $result->hits->hits ) ) {
         foreach ( $result->hits->hits as $hit ) {

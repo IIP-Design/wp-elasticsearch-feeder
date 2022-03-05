@@ -135,8 +135,8 @@ class Language_Helper {
    * @since 2.0.0
    */
   public function load_languages() {
-    $post_actions = new \ES_Feeder\Post_Actions();
-    $log_helper   = new Log_Helper();
+    $indexing   = new \ES_Feeder\Indexing();
+    $log_helper = new Log_Helper();
 
     $languages = array();
 
@@ -157,7 +157,7 @@ class Language_Helper {
     );
 
     // Request the list of languages from the API.
-    $data = $post_actions->request( $args );
+    $data = $indexing->request( $args );
 
     if ( $data ) {
       // Look of errors in the form of an object.

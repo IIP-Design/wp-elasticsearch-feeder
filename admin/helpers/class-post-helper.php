@@ -54,9 +54,9 @@ class Post_Helper {
    * @since 1.0.0
    */
   public function delete( $post ) {
-    $post_actions = new \ES_Feeder\Post_Actions();
-    $log_helper   = new Log_Helper();
-    $sync_helper  = new Sync_Helper();
+    $indexing    = new \ES_Feeder\Indexing();
+    $log_helper  = new Log_Helper();
+    $sync_helper = new Sync_Helper();
 
     if ( ! $sync_helper->is_syncable( $post->ID ) ) {
       return;
@@ -77,7 +77,7 @@ class Post_Helper {
 
     $log_helper->log( "Removing $post->post_type #$post->ID from the CDP API..." );
 
-    $response = $post_actions->request( $options );
+    $response = $indexing->request( $options );
 
     if ( ! $response ) {
       $log_helper->log( 'add_or_update()[add] request failed' );
@@ -102,10 +102,10 @@ class Post_Helper {
      * @since 1.0.0
      */
   public function add_or_update( $post, $print = true, $errors_only = false, $check_syncable = true ) {
-    $post_actions = new \ES_Feeder\Post_Actions();
-    $api_helper   = new API_Helper();
-    $log_helper   = new Log_Helper();
-    $sync_helper  = new Sync_Helper();
+    $indexing    = new \ES_Feeder\Indexing();
+    $api_helper  = new API_Helper();
+    $log_helper  = new Log_Helper();
+    $sync_helper = new Sync_Helper();
 
     $statuses = $sync_helper->statuses;
 
@@ -158,7 +158,7 @@ class Post_Helper {
     $log_helper->log( "Upserting $post->post_type #$post->ID to the CDP API..." );
 
     // Send the indexing request to the CDP API.
-    $response = $post_actions->request( $options, $callback, $errors_only );
+    $response = $indexing->request( $options, $callback, $errors_only );
 
     // Handle failures and errors.
     if ( ! $response ) {
