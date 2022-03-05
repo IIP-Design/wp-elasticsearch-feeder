@@ -301,8 +301,8 @@
               </div>
 
               <div class="inside progress-wrapper">
-                <div class="gpalab-progress-bar" id="progress-bar">
-                  <span id="progress-bar-span"></span>
+                <div class="gpalab-progress-bar" id="gpalab-progress-bar">
+                  <span id="gpalab-progress-bar-span"></span>
                 </div>
               </div>
 

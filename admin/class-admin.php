@@ -75,7 +75,7 @@ class Admin {
    * @since 3.0.0
    */
   public function register_admin_scripts_styles() {
-    /* Register settings page styles/scripts */
+    /* Register settings page scripts/styles */
     $settings_asset = require ES_FEEDER_DIR . 'admin/build/gpalab-feeder-settings.asset.php';
 
     wp_register_script(
@@ -93,7 +93,7 @@ class Admin {
       $this->version
     );
 
-    /* Register post status scripts */
+    /* Register post status scripts/styles */
     $status_asset = require ES_FEEDER_DIR . 'admin/build/gpalab-feeder-status.asset.php';
 
     wp_register_script(
@@ -102,6 +102,13 @@ class Admin {
       $status_asset['dependencies'],
       $status_asset['version'],
       false
+    );
+
+    wp_register_style(
+      $this->handle_status . '-css',
+      ES_FEEDER_URL . 'admin/css/gpalab-feeder-status.css',
+      array(),
+      $this->version
     );
   }
 
@@ -116,17 +123,14 @@ class Admin {
     // Check whether the current screen is the edit screen for an indexable post.
     $indexable_all_screens = $this->is_indexable_screen( $hook, 'all' );
 
-    // Enqueue settings styles on settings page and allowed post type edit screens.
-    if ( 'settings_page_wp-es-feeder' === $hook || $indexable_all_screens ) {
+    // Enqueue settings styles on settings page.
+    if ( 'settings_page_wp-es-feeder' === $hook ) {
       wp_enqueue_style( $this->handle_settings . '-css' );
+    }
 
-      wp_enqueue_style(
-        $this->handle_settings,
-        ES_FEEDER_URL . 'admin/css/gpalab-feeder-admin.css',
-        array(),
-        $this->version,
-        'all'
-      );
+    // Enqueue status styles on settings page and allowed post type edit screens.
+    if ( 'settings_page_wp-es-feeder' === $hook || $indexable_all_screens ) {
+      wp_enqueue_style( $this->handle_status . '-css' );
     }
   }
 

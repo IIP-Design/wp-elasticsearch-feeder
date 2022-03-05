@@ -29,9 +29,9 @@ export const clearProgress = sync => {
   showSpinner( false );
 
   // Hide the progress bar.
-  makeVisible( 'progress-bar', false );
+  makeVisible( 'gpalab-progress-bar', false );
   emptyElement( 'index-spinner-count' );
-  document.getElementById( 'progress-bar-span' ).style.width = 0;
+  document.getElementById( 'gpalab-progress-bar-span' ).style.width = 0;
 };
 
 /**
@@ -40,7 +40,7 @@ export const clearProgress = sync => {
 export const updateProgress = sync => {
   addToElement( `${sync.complete} / ${sync.total}`, 'index-spinner-count' );
 
-  const bar = document.getElementById( 'progress-bar-span' );
+  const bar = document.getElementById( 'gpalab-progress-bar-span' );
 
   bar.style.width = `${( sync.complete / sync.total ) * 100}%`;
 };
@@ -51,7 +51,7 @@ export const updateProgress = sync => {
  */
 export const setPauseControls = paused => {
   const toggle = 'gpalab-feeder-resync-control';
-  const progressBar = document.getElementById( 'progress-bar' );
+  const progressBar = document.getElementById( 'gpalab-progress-bar' );
 
   emptyElement( toggle );
 
@@ -70,7 +70,7 @@ export const setPauseControls = paused => {
  */
 export const showProgress = paused => {
   // Show the progress bar.
-  const progressId = 'progress-bar';
+  const progressId = 'gpalab-progress-bar';
 
   makeVisible( progressId, true );
 
