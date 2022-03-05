@@ -63,7 +63,6 @@ const handleQueueResult = ( sync, result ) => {
 
   // Log the return from the API.
   if ( results ) {
-    console.log( result );
     const msg = results.length > 0 ? JSON.stringify( results, null, 2 ) : 'No errors.';
 
     // Display error message in results output.
