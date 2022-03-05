@@ -94,14 +94,14 @@ class Post_Helper {
     /**
      * Index a given post to the CDP.
      *
-     * @param WP_Post $post                   The give WordPress post object.
-     * @param boolean $print                  Whether or not to send the response as JSON.
-     * @param boolean $callback_errors_only   Whether to only use callback for errors(?).
-     * @param boolean $check_syncable         Whether or not check for sync-ability before updating.
+     * @param WP_Post $post                The give WordPress post object.
+     * @param boolean $print               Whether or not to send the response as JSON.
+     * @param boolean $errors_only         Whether to only use callback for errors(?).
+     * @param boolean $check_syncable      Whether or not check for sync-ability before updating.
      *
      * @since 1.0.0
      */
-  public function add_or_update( $post, $print = true, $callback_errors_only = false, $check_syncable = true ) {
+  public function add_or_update( $post, $print = true, $errors_only = false, $check_syncable = true ) {
     $post_actions = new \ES_Feeder\Post_Actions();
     $api_helper   = new API_Helper();
     $log_helper   = new Log_Helper();
@@ -126,16 +126,17 @@ class Post_Helper {
     // Plural form of post type.
     $post_type_name = $api_helper->get_post_type_label( $post->post_type, 'name' );
 
-    // API endpoint for wp-json.
+    // Construct the API where the post data can be found.
     $wp_api_url   = '/' . $this->namespace . '/' . rawurlencode( $post_type_name ) . '/' . $post->ID;
     $request      = new \WP_REST_Request( 'GET', $wp_api_url );
     $api_response = rest_do_request( $request );
     $api_response = $api_response->data;
 
+    // Handle lack of API response or errors.
     if ( ! $api_response || isset( $api_response['code'] ) ) {
-      $log_helper->log( 'add_or_update() calling wp rest failed' );
-      $api_response['error'] = true;
-      $api_response['url']   = $wp_api_url;
+      $log_helper->log(
+        "Internal API call to $wp_api_url failed because " . $api_response['code'] . ". Unable to add/update $post->post_type #$post->ID"
+      );
 
       if ( $print ) {
         wp_send_json( $api_response );
@@ -156,17 +157,20 @@ class Post_Helper {
 
     $log_helper->log( "Upserting $post->post_type #$post->ID to the CDP API..." );
 
-    $response = $post_actions->request( $options, $callback, $callback_errors_only );
+    // Send the indexing request to the CDP API.
+    $response = $post_actions->request( $options, $callback, $errors_only );
 
+    // Handle failures and errors.
     if ( ! $response ) {
-      $log_helper->log( 'add_or_update()[add] request failed' );
+      $log_helper->log( 'Upsert request failed' );
+
       update_post_meta( $post->ID, '_cdp_sync_status', $statuses['ERROR'] );
       delete_post_meta( $post->ID, '_cdp_sync_uid' );
     } elseif ( isset( $response->error ) && $response->error ) {
+      $log_helper->log( $response->error );
+
       update_post_meta( $post->ID, '_cdp_sync_status', $statuses['ERROR'] );
       delete_post_meta( $post->ID, '_cdp_sync_uid' );
-
-      $log_helper->log( $response->error );
     }
 
     return $response;
@@ -283,16 +287,6 @@ class Post_Helper {
     if ( ! $post_id ) {
       return $domain . '/wp-json/' . $this->namespace . '/callback/noop';
     }
-
-    /*
-     * TODO: What is this trying to do?
-     *
-     * do {
-     * $uid   = uniqid();
-     * $query = "SELECT post_id FROM $wpdb->postmeta WHERE meta_key = '_cdp_sync_uid' AND meta_value = '$uid'";
-     * } while ( $wpdb->get_var( $query ) );
-     *
-     */
 
     $uid  = uniqid();
     $type = get_post_type( $post_id );

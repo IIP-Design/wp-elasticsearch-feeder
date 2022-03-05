@@ -210,35 +210,52 @@ class Ajax {
 
       delete_option( $this->plugin . '_syncable_posts' );
 
+      // Loop through all syncable posts updating each one.
       foreach ( $post_ids as $id ) {
-        update_post_meta( $id, '_cdp_sync_status', '1' );
+        update_post_meta( $id, '_cdp_sync_status', $statuses['SYNCING'] );
         update_post_meta( $id, '_cdp_last_sync', gmdate( 'Y-m-d H:i:s' ) );
 
         $post = get_post( $id );
         $resp = $post_helper->add_or_update( $post, false, false, false );
-        $logger->log( $resp );
 
+        // Format the response object depending on the API request results.
         if ( ! $resp ) {
-          $results[] = array(
-            'title'   => $post->post_title,
-            'post_id' => $post->ID,
-            'message' => 'ERROR: Connection failed.',
-            'error'   => true,
-          );
+          // No response implies a failed connection.
+          $results[] = $this->set_result_object( $post, 'ERROR: Connection failed.' );
 
           update_post_meta( $id, '_cdp_sync_status', $statuses['ERROR'] );
-        } elseif ( ! is_object( $resp ) || 'Sync in progress.' !== $resp->message ) {
-          $results[] = array(
-            'title'    => $post->post_title,
-            'post_id'  => $post->ID,
-            'response' => $resp,
-            'message'  => 'See error response.',
-            'error'    => true,
-          );
+        } elseif ( ! is_object( $resp ) ) {
+          // The response is not an object, which is not expected and may indicate an error.
+          $msg = null;
+
+          // Pull the message from the response if it exists.
+          if ( is_array( $resp ) && isset( $resp['message'] ) ) {
+            $msg = $resp['message'];
+            unset( $resp['message'] );
+          }
+
+          $results[] = $this->set_result_object( $post, $msg, $resp );
 
           update_post_meta( $id, '_cdp_sync_status', $statuses['ERROR'] );
+        } elseif ( 'Sync in progress.' !== $resp->message ) {
+          // Response is received as expected, but indicates that the sync was unsuccessful.
+          $msg = null;
+
+          // Pull the message from the response if it exists.
+          if ( isset( $resp->message ) ) {
+            $msg = $resp->message;
+            unset( $resp->message );
+          }
+
+          $results[] = $this->set_result_object( $post, $msg, $resp );
+
+          update_post_meta( $id, '_cdp_sync_status', $statuses['ERROR'] );
+        } else {
+          // Sync successfully initiated.
+          $results[] = $this->set_result_object( $post, $resp->message, null, false );
         }
 
+        // Generate the response object.
         $totals            = $sync_helper->get_resync_totals();
         $totals['done']    = false;
         $totals['results'] = $results;
@@ -250,6 +267,38 @@ class Ajax {
     }
 
     exit;
+  }
+
+  /**
+   * Generates an API response when processing posts for syncing to the CDP.
+   *
+   * @param WP_Post $post    WordPress post object.
+   * @param string  $msg     The message to send with the response.
+   * @param mixed   $resp    The body from the API that is getting passed on.
+   * @param bool    $error   Whether or not the response is of type error.
+   * @return array
+   *
+   * @since 3.0.0
+   */
+  private function set_result_object( $post, $msg = null, $resp = null, $error = true ) {
+    $result = array(
+      'title'   => $post->post_title,
+      'post_id' => $post->ID,
+    );
+
+    if ( $error ) {
+      $result['error'] = true;
+    }
+
+    if ( null !== $msg ) {
+      $result['message'] = $msg;
+    }
+
+    if ( null !== $resp ) {
+      $result['response'] = $resp;
+    }
+
+    return $result;
   }
 
   /**
