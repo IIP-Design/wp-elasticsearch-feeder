@@ -33,42 +33,6 @@
     $es_post_owner    = array_key_exists( 'es_post_owner', $options ) && $options['es_post_owner'] ? 1 : 0;
     $es_enable_logs   = array_key_exists( 'es_enable_logs', $options ) && $options['es_enable_logs'] ? 1 : 0;
 
-    // Get domain(s) - support for Domain Mapping.
-    $site = site_url();
-
-    $dm_table = $wpdb->base_prefix . 'domain_mapping';
-
-    $has_domain_mapping = $wpdb->get_results(
-      $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $dm_table ) )
-    );
-
-    $domains;
-
-    if ( ! empty( $use_domain_mapping ) ) {
-      $domains = $wpdb->get_col( "SELECT domain FROM {$wpdb->prefix}domain_mapping" );
-    }
-
-    $protocol = is_ssl() ? 'https://' : 'http://';
-    $selected = '';
-
-    if ( $site === $es_wpdomain || empty( $es_wpdomain ) ) {
-      $selected = 'selected';
-    }
-
-    $domain_output = "<option value='$site' $selected>$site</option>";
-
-    if ( ! empty( $domains ) ) {
-      foreach ( $domains as $wp_domain ) {
-        $selected = '';
-        if ( $protocol . $wp_domain === $es_wpdomain ) {
-          $selected = 'selected';
-        }
-        $domain_output .= "<option value='$protocol$wp_domain' $selected>$protocol$wp_domain</option>";
-      }
-
-      unset( $wp_domain );
-    }
-
     settings_fields( $this->plugin );
     ?>
 
@@ -79,22 +43,9 @@
           <div class="meta-box-sortables ui-sortable">
             <div class="postbox">
               <h3><?php esc_html_e( 'Indexed URL', 'gpalab-feeder' ); ?></h3>
-              <div class="inside gpalab-domain-select">
-                <select id="es_wpdomain" name="<?php echo esc_html( $this->plugin ); ?>[es_wpdomain]">
-                  <?php
-                  $option_elements = array(
-                    'option' => array(
-                      'selected' => array(),
-                      'value'    => array(),
-                    ),
-                  );
-
-                  echo wp_kses( $domain_output, $option_elements );
-                  ?>
-                </select>
-                <span><?php echo esc_html( '* ' . __( 'If using domain mapping, mapped URLs will appear in dropdown', 'gpalab-feeder' ) . '.' ); ?></span>
-              </div>
-
+              <?php
+              require_once ES_FEEDER_DIR . 'admin/partials/dropdown-domain.php';
+              ?>
               <h3><?php esc_html_e( 'API Server URL', 'gpalab-feeder' ); ?></h3>
               <div class="inside">
                 <input
