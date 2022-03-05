@@ -31,9 +31,19 @@ export const emptyElement = id => {
  *
  * @param {string|Object} data The response data.
  * @param {string} id The id value of the targeted element.
+ * @param {int} max The maximum number of children to show.
  */
-export const prependToElement = ( data, id ) => {
+export const prependToElement = ( data, id, max = 20 ) => {
   const parent = document.getElementById( id );
+
+  const children = parent.childElementCount;
+
+  // If the number of children is maxed out, remove the last one.
+  if ( children === max ) {
+    const final = parent.lastElementChild;
+
+    parent.removeChild( final );
+  }
 
   const child = document.createElement( 'p' );
 
