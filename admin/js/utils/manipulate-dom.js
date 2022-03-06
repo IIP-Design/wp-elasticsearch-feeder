@@ -111,8 +111,13 @@ export const updatePostStatus = ( color, title ) => {
   const indicator = document.querySelector( '.sync-status' );
   const label = document.querySelector( '.sync-status-label' );
 
-  indicator.className = `sync-status sync-status-${color}`;
-  label.textContent = title;
+  if ( indicator ) {
+    indicator.className = `sync-status sync-status-${color}`;
+  }
+
+  if ( label ) {
+    label.textContent = title;
+  }
 };
 
 /**
