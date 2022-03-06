@@ -32,7 +32,14 @@ if ( ! defined( 'ES_FEEDER_NAME' ) ) {
 }
 
 if ( ! defined( 'ES_FEEDER_VERSION' ) ) {
-  define( 'ES_FEEDER_VERSION', '2.5.0' );
+  if ( ! function_exists( 'get_plugin_data' ) ) {
+    require_once ABSPATH . 'wp-admin/includes/plugin.php';
+  }
+
+  $plugin_data = get_plugin_data( __FILE__ );
+
+  // Dynamically pull the plugin version from the plugin data.
+  define( 'ES_FEEDER_VERSION', $plugin_data['Version'] );
 }
 
 if ( ! defined( 'ES_FEEDER_API_NAMESPACE' ) ) {
