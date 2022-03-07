@@ -7,21 +7,29 @@ import { testConnection } from '../ajax/test-connection';
  * Initialize all event listeners for the settings page.
  */
 export const initSettingsEventListeners = sync => {
-  const clearLogBtn = document.getElementById( 'gpalab-feeder-clear-logs' );
   const testConnectionBtn = document.getElementById( 'gpalab-feeder-test-connection' );
   const resyncBtn = document.getElementById( 'gpalab-feeder-resync' );
   const fixErrorsBtn = document.getElementById( 'gpalab-feeder-fix-errors' );
-  const pauseResyncBtn = document.getElementById( 'gpalab-feeder-resync-control' );
   const validateSyncBtn = document.getElementById( 'gpalab-feeder-validate-sync' );
-  const reloadLogBtn = document.getElementById( 'gpalab-feeder-reload-log' );
+  const pauseResyncBtn = document.getElementById( 'gpalab-feeder-resync-control' );
 
-  clearLogBtn.addEventListener( 'click', clearLog );
   testConnectionBtn.addEventListener( 'click', testConnection );
   resyncBtn.addEventListener( 'click', () => resync( sync, false ) );
   fixErrorsBtn.addEventListener( 'click', () => resync( sync, true ) );
   pauseResyncBtn.addEventListener( 'click', () => togglePause( sync ) );
   validateSyncBtn.addEventListener( 'click', () => validateSync( sync ) );
-  reloadLogBtn.addEventListener( 'click', reloadLog );
+
+  // Log section, these buttons are conditionally rendered.
+  const clearLogBtn = document.getElementById( 'gpalab-feeder-clear-logs' );
+  const reloadLogBtn = document.getElementById( 'gpalab-feeder-reload-log' );
+
+  if ( clearLogBtn ) {
+    clearLogBtn.addEventListener( 'click', clearLog );
+  }
+
+  if ( reloadLogBtn ) {
+    reloadLogBtn.addEventListener( 'click', reloadLog );
+  }
 
   // Heartbeat events.
   jQuery( document ).on( 'heartbeat-send', requestStatuses );

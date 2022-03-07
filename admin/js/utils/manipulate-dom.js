@@ -9,6 +9,11 @@ import { i18nize } from './i18n';
 export const addToElement = ( data, id ) => {
   const outputEl = document.getElementById( id );
 
+  // Abort if target element missing.
+  if ( !outputEl ) {
+    return;
+  }
+
   const val = typeof data === 'string' ? data : JSON.stringify( data, null, 2 );
 
   outputEl.textContent = val || '';
@@ -21,6 +26,11 @@ export const addToElement = ( data, id ) => {
  */
 export const emptyElement = id => {
   const el = document.getElementById( id );
+
+  // Abort if target element missing.
+  if ( !el ) {
+    return;
+  }
 
   // Remove all child elements.
   while ( el.firstChild ) el.removeChild( el.firstChild );
@@ -35,6 +45,11 @@ export const emptyElement = id => {
  */
 export const prependToElement = ( data, id, max = 20 ) => {
   const parent = document.getElementById( id );
+
+  // Abort if target element missing.
+  if ( !parent ) {
+    return;
+  }
 
   const children = parent.childElementCount;
 
@@ -74,6 +89,11 @@ export const disableManageButtons = disable => {
  */
 export const makeVisible = ( id, visible, alt = 'block' ) => {
   const node = document.getElementById( id );
+
+  // Abort if target element missing.
+  if ( !node ) {
+    return;
+  }
 
   node.style.display = visible ? alt : 'none';
 };
