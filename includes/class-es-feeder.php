@@ -125,6 +125,7 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       $api       = new ES_Feeder\API();
       $gutenberg = new ES_Feeder\Gutenberg( $this->get_proxy() );
       $indexing  = new ES_Feeder\Indexing();
+      $language  = new ES_Feeder\Admin\Helpers\Language_Helper();
       $logging   = new ES_Feeder\Admin\Helpers\Log_Helper();
       $metaboxes = new ES_Feeder\Legacy_Metabox( $this->get_proxy() );
       $posts     = new ES_Feeder\Admin\Helpers\Post_Helper();
@@ -184,6 +185,11 @@ if ( ! class_exists( 'ES_Feeder' ) ) {
       // API hooks.
       $this->loader->add_action( 'rest_api_init', $api, 'register_elasticsearch_rest_routes' );
       $this->loader->add_action( 'init', $api, 'add_posts_to_api' );
+
+      // Only attempt to copy metadata when using Polylang.
+      if ( is_plugin_active( 'polylang/polylang.php' ) ) {
+        $this->loader->add_filter( 'pll_copy_post_metas', $language, 'polylang_copy_metadata' );
+      }
     }
 
     /**

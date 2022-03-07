@@ -392,4 +392,16 @@ class Language_Helper {
       return array();
     }
   }
+
+  /**
+   * Copy over the owner field when translating a post using PolyLang.
+   *
+   * @param array $meta    The list of metadata fields to be copied over in translation.
+   * @return array         The metadata array augmented with the CDP owner field.
+   *
+   * @since 3.0.0
+   */
+  public function polylang_copy_metadata( $meta ) {
+    return array_merge( $meta, array( '_iip_owner' ) );
+  }
 }

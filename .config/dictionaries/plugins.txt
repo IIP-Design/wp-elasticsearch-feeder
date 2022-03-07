@@ -3,3 +3,4 @@ polylang
 sitepress
 trid
 wpml
+metas
