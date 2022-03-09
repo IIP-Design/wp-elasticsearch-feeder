@@ -443,7 +443,7 @@ class Admin {
     $post_helper = new Admin\Helpers\Post_Helper();
 
     if ( in_array( get_post_type(), $post_helper->get_allowed_post_types(), true ) ) {
-      $defaults['cdp_sync_status'] = __( 'Commons Status', 'gpalab-feeder' );
+      $defaults['commons_sync_status'] = __( 'Commons Sync', 'gpalab-feeder' );
     }
 
     return $defaults;
@@ -460,7 +460,7 @@ class Admin {
   public function populate_custom_column( $column_name, $post_id ) {
     $sync_helper = new Admin\Helpers\Sync_Helper();
 
-    if ( 'cdp_sync_status' === $column_name ) {
+    if ( 'commons_sync_status' === $column_name ) {
       $status = get_post_meta( $post_id, '_cdp_sync_status', true );
 
       $sync_helper->sync_status_indicator( $status, false, true );
@@ -476,7 +476,7 @@ class Admin {
    * @since 2.0.0
    */
   public function make_sync_column_sortable( $columns ) {
-    $columns['cdp_sync_status'] = '_cdp_sync_status';
+    $columns['commons_sync_status'] = '_cdp_sync_status';
 
     return $columns;
   }
