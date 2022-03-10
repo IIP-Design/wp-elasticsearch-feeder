@@ -9,7 +9,8 @@
     "dev": "wp-scripts start --config .config/webpack.config.js",
     "lint": "npm run lint:JS && npm run lint:PHP",
     "lint:JS": "eslint --ext .js --quiet ./",
-    "lint:PHP": "./vendor/bin/phpcs -n"
+    "lint:PHP": "./vendor/bin/phpcs -n",
+    "test": "vendor/bin/phpunit --configuration tests/phpunit/.phpunit.xml"
   },
   "dependencies": {
     "@wordpress/components": "^19.5.0",

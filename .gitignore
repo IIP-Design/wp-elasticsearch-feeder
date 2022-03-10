@@ -1,5 +1,6 @@
 # Build Artifacts
 *.js.map
+*.cache
 
 # Dependencies
 node_modules/

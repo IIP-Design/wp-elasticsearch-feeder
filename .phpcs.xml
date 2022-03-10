@@ -45,4 +45,8 @@
   </properties>
 </rule>
 
+<rule ref="Squiz.Commenting.FunctionComment.MissingParamTag">
+  <exclude-pattern>/tests/phpunit/**/*.php</exclude-pattern>
+</rule>
+
 </ruleset>
