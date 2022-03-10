@@ -13,3 +13,13 @@ unslash
 unslashed
 WPINC
 wpdb
+
+# Common Composer-installed packages
+codesniffer
+dealerdirect
+phpcodesniffer
+phpcompatibility
+phpunit
+squizlabs
+symfony
+wpcs

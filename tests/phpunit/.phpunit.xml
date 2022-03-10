@@ -10,9 +10,8 @@
   xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd"
 >
 	<testsuites>
-		<testsuite name="gpalab-feeder-tests">
+		<testsuite name="gpalab-feeder-unit">
 			<directory suffix=".php">./</directory>
-      <!-- <exclude>./class-lab-monkey.php</exclude> -->
 		</testsuite>
 	</testsuites>
 </phpunit>
