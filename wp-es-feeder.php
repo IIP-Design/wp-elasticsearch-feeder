@@ -18,33 +18,10 @@ if ( ! defined( 'WPINC' ) ) {
   die;
 }
 
-// Define constants.
-if ( ! defined( 'ES_FEEDER_DIR' ) ) {
-  define( 'ES_FEEDER_DIR', plugin_dir_path( dirname( __FILE__ ) ) . 'wp-elasticsearch-feeder/' );
-}
+// Define plugin constants.
+require_once plugin_dir_path( __FILE__ ) . 'includes/class-constants.php';
 
-if ( ! defined( 'ES_FEEDER_URL' ) ) {
-  define( 'ES_FEEDER_URL', plugin_dir_url( dirname( __FILE__ ) ) . 'wp-elasticsearch-feeder/' );
-}
-
-if ( ! defined( 'ES_FEEDER_NAME' ) ) {
-  define( 'ES_FEEDER_NAME', 'wp-es-feeder' );
-}
-
-if ( ! defined( 'ES_FEEDER_VERSION' ) ) {
-  if ( ! function_exists( 'get_plugin_data' ) ) {
-    require_once ABSPATH . 'wp-admin/includes/plugin.php';
-  }
-
-  $plugin_data = get_plugin_data( __FILE__ );
-
-  // Dynamically pull the plugin version from the plugin data.
-  define( 'ES_FEEDER_VERSION', $plugin_data['Version'] );
-}
-
-if ( ! defined( 'ES_FEEDER_API_NAMESPACE' ) ) {
-  define( 'ES_FEEDER_API_NAMESPACE', 'gpalab-cdp/v1' );
-}
+ES_Feeder\Constants::define_constants();
 
 /**
  * Autoload plugin's class to make them available without require statements.

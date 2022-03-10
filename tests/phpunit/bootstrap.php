@@ -1,28 +1,25 @@
 <?php
 /**
- * The following snippets uses `PLUGIN` to prefix
- * the constants and class names. You should replace
- * it with something that matches your plugin name.
+ * Loads all the classes necessary to run tests.
  *
- * @package ES_Feeder\Lab_Monkey\Bootstrap
+ * @package ES_Feeder\Tests\Bootstrap
  */
 
-// Define test environment.
+// Indicate that we are in a test environment.
 define( 'ES_FEEDER_PHPUNIT', true );
 
-if ( ! defined( 'ES_FEEDER_NAME' ) ) {
-  define( 'ES_FEEDER_NAME', 'wp-es-feeder' );
-}
-
-// Define fake ABSPATH.
+// Define fake ABSPATH for the tests.
 if ( ! defined( 'ABSPATH' ) ) {
-	define( 'ABSPATH', sys_get_temp_dir() );
+  define( 'ABSPATH', sys_get_temp_dir() );
 }
 
-// Define fake PLUGIN_ABSPATH.
-if ( ! defined( 'ES_FEEDER_ABSPATH' ) ) {
-	define( 'ES_FEEDER_ABSPATH', sys_get_temp_dir() . '/wp-content/plugins/wp-elasticsearch-feeder/' );
-}
+// Define the plugin-relevant constants.
+require_once __DIR__ . './../../includes/class-constants.php';
 
+ES_Feeder\Constants::define_constants();
+
+// Load the plugin/vendor classes.
 require_once __DIR__ . './../../vendor/autoload.php';
+
+// Load in the BrainMonkey extension to PHPUnit's test case class.
 require_once __DIR__ . './../class-lab-monkey.php';
