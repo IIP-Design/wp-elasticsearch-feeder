@@ -4,30 +4,50 @@
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-### [Unreleased](https://github.com/IIP-Design/wp-elasticsearch-feeder/compare/2.5.0...HEAD)
+### [Unreleased](https://github.com/IIP-Design/wp-elasticsearch-feeder/compare/3.0.0...HEAD)
+
+### [3.0.0](https://github.com/IIP-Design/wp-elasticsearch-feeder/compare/2.5.0...3.0.0) (2022-03-10)
 
 #### :warning: Breaking:
 
 - Rename the principal plugin class to `ES_Feeder`
 - Change expected class name format for API custom post type extensions from `WP_ES_FEEDER_EXT_{TYPE}_Controller` to `ES_Feeder_REST_{TYPE}_Controller`
+- Rename the plugin's API endpoint from `elasticsearch/v1` to `gpalab-cdp/v1`
 
 #### Added:
 
+- Compatibility with WordPress's Gutenberg editor, while maintaining a backwards compatible metabox element
+- Support for the Polylang translation plugin
+- A set of utility functions for manipulating the settings page and localizing strings in JavaScript
+- A logging toggle to allow admins to enable/disable plugin logging.
 - Autoloader function to allow for easier use of class definitions without requiring manually inclusion the files
 - Documentation comments for all functions and classes
 - PHP and JavaScript linting using PHP CodeSniffer and ESLint, respectively
+- Initial setup for PHP unit testing
+- Custom spell checking dictionaries to import developer experience
 
 #### Changed:
 
+- Update the plugin's display name to the more intuitive "Content Commons Feeder"
+- Streamline the styling and layout of the plugin settings page
+- Renamed the ambiguously titled "validation required" status to "status undetermined"
+- Use the WP Filesystem methods when accessing log file data
+- Convert plugin JavaScript to module syntax and transpile using wp-scripts
+- Consistently namespace plugin classes, constants, variables, functions, and CSS
+- Remove a number of direct database calls and add caching where this was not possible
+- Obscure the API token field by making it a password input
+- Simplified the log outputs by logging only events and not function/AJAX request responses
 - Register styles prior to enqueueing them
-- Moved assorted function from the the plugin's principal class into a series of helper classes scoped to a specific area of responsibility
+- Moved assorted function from the the plugin's principal class into a series of classes scoped to a specific area of responsibility
 - Namespace all classes using `ES_Feeder`
 - Update all dependencies and remove `composer.lock` file from `.gitignore`
 - Break REST callback API endpoint into it's own REST controller
 
 #### Fix:
 
+- Reduce unwanted indexing requests by checking if auto-saving or or AJAX call before re-indexing a post
 - Correct the URL to the plugin's settings page in the plugin action links
+- Improve data validation and sanitization
 
 ### [2.5.0](https://github.com/IIP-Design/wp-elasticsearch-feeder/compare/2.4.1...2.5.0) (2019-05-29)
 
