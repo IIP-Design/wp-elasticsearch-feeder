@@ -74,16 +74,14 @@ class REST_Controller extends WP_REST_Controller {
   /**
    * Initializes the class with the plugin name and version.
    *
-   * @param string $namespace   The namespace to use for the API endpoint.
-   * @param string $plugin      The plugin name.
    * @param string $post_type   The given post type to add to the API.
    *
    * @since 3.0.0
    */
-  public function __construct( $namespace, $plugin, $post_type ) {
+  public function __construct( $post_type ) {
     $this->api_helper = new API();
-    $this->namespace  = $namespace;
-    $this->plugin     = $plugin;
+    $this->namespace  = ES_FEEDER_API_NAMESPACE;
+    $this->plugin     = ES_FEEDER_NAME;
     $this->resource   = $this->api_helper->get_post_type_label( $post_type, 'name' );
     $this->type       = $post_type;
   }

@@ -103,12 +103,12 @@ class API {
     $is_base_type = array_key_exists( $type, $base_types );
 
     if ( (int) $is_base_type ) {
-      $controller = new Admin\API\REST_Controller( $this->namespace, $this->plugin, $type );
+      $controller = new Admin\API\REST_Controller( $type );
       $controller->register_routes();
 
       return;
     } elseif ( ! $is_base_type && ! class_exists( 'ES_Feeder_REST_' . strtoupper( $type ) . '_Controller' ) ) {
-      $controller = new Admin\API\REST_Controller( $this->namespace, $this->plugin, $type );
+      $controller = new Admin\API\REST_Controller( $type );
       $controller->register_routes();
 
       return;
