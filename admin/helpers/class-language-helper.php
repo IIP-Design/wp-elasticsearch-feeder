@@ -228,9 +228,10 @@ class Language_Helper {
       $code = 'WPML' === $plugin ? $result->language_code : $key;
       $id   = 'WPML' === $plugin ? $result->element_id : $result;
 
-      // Polylang includes the provided post_id along with all translations.
-      // Therefore we must omit it during the loop.
-      if ( 'Polylang' === $plugin && $result === $post_id ) {
+      // The results include the provided post_id along with all translations.
+      // Therefore we must omit it during the loop. We use a weak comparison
+      // here because the post id may be a string or an integer.
+      if ( $id == $post_id ) {
         continue;
       }
 
@@ -323,7 +324,7 @@ class Language_Helper {
     if ( false === $trans_results ) {
       $trans_results = $wpdb->get_results(
         $wpdb->prepare(
-          "SELECT element_id, language_code FROM {$wpdb->prefix}icl_translations WHERE trid = %d AND element_type = %s AND element_id != %d",
+          "SELECT element_id, language_code FROM {$wpdb->prefix}icl_translations WHERE trid = %d AND element_type = %s",
           $wpml_properties->trid,
           $wpml_properties->element_type,
           $post_id
