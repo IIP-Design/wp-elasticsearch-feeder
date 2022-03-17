@@ -3,7 +3,7 @@
  * Plugin Name: Content Commons Feeder
  * Plugin URI: https://github.com/IIP-Design/wp-elasticsearch-feeder
  * Description: Creates REST API endpoints for each post type and indexes them into Elasticsearch.
- * Version: v2.5.0
+ * Version: v3.0.0
  * Author: U.S. Department of State, Bureau of Global Public Affairs Digital Lab <gpa-lab@america.gov>
  * Author URI: https://lab.america.gov
  * License: GNU General Public License v2.0
