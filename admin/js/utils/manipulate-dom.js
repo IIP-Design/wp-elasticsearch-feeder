@@ -44,20 +44,20 @@ export const emptyElement = id => {
  * @param {int} max The maximum number of children to show.
  */
 export const prependToElement = ( data, id, max = 20 ) => {
-  const parent = document.getElementById( id );
+  const parentEl = document.getElementById( id );
 
   // Abort if target element missing.
-  if ( !parent ) {
+  if ( !parentEl ) {
     return;
   }
 
-  const children = parent.childElementCount;
+  const children = parentEl.childElementCount;
 
   // If the number of children is maxed out, remove the last one.
   if ( children === max ) {
-    const final = parent.lastElementChild;
+    const final = parentEl.lastElementChild;
 
-    parent.removeChild( final );
+    parentEl.removeChild( final );
   }
 
   const child = document.createElement( 'p' );
@@ -66,7 +66,7 @@ export const prependToElement = ( data, id, max = 20 ) => {
 
   child.textContent = val || '';
 
-  parent.insertBefore( child, parent.firstChild );
+  parentEl.insertBefore( child, parentEl.firstChild );
 };
 
 /**
@@ -149,18 +149,18 @@ export const updateStatuses = counts => {
   // Get all status indicator elements.
   const statuses = document.querySelectorAll( '.status-count' );
 
-  statuses.forEach( status => {
+  statuses.forEach( stat => {
     // Determine which status each element represents.
-    const { statusId } = status.dataset;
+    const { statusId } = stat.dataset;
 
-    const currentCount = status.textContent;
+    const currentCount = stat.textContent;
     const updatedCount = counts[statusId] || 0;
 
     // Fade in new value.
     if ( updatedCount !== currentCount ) {
-      status.style.opacity = 0;
-      status.textContent = updatedCount;
-      status.style.opacity = 1;
+      stat.style.opacity = 0;
+      stat.textContent = updatedCount;
+      stat.style.opacity = 1;
     }
   } );
 };
