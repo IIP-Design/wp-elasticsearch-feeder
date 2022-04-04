@@ -402,7 +402,7 @@ class Admin {
     $message = sprintf(
       /* translators: %1$d: number of errors, %2$s: singular or plural error, %3$s: settings page link, %4$s: singular or plural error */
       __(
-        'WP ES Feeder has encountered %1$d %2$s. Go to the <a href="%3$s">settings page</a> to fix the %4$s.',
+        'The Content Commons Feeder has encountered %1$d %2$s. Go to the <a href="%3$s">settings page</a> to fix the %4$s.',
         'gpalab-feeder'
       ),
       esc_html( $errors['errors'] ),

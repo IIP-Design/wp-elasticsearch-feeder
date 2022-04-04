@@ -300,6 +300,13 @@ class Sync_Helper {
     );
 
     foreach ( $rows as $row ) {
+      $indexed = get_post_meta( $row->ID, '_iip_index_post_to_cdp_option', true );
+
+      // Don't report posts that are set not to be indexed.
+      if ( 'no' === $indexed ) {
+        continue;
+      }
+
       $status = $this->get_sync_status( $row->ID, $row->sync_status );
 
       if ( $this->statuses['ERROR'] === (int) $status ) {
