@@ -1,0 +1,26 @@
+{
+  "extends": [
+    "@gpa-lab/eslint-config",
+    "@gpa-lab/eslint-config/react"
+  ],
+  "ignorePatterns": [
+    "admin/build/",
+    "node_modules/",
+    "vendor/"
+  ],
+  "rules": {
+    "node/no-extraneous-import": [
+      "error",
+      {
+        "allowModules": [
+          "react"
+        ]
+      }
+    ]
+  },
+  "settings": {
+    "import/core-modules": [
+      "react"
+    ]
+  }
+}

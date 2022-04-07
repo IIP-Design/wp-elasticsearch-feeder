@@ -1,0 +1,25 @@
+# WordPress phrases that set off the spell checker.
+ABSPATH
+ajaxurl
+ALLMETHODS
+autoloader
+bloginfo
+metaboxes
+pagenow
+postmeta
+poststuff
+sitename
+unslash
+unslashed
+WPINC
+wpdb
+
+# Common Composer-installed packages
+codesniffer
+dealerdirect
+phpcodesniffer
+phpcompatibility
+phpunit
+squizlabs
+symfony
+wpcs

@@ -1,0 +1,6 @@
+# Plugin names and functions that set off the spell checker.
+polylang
+sitepress
+trid
+wpml
+metas

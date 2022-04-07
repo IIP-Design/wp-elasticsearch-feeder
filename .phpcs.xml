@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<ruleset name="GPA Lab Elasticsearch Feeder">
+
+  <description>
+    Applies GPA Lab coding standards to the plugin's PHP files.
+  </description>
+
+  <!-- List of files/directories to check. -->
+  <file>./admin</file>
+  <file>./includes</file>
+  <file>./wp-es-feeder.php</file>
+
+  <!-- Exclude empty index.php files from testing. -->
+  <exclude-pattern>*/vendor</exclude-pattern>
+  <exclude-pattern>*/index.php</exclude-pattern>
+  <exclude-pattern>*/build/*.asset.php</exclude-pattern>
+
+  <!-- Uncomment the below line if you only want a summary report. -->
+  <!-- <arg name="report" value="summary" /> -->
+
+  <rule ref="GPA-Lab-WordPress" />
+
+</ruleset>

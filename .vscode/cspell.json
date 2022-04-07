@@ -1,0 +1,21 @@
+{
+  "dictionaryDefinitions": [
+    {
+      "name": "Plugin Words",
+      "path": "../.config/dictionaries/plugin-words.txt"
+    },
+    {
+      "name": "WordPress",
+      "path": "../.config/dictionaries/wordpress.txt"
+    },
+    {
+      "name": "WP Plugins",
+      "path": "../.config/dictionaries/plugins.txt"
+    }
+  ],
+  "dictionaries": [
+    "Plugin Words",
+    "WordPress",
+    "WP Plugins"
+  ]
+}
