@@ -249,7 +249,7 @@ class Legacy_Metabox {
    *
    * @since 2.0.0
    */
-  private function cdp_taxonomy_display( $post ) {
+  public function cdp_taxonomy_display( $post ) {
     $tax_helper    = new Admin\Helpers\Taxonomy_Helper();
     $current_terms = get_post_meta( $post->ID, '_iip_taxonomy_terms', true );
     $selected      = ! empty( $current_terms ) ? $current_terms : array(); // Do not remove, used in the partial below.
