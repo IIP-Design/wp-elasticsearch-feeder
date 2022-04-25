@@ -38,7 +38,7 @@ if ( ! empty( $has_domain_mapping ) ) {
 
   if ( false === $domains ) {
     $domains = $wpdb->get_col(
-      "SELECT domain FROM {$wpdb->prefix}domain_mapping"
+      "SELECT domain FROM {$wpdb->base_prefix}domain_mapping"
     );
 
     // Cache the results of the query .
